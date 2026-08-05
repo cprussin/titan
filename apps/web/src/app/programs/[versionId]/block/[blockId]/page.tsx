@@ -7,7 +7,6 @@ import { css } from "../../../../../../styled-system/css";
 import { hstack, vstack } from "../../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../../auth/session";
 import { Badge } from "../../../../../components/Badge";
-import { DayAccordion } from "../../../../../components/DayAccordion";
 import { PrescriptionTarget } from "../../../../../components/PrescriptionTarget";
 import { db } from "../../../../../db";
 import { roleTone } from "../../../../../role-tone";
@@ -21,6 +20,7 @@ import {
   findBlockContext,
   sessionRotations,
 } from "../../../../../server/program-explorer";
+import { Accordion } from "../../../../../ui";
 
 const DAY_NAMES = [
   "Monday",
@@ -66,13 +66,23 @@ const renderBlock = (context: BlockContext, names: Map<string, string>) => {
         <h1 className={titleStyles}>{block.name}</h1>
         <p className={metaStyles}>{describeCadence(block)}</p>
       </div>
-      <DayAccordion
+      <Accordion
         items={schedule.map((workout) => ({
           content: renderWorkoutContent(workout, names),
-          day: dayName(workout.dayOfWeek),
-          duration: `${workout.template.targetDurationMin} min`,
-          id: `${workout.dayOfWeek}-${workout.template.id}`,
-          name: workout.template.name,
+          trigger: (
+            <span className={dayTriggerStyles}>
+              <span className={dayHeadingStyles}>
+                <span className={dayLabelStyles}>
+                  {dayName(workout.dayOfWeek)}
+                </span>
+                <span className={dayNameStyles}>{workout.template.name}</span>
+              </span>
+              <span className={durationStyles}>
+                {workout.template.targetDurationMin} min
+              </span>
+            </span>
+          ),
+          value: `${workout.dayOfWeek}-${workout.template.id}`,
         }))}
       />
     </div>
@@ -177,6 +187,44 @@ const metaStyles = css({
   color: "muted",
   fontSize: "sm",
   fontWeight: "medium",
+});
+
+// The accordion trigger's content: the day label and workout name on the start
+// edge, the duration on the end (the accordion supplies the caret after it).
+const dayTriggerStyles = css({
+  alignItems: "center",
+  display: "flex",
+  gap: 3,
+  inlineSize: "100%",
+  justifyContent: "space-between",
+});
+
+const dayHeadingStyles = css({
+  alignItems: "flex-start",
+  display: "flex",
+  flexDirection: "column",
+  gap: 0.5,
+  minInlineSize: 0,
+});
+
+const dayLabelStyles = css({
+  color: "muted",
+  fontSize: "xs",
+  fontWeight: "medium",
+  letterSpacing: "wide",
+  textTransform: "uppercase",
+});
+
+const dayNameStyles = css({
+  fontSize: "lg",
+  fontWeight: "semibold",
+  lg: { fontSize: "xl" },
+});
+
+const durationStyles = css({
+  color: "textTertiary",
+  fontSize: "sm",
+  fontVariantNumeric: "tabular-nums",
 });
 
 // The exercise list flows into two columns on large screens so a full-width

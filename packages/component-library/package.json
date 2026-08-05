@@ -25,6 +25,7 @@
     "vite": "catalog:"
   },
   "exports": {
+    "./Accordion": "./src/Accordion/Accordion.tsx",
     "./Avatar": "./src/Avatar/Avatar.tsx",
     "./Button": "./src/Button/Button.tsx",
     "./Card": "./src/Card/Card.tsx",

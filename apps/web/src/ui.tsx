@@ -5,6 +5,7 @@
 // them for the app; pages (server components) render these as client children,
 // which is the standard RSC composition pattern.
 
+export { Accordion } from "@titan/component-library/Accordion";
 export { Button } from "@titan/component-library/Button";
 export { Card } from "@titan/component-library/Card";
 export { Field } from "@titan/component-library/Field";
