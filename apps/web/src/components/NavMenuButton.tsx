@@ -27,14 +27,26 @@ export const NavMenuButton = () => {
 };
 
 const buttonStyles = css({
-  _pointerFine: { _hover: { color: "foreground" } },
+  // A bordered icon button, set apart from the page's icon and breadcrumbs by a
+  // wider gap so it reads as separate chrome rather than part of the path.
+  _pointerFine: {
+    _hover: {
+      backgroundColor: "color-mix(in oklab, {colors.accent} 8%, {colors.card})",
+      borderColor: "color-mix(in oklab, {colors.accent} 50%, {colors.border})",
+      color: "foreground",
+    },
+  },
   alignItems: "center",
+  border: "1px solid {colors.border}",
+  borderRadius: "md",
   color: "muted",
   cursor: "pointer",
   display: "none",
   flexShrink: 0,
   justifyContent: "center",
-  marginInlineEnd: 0.5,
+  marginInlineEnd: 3,
   mdToLg: { display: "flex" },
-  transition: "color {durations.fast} {easings.out}",
+  padding: 1.5,
+  transition:
+    "border-color {durations.fast} {easings.out}, background-color {durations.fast} {easings.out}, color {durations.fast} {easings.out}",
 });
