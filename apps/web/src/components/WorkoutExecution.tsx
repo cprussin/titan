@@ -97,51 +97,123 @@ export const WorkoutExecution = ({
           current={index}
           segments={prescribedExercises.map((exercise) => exercise.slotId)}
         />
-        <header className={vstack({ alignItems: "flex-start", gap: 1 })}>
-          <span className={roleStyles}>{current.role}</span>
-          <h1 className={nameStyles}>
-            {exerciseNames[current.exerciseId] ?? current.exerciseId}
-          </h1>
-          <p className={targetStyles}>
-            {describePrescription(current.prescription)}
-          </p>
-        </header>
+        <div className={bodyStyles}>
+          <div className={mainColStyles}>
+            <header className={vstack({ alignItems: "flex-start", gap: 1 })}>
+              <span className={roleStyles}>{current.role}</span>
+              <h1 className={nameStyles}>
+                {exerciseNames[current.exerciseId] ?? current.exerciseId}
+              </h1>
+              <p className={targetStyles}>
+                {describePrescription(current.prescription)}
+              </p>
+            </header>
 
-        <PreviousPerformance previous={current.previous} />
+            <PreviousPerformance previous={current.previous} />
 
-        {resting ? (
-          <RestTimer
-            initialSeconds={restSeconds(current)}
-            onFinish={finishRest}
-          />
-        ) : (
-          <ExerciseLogger
-            busy={busy}
-            logged={logged}
-            onComplete={advance}
-            onLogSet={(set) => {
-              const nowLogged = [...logged, set];
-              setLogged(nowLogged);
-              if (nowLogged.length < totalSets(current.prescription)) {
-                setResting(true);
-              }
-            }}
-            prescribed={current}
-          />
-        )}
+            {resting ? (
+              <RestTimer
+                initialSeconds={restSeconds(current)}
+                onFinish={finishRest}
+              />
+            ) : (
+              <ExerciseLogger
+                busy={busy}
+                logged={logged}
+                onComplete={advance}
+                onLogSet={(set) => {
+                  const nowLogged = [...logged, set];
+                  setLogged(nowLogged);
+                  if (nowLogged.length < totalSets(current.prescription)) {
+                    setResting(true);
+                  }
+                }}
+                prescribed={current}
+              />
+            )}
 
-        {next !== undefined && (
-          <p className={nextStyles}>
-            Next: {exerciseNames[next.exerciseId] ?? next.exerciseId} ·{" "}
-            {describePrescription(next.prescription)}
-          </p>
-        )}
+            {/* On phones the "up next" hint and cancel ride under the logger;
+                on desktop they move into the outline pane at the side. */}
+            {next !== undefined && (
+              <p className={nextStyles}>
+                Next: {exerciseNames[next.exerciseId] ?? next.exerciseId} ·{" "}
+                {describePrescription(next.prescription)}
+              </p>
+            )}
 
-        <div className={cancelStyles}>
-          <CancelWorkoutButton sessionId={sessionId} />
+            <div className={cancelStyles}>
+              <CancelWorkoutButton sessionId={sessionId} />
+            </div>
+          </div>
+
+          <aside className={asideStyles}>
+            <SessionOutline
+              currentIndex={index}
+              exerciseNames={exerciseNames}
+              prescribedExercises={prescribedExercises}
+            />
+            <CancelWorkoutButton sessionId={sessionId} />
+          </aside>
         </div>
       </div>
     );
+  }
+};
+
+/**
+ * The full session at a glance — every exercise with the current one
+ * highlighted, done ones dimmed, upcoming ones muted. Shown in the desktop
+ * side pane where there's room for standing context; on phones the compact
+ * "Next:" line stands in for it instead.
+ */
+const SessionOutline = ({
+  currentIndex,
+  exerciseNames,
+  prescribedExercises,
+}: {
+  currentIndex: number;
+  exerciseNames: Record<string, string>;
+  prescribedExercises: readonly PrescribedExercise[];
+}) => (
+  <div className={outlineStyles}>
+    <span className={outlineTitleStyles}>Session</span>
+    <ol className={outlineListStyles}>
+      {prescribedExercises.map((exercise, position) => (
+        <li
+          className={outlineRowStyles}
+          data-state={outlineState(position, currentIndex)}
+          key={exercise.slotId}
+        >
+          <span className={outlineBadgeStyles}>{position + 1}</span>
+          <span className={outlineTextStyles}>
+            <span className={outlineNameStyles}>
+              {exerciseNames[exercise.exerciseId] ?? exercise.exerciseId}
+            </span>
+            <span className={outlineTargetStyles}>
+              {describePrescription(exercise.prescription)}
+            </span>
+          </span>
+        </li>
+      ))}
+    </ol>
+  </div>
+);
+
+/** Where an exercise sits relative to the one in progress, for outline styling. */
+const outlineState = (
+  position: number,
+  currentIndex: number,
+): "current" | "done" | "upcoming" => {
+  switch (Math.sign(position - currentIndex)) {
+    case -1: {
+      return "done";
+    }
+    case 0: {
+      return "current";
+    }
+    default: {
+      return "upcoming";
+    }
   }
 };
 
@@ -470,16 +542,102 @@ const defaultReps = (prescription: Prescription): number =>
     ? prescription.reps
     : 0;
 
-// The guided execution flow is deliberately one-thing-at-a-time, so it stays a
-// single narrow column and centers in the wider desktop shell rather than
-// stretching across it.
+// The active exercise stays a focused single column on phones; on desktop it
+// pairs with a standing session outline, so the root widens to hold both.
 const rootStyles = vstack({
   alignItems: "stretch",
   gap: 4,
   inlineSize: "100%",
+  lg: { maxInlineSize: "none" },
   marginInline: "auto",
   maxInlineSize: "32rem",
 });
+
+// One column on phones (outline hidden); a wide work area beside a narrower
+// outline rail on desktop.
+const bodyStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: 4,
+  lg: {
+    alignItems: "start",
+    display: "grid",
+    gap: 8,
+    gridTemplateColumns: "minmax(0, 1.6fr) minmax(0, 1fr)",
+  },
+});
+
+const mainColStyles = vstack({
+  alignItems: "stretch",
+  gap: 4,
+});
+
+// The outline pane: hidden on phones, and on desktop it sticks in view while
+// the work area scrolls through sets.
+const asideStyles = css({
+  display: "none",
+  lg: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+    insetBlockStart: 8,
+    position: "sticky",
+  },
+});
+
+const outlineStyles = vstack({
+  alignItems: "stretch",
+  backgroundColor: "card",
+  border: "1px solid {colors.border}",
+  borderRadius: "xl",
+  gap: 3,
+  padding: 4,
+});
+
+const outlineTitleStyles = css({
+  color: "muted",
+  fontSize: "xs",
+  fontWeight: "semibold",
+  letterSpacing: "wide",
+  textTransform: "uppercase",
+});
+
+const outlineListStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: 2.5,
+  listStyleType: "none",
+  margin: 0,
+  padding: 0,
+});
+
+const outlineRowStyles = css({
+  "&[data-state='current']": { color: "accent" },
+  "&[data-state='done']": { color: "textTertiary" },
+  alignItems: "baseline",
+  color: "muted",
+  display: "flex",
+  gap: 2.5,
+});
+
+const outlineBadgeStyles = css({
+  fontFamily: "mono",
+  fontSize: "xs",
+  fontWeight: "bold",
+  minInlineSize: 4,
+  textAlign: "end",
+});
+
+const outlineTextStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: 0.5,
+  minInlineSize: 0,
+});
+
+const outlineNameStyles = css({ fontSize: "sm", fontWeight: "medium" });
+
+const outlineTargetStyles = css({ color: "textTertiary", fontSize: "xs" });
 
 const nameStyles = css({ fontSize: "3xl", fontWeight: "bold" });
 
@@ -518,6 +676,7 @@ const previousStyles = css({
 const nextStyles = css({
   color: "textTertiary",
   fontSize: "sm",
+  lg: { display: "none" },
   textAlign: "center",
 });
 
@@ -525,4 +684,8 @@ const mutedStyles = css({ color: "muted" });
 
 const progressTrackStyles = hstack({ gap: 1 });
 
-const cancelStyles = css({ marginBlockStart: 2, textAlign: "center" });
+const cancelStyles = css({
+  lg: { display: "none" },
+  marginBlockStart: 2,
+  textAlign: "center",
+});

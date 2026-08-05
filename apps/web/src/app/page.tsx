@@ -5,6 +5,7 @@ import { css } from "../../styled-system/css";
 import { grid, hstack, vstack } from "../../styled-system/patterns";
 import { requireAuth } from "../auth/session";
 import { CancelWorkoutButton } from "../components/CancelWorkoutButton";
+import { PageHeader } from "../components/PageHeader";
 import { StartWorkoutButton } from "../components/StartWorkoutButton";
 import { StatTile } from "../components/StatTile";
 import { dateIso } from "../date";
@@ -31,13 +32,31 @@ const DashboardPage = async () => {
 
   return (
     <div className={pageStyles}>
-      <h1 className={titleStyles}>Today</h1>
+      <PageHeader description={todayDescription(today)} title="Today" />
       {renderToday(today, names, metrics, sessions, resumableId)}
     </div>
   );
 };
 
 export default DashboardPage;
+
+/** The one-line subtitle under the "Today" heading, describing where in the
+ *  program today sits — or the day's mode when there's nothing prescribed. */
+const todayDescription = (today: Today): string | undefined => {
+  switch (today.kind) {
+    case "no-program": {
+      return undefined;
+    }
+    case "rest": {
+      return "Recovery day";
+    }
+    case "workout": {
+      return `${today.position.block.name} · Week ${today.position.weekInBlock}${
+        today.position.isDeloadWeek ? " · Deload" : ""
+      }`;
+    }
+  }
+};
 
 const renderToday = (
   today: Today,
@@ -102,12 +121,7 @@ const renderWorkout = (
       : undefined;
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 4 })}>
-      <p className={contextStyles}>
-        {today.position.block.name} · Week {today.position.weekInBlock}
-        {today.position.isDeloadWeek ? " · Deload" : ""}
-      </p>
-
+    <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
       <div className={statGridStyles}>
         <StatTile
           hint={
@@ -168,17 +182,9 @@ const renderWorkout = (
   );
 };
 
-const pageStyles = vstack({ alignItems: "stretch", gap: 4 });
+const pageStyles = vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } });
 
-const titleStyles = css({ fontSize: "3xl", fontWeight: "bold" });
-
-const contextStyles = css({
-  color: "muted",
-  fontSize: "sm",
-  fontWeight: "medium",
-});
-
-const statGridStyles = grid({ columns: 3, gap: 2 });
+const statGridStyles = grid({ columns: 3, gap: 2, lg: { gap: 4 } });
 
 // On desktop the exercise plan and the start/resume actions sit side by side;
 // on phones they stack, actions under the plan.
@@ -198,12 +204,17 @@ const cardStyles = vstack({
   alignItems: "stretch",
   backgroundColor: "card",
   border: "1px solid {colors.border}",
-  borderRadius: "xl",
+  borderRadius: "2xl",
   gap: 3,
+  lg: { padding: 6 },
   padding: 4,
 });
 
-const sessionTitleStyles = css({ fontSize: "lg", fontWeight: "semibold" });
+const sessionTitleStyles = css({
+  fontSize: "lg",
+  fontWeight: "semibold",
+  lg: { fontSize: "xl" },
+});
 
 const planStyles = vstack({ alignItems: "stretch", gap: 0 });
 
@@ -227,7 +238,24 @@ const rolePillStyles = css({
   paddingInline: 2,
 });
 
-const actionsStyles = vstack({ alignItems: "stretch", gap: 2 });
+// On phones the actions are just stacked buttons under the plan; on desktop
+// they gather into a sticky rail card beside it, staying in reach as the plan
+// scrolls.
+const actionsStyles = css({
+  alignItems: "stretch",
+  display: "flex",
+  flexDirection: "column",
+  gap: 2,
+  md: {
+    backgroundColor: "card",
+    border: "1px solid {colors.border}",
+    borderRadius: "2xl",
+    gap: 3,
+    insetBlockStart: 8,
+    padding: 5,
+    position: "sticky",
+  },
+});
 
 const readinessLinkStyles = css({
   color: "accent",

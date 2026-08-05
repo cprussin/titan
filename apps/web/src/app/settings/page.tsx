@@ -1,9 +1,11 @@
 import { getConnection } from "@titan/db/external-connections";
 import { listExternalWorkouts } from "@titan/db/external-workouts";
+import type { ReactNode } from "react";
 import { css } from "../../../styled-system/css";
-import { hstack, vstack } from "../../../styled-system/patterns";
+import { vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { Concept2Controls } from "../../components/Concept2Controls";
+import { PageHeader } from "../../components/PageHeader";
 import { db } from "../../db";
 import { ThemeSwitch } from "../../ui";
 import { USER_ID } from "../../user";
@@ -16,52 +18,82 @@ const SettingsPage = async () => {
   ]);
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 4 })}>
-      <h1 className={titleStyles}>Settings</h1>
+    <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
+      <PageHeader
+        description="Appearance and connected services."
+        title="Settings"
+      />
 
-      <section className={cardStyles}>
-        <div className={appearanceRowStyles}>
-          <div className={vstack({ alignItems: "flex-start", gap: 0.5 })}>
-            <h2 className={sectionTitleStyles}>Appearance</h2>
-            <p className={mutedStyles}>
-              Switch between light, dark, and system.
-            </p>
-          </div>
-          <ThemeSwitch />
-        </div>
-      </section>
-
-      <section className={cardStyles}>
-        <h2 className={sectionTitleStyles}>Concept2 rowing</h2>
-        <p className={mutedStyles}>
-          {connection === undefined
-            ? "Connect your Concept2 Logbook to import rows and heart-rate data."
-            : `${externals.length} imported workouts.`}
-        </p>
-        <Concept2Controls connected={connection !== undefined} />
-      </section>
+      <div className={groupStyles}>
+        <SettingRow
+          control={<ThemeSwitch />}
+          description="Switch between light, dark, and system."
+          title="Appearance"
+        />
+        <SettingRow
+          control={<Concept2Controls connected={connection !== undefined} />}
+          description={
+            connection === undefined
+              ? "Connect your Concept2 Logbook to import rows and heart-rate data."
+              : `${externals.length} imported workouts.`
+          }
+          title="Concept2 rowing"
+        />
+      </div>
     </div>
   );
 };
 
 export default SettingsPage;
 
-const titleStyles = css({ fontSize: "3xl", fontWeight: "bold" });
+/** One settings entry: a titled description on the start edge and its control
+ *  on the end edge, side by side on wider screens and stacked on phones. */
+const SettingRow = ({
+  control,
+  description,
+  title,
+}: {
+  control: ReactNode;
+  description: string;
+  title: string;
+}) => (
+  <section className={rowStyles}>
+    <div className={textStyles}>
+      <h2 className={sectionTitleStyles}>{title}</h2>
+      <p className={mutedStyles}>{description}</p>
+    </div>
+    <div className={controlStyles}>{control}</div>
+  </section>
+);
 
-const cardStyles = vstack({
-  alignItems: "stretch",
+const groupStyles = vstack({ alignItems: "stretch", gap: 3 });
+
+const rowStyles = css({
+  alignItems: "flex-start",
   backgroundColor: "card",
   border: "1px solid {colors.border}",
-  borderRadius: "xl",
-  gap: 3,
-  padding: 4,
-});
-
-const appearanceRowStyles = hstack({
+  borderRadius: "2xl",
+  display: "flex",
+  flexDirection: "column",
   gap: 3,
   justifyContent: "space-between",
+  lg: { padding: 6 },
+  padding: 4,
+  sm: { alignItems: "center", flexDirection: "row", gap: 6 },
 });
 
-const sectionTitleStyles = css({ fontSize: "md", fontWeight: "semibold" });
+const textStyles = vstack({
+  alignItems: "flex-start",
+  gap: 1,
+  minInlineSize: 0,
+});
+
+const controlStyles = css({ flexShrink: 0 });
+
+const sectionTitleStyles = css({
+  fontSize: "md",
+  fontWeight: "semibold",
+  lg: { fontSize: "lg" },
+});
 
 const mutedStyles = css({ color: "muted", fontSize: "sm" });

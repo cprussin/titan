@@ -5,6 +5,7 @@ import { css } from "../../../styled-system/css";
 import { grid, vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { BodyWeightForm } from "../../components/BodyWeightForm";
+import { PageHeader } from "../../components/PageHeader";
 import { Sparkline } from "../../components/Sparkline";
 import { StatTile } from "../../components/StatTile";
 import { db } from "../../db";
@@ -41,10 +42,13 @@ const AnalyticsPage = async () => {
   );
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 4 })}>
-      <h1 className={titleStyles}>Trends</h1>
+    <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
+      <PageHeader
+        description="Your training and body trends over time."
+        title="Trends"
+      />
 
-      <div className={grid({ columns: 3, gap: 2 })}>
+      <div className={statGridStyles}>
         <StatTile
           label="Body weight"
           value={
@@ -83,21 +87,27 @@ const AnalyticsPage = async () => {
 
 export default AnalyticsPage;
 
-const titleStyles = css({ fontSize: "3xl", fontWeight: "bold" });
+const statGridStyles = grid({ columns: 3, gap: 2, lg: { gap: 4 } });
 
 const chartsStyles = grid({
   alignItems: "start",
   gap: 4,
   gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+  lg: { gap: 6 },
 });
 
 const cardStyles = vstack({
   alignItems: "stretch",
   backgroundColor: "card",
   border: "1px solid {colors.border}",
-  borderRadius: "xl",
+  borderRadius: "2xl",
   gap: 3,
+  lg: { gap: 4, padding: 6 },
   padding: 4,
 });
 
-const sectionTitleStyles = css({ fontSize: "md", fontWeight: "semibold" });
+const sectionTitleStyles = css({
+  fontSize: "md",
+  fontWeight: "semibold",
+  lg: { fontSize: "lg" },
+});

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { css } from "../../../styled-system/css";
 import { grid, hstack, vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
+import { PageHeader } from "../../components/PageHeader";
 import { db } from "../../db";
 import { templateNames } from "../../server/template-names";
 import { USER_ID } from "../../user";
@@ -15,8 +16,15 @@ const HistoryPage = async () => {
   ]);
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 4 })}>
-      <h1 className={titleStyles}>History</h1>
+    <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
+      <PageHeader
+        description={
+          sessions.length === 0
+            ? undefined
+            : `${sessions.length} logged session${sessions.length === 1 ? "" : "s"}`
+        }
+        title="History"
+      />
       {sessions.length === 0 ? (
         <p className={mutedStyles}>No sessions yet — start today's workout.</p>
       ) : (
@@ -61,29 +69,41 @@ const HistoryPage = async () => {
 
 export default HistoryPage;
 
-const titleStyles = css({ fontSize: "3xl", fontWeight: "bold" });
-
 const listStyles = grid({
   alignItems: "stretch",
   gap: 2,
-  gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+  gridTemplateColumns: {
+    base: "1fr",
+    md: "repeat(2, minmax(0, 1fr))",
+    xl: "repeat(3, minmax(0, 1fr))",
+  },
+  lg: { gap: 3 },
 });
 
 const rowStyles = hstack({
   // Hover feedback only for a mouse-like pointer — on touch a tap shouldn't
-  // leave a lingering border highlight.
-  _pointerFine: { _hover: { borderColor: "borderStrong" } },
+  // leave a lingering border highlight; a fine pointer also lifts the card.
+  _pointerFine: {
+    _hover: { backgroundColor: "card", borderColor: "borderStrong" },
+  },
   backgroundColor: "card",
   blockSize: "100%",
   border: "1px solid {colors.border}",
-  borderRadius: "lg",
+  borderRadius: "xl",
   justifyContent: "space-between",
+  lg: { padding: 4 },
   padding: 3,
+  transition:
+    "border-color {durations.fast} {easings.out}, background-color {durations.fast} {easings.out}",
 });
 
 const nameStyles = css({ fontWeight: "medium" });
 
-const metaStyles = css({ color: "muted", fontSize: "sm" });
+const metaStyles = css({
+  color: "muted",
+  fontSize: "sm",
+  fontVariantNumeric: "tabular-nums",
+});
 
 const statusStyles = css({
   "&[data-status='in-progress']": { color: "accent" },

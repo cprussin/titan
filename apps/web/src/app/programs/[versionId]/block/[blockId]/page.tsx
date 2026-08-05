@@ -55,8 +55,8 @@ const renderBlock = (context: BlockContext, names: Map<string, string>) => {
   const { block, program, version } = context;
   const schedule = blockSchedule(version, block);
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 4 })}>
-      <div className={vstack({ alignItems: "stretch", gap: 1 })}>
+    <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
+      <div className={vstack({ alignItems: "stretch", gap: 1.5 })}>
         <Link className={backLinkStyles} href="/programs">
           ← {program.name}
         </Link>
@@ -146,7 +146,12 @@ const backLinkStyles = css({
   fontWeight: "medium",
 });
 
-const titleStyles = css({ fontSize: "3xl", fontWeight: "bold" });
+const titleStyles = css({
+  fontSize: "3xl",
+  fontWeight: "bold",
+  letterSpacing: "tight",
+  lg: { fontSize: "4xl" },
+});
 
 const metaStyles = css({
   color: "muted",
@@ -158,14 +163,16 @@ const scheduleStyles = grid({
   alignItems: "start",
   gap: 4,
   gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+  lg: { gap: 6 },
 });
 
 const cardStyles = vstack({
   alignItems: "stretch",
   backgroundColor: "card",
   border: "1px solid {colors.border}",
-  borderRadius: "xl",
+  borderRadius: "2xl",
   gap: 3,
+  lg: { gap: 4, padding: 6 },
   padding: 4,
 });
 

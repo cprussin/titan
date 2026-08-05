@@ -4,6 +4,7 @@ import Link from "next/link";
 import { css } from "../../../styled-system/css";
 import { grid, hstack, vstack, wrap } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
+import { PageHeader } from "../../components/PageHeader";
 import { db } from "../../db";
 import { latestPrograms } from "../../server/program-explorer";
 
@@ -16,8 +17,11 @@ const ProgramsPage = async () => {
   const entries = latestPrograms(programs, versions);
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 4 })}>
-      <h1 className={titleStyles}>Programs</h1>
+    <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
+      <PageHeader
+        description="Your training programs and the blocks that make them up."
+        title="Programs"
+      />
       {entries.length === 0 ? (
         <p className={mutedStyles}>
           No programs loaded. Run <code>bun run --filter @titan/db seed</code>{" "}
@@ -84,18 +88,21 @@ const countWorkouts = (block: TrainingBlock): string => {
   return `${count} workout${count === 1 ? "" : "s"}`;
 };
 
-const titleStyles = css({ fontSize: "3xl", fontWeight: "bold" });
-
 const cardStyles = vstack({
   alignItems: "stretch",
   backgroundColor: "card",
   border: "1px solid {colors.border}",
-  borderRadius: "xl",
+  borderRadius: "2xl",
   gap: 3,
+  lg: { gap: 4, padding: 6 },
   padding: 4,
 });
 
-const programNameStyles = css({ fontSize: "lg", fontWeight: "semibold" });
+const programNameStyles = css({
+  fontSize: "lg",
+  fontWeight: "semibold",
+  lg: { fontSize: "xl" },
+});
 
 const descriptionStyles = css({ color: "muted", fontSize: "sm" });
 
@@ -118,14 +125,22 @@ const blockListStyles = grid({
 });
 
 const blockRowStyles = hstack({
-  // Hover border only for a mouse-like pointer, so a tap on touch doesn't
+  // Hover feedback only for a mouse-like pointer, so a tap on touch doesn't
   // leave the row stuck in its highlighted state.
-  _pointerFine: { _hover: { borderColor: "borderStrong" } },
+  _pointerFine: {
+    _hover: {
+      backgroundColor:
+        "color-mix(in oklab, {colors.foreground} 4%, transparent)",
+      borderColor: "borderStrong",
+    },
+  },
   blockSize: "100%",
   border: "1px solid {colors.border}",
   borderRadius: "lg",
   justifyContent: "space-between",
   padding: 3,
+  transition:
+    "border-color {durations.fast} {easings.out}, background-color {durations.fast} {easings.out}",
 });
 
 const blockNameStyles = css({ fontWeight: "medium" });

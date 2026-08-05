@@ -21,22 +21,32 @@ const tileStyles = vstack({
   alignItems: "flex-start",
   backgroundColor: "card",
   border: "1px solid {colors.border}",
-  borderRadius: "lg",
-  gap: 1,
+  borderRadius: "xl",
+  gap: 1.5,
+  lg: { padding: 5 },
   padding: 4,
 });
 
 const labelStyles = css({
   color: "muted",
   fontSize: "xs",
-  fontWeight: "medium",
+  fontWeight: "semibold",
+  letterSpacing: "wide",
   textTransform: "uppercase",
 });
 
 const valueStyles = css({
   color: "foreground",
   fontSize: "2xl",
+  fontVariantNumeric: "tabular-nums",
   fontWeight: "bold",
+  letterSpacing: "tight",
+  lg: { fontSize: "3xl" },
+  lineHeight: "tight",
 });
 
-const hintStyles = css({ color: "textTertiary", fontSize: "xs" });
+const hintStyles = css({
+  color: "textTertiary",
+  fontSize: "xs",
+  fontVariantNumeric: "tabular-nums",
+});

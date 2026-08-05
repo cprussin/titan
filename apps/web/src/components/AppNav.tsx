@@ -117,8 +117,14 @@ const itemWrapStyles = css({ lg: { inlineSize: "100%" } });
 const itemStyles = css({
   _pointerCoarse: { minBlockSize: 12 },
   // Hover tint only for a mouse-like pointer, so a tap on touch doesn't leave
-  // a stuck highlight; a coarse pointer gets a taller tap target instead.
-  _pointerFine: { _hover: { color: "foreground" } },
+  // a stuck highlight; on the desktop rail hover also fills a subtle pill. A
+  // coarse pointer gets a taller tap target instead.
+  _pointerFine: {
+    _hover: {
+      color: "foreground",
+      lg: { "&:not([aria-current='page'])": { backgroundColor: "card" } },
+    },
+  },
   alignItems: "center",
   borderRadius: "md",
   color: "muted",
@@ -126,18 +132,28 @@ const itemStyles = css({
   flexDirection: "column",
   gap: 0.5,
   lg: {
+    borderRadius: "lg",
     flexDirection: "row",
     gap: 3,
     justifyContent: "flex-start",
     minInlineSize: 0,
     paddingBlock: 2.5,
     paddingInline: 3,
+    transition: "background-color {durations.fast} {easings.out}",
   },
   minInlineSize: 16,
   paddingBlock: 1,
 });
 
-const activeStyles = css({ color: "accent" });
+// The active section: accent-colored throughout, and on the desktop rail it
+// also carries a faint fill so the current page reads at a glance.
+const activeStyles = css({
+  color: "accent",
+  lg: {
+    backgroundColor:
+      "color-mix(in oklab, {colors.accent} 12%, {colors.background})",
+  },
+});
 
 const labelStyles = css({
   fontSize: "xs",

@@ -1,14 +1,15 @@
 import { listAdaptationDecisionsBySession } from "@titan/db/adaptation-decisions";
 import { listPersonalRecords } from "@titan/db/personal-records";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { css } from "../../../../../styled-system/css";
 import { grid, vstack } from "../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../auth/session";
+import { PageHeader } from "../../../../components/PageHeader";
 import { StatTile } from "../../../../components/StatTile";
 import { db } from "../../../../db";
 import { exerciseNames } from "../../../../server/exercise-names";
+import { Button } from "../../../../ui";
 import { USER_ID } from "../../../../user";
 
 const CompletePage = async ({
@@ -50,55 +51,64 @@ const CompletePage = async ({
     );
 
     return (
-      <div className={vstack({ alignItems: "stretch", gap: 4 })}>
-        <h1 className={titleStyles}>Workout complete</h1>
+      <div
+        className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}
+      >
+        <PageHeader
+          description="Nice work — here's the recap."
+          title="Workout complete"
+        />
 
-        <div className={grid({ columns: 3, gap: 2 })}>
+        <div className={statGridStyles}>
           <StatTile label="Duration" value={`${durationMin} min`} />
           <StatTile label="Sets" value={`${totalSets}`} />
           <StatTile label="PRs" value={`${sessionRecords.length}`} />
         </div>
 
-        {sessionRecords.length > 0 && (
-          <section className={cardStyles}>
-            <h2 className={sectionTitleStyles}>Personal records</h2>
-            <ul className={listStyles}>
-              {sessionRecords.map((record) => (
-                <li className={rowStyles} key={record.id}>
-                  <span>
-                    {names.get(record.exerciseId) ?? record.exerciseId}
-                  </span>
-                  <span className={emphasisStyles}>
-                    {record.value} {record.unit} est. 1RM
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
-
-        <section className={cardStyles}>
-          <h2 className={sectionTitleStyles}>
-            Why today looked the way it did
-          </h2>
-          {adaptations.length === 0 ? (
-            <p className={mutedStyles}>
-              Steady week — prescriptions held from your program.
-            </p>
-          ) : (
-            <ul className={listStyles}>
-              {adaptations.map((decision) => (
-                <li className={explanationStyles} key={decision.id}>
-                  {decision.explanation}
-                </li>
-              ))}
-            </ul>
+        <div className={sectionsStyles}>
+          {sessionRecords.length > 0 && (
+            <section className={cardStyles}>
+              <h2 className={sectionTitleStyles}>Personal records</h2>
+              <ul className={listStyles}>
+                {sessionRecords.map((record) => (
+                  <li className={rowStyles} key={record.id}>
+                    <span>
+                      {names.get(record.exerciseId) ?? record.exerciseId}
+                    </span>
+                    <span className={emphasisStyles}>
+                      {record.value} {record.unit} est. 1RM
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
-        </section>
 
-        <Link className={buttonLinkStyles} href="/">
-          Back to dashboard
-        </Link>
+          <section className={cardStyles}>
+            <h2 className={sectionTitleStyles}>
+              Why today looked the way it did
+            </h2>
+            {adaptations.length === 0 ? (
+              <p className={mutedStyles}>
+                Steady week — prescriptions held from your program.
+              </p>
+            ) : (
+              <ul className={listStyles}>
+                {adaptations.map((decision) => (
+                  <li className={explanationStyles} key={decision.id}>
+                    {decision.explanation}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+
+        <div className={backStyles}>
+          <Button href="/" size="lg">
+            Back to dashboard
+          </Button>
+        </div>
       </div>
     );
   }
@@ -106,24 +116,39 @@ const CompletePage = async ({
 
 export default CompletePage;
 
-const titleStyles = css({ fontSize: "3xl", fontWeight: "bold" });
+const statGridStyles = grid({ columns: 3, gap: 2, lg: { gap: 4 } });
+
+// The two recap panels sit side by side when both are present and there's
+// room; a lone panel (no PRs this session) fills the width instead of stranding
+// half of it.
+const sectionsStyles = grid({
+  alignItems: "start",
+  gap: 4,
+  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 20rem), 1fr))",
+  lg: { gap: 6 },
+});
 
 const cardStyles = vstack({
   alignItems: "stretch",
   backgroundColor: "card",
   border: "1px solid {colors.border}",
-  borderRadius: "xl",
+  borderRadius: "2xl",
   gap: 3,
+  lg: { gap: 4, padding: 6 },
   padding: 4,
 });
 
-const sectionTitleStyles = css({ fontSize: "lg", fontWeight: "semibold" });
+const sectionTitleStyles = css({
+  fontSize: "lg",
+  fontWeight: "semibold",
+});
 
 const listStyles = vstack({ alignItems: "stretch", gap: 2 });
 
 const rowStyles = css({
   alignItems: "center",
   display: "flex",
+  gap: 3,
   justifyContent: "space-between",
 });
 
@@ -133,11 +158,4 @@ const explanationStyles = css({ color: "muted", fontSize: "sm" });
 
 const mutedStyles = css({ color: "muted" });
 
-const buttonLinkStyles = css({
-  backgroundColor: "foreground",
-  borderRadius: "lg",
-  color: "background",
-  fontWeight: "semibold",
-  paddingBlock: 3,
-  textAlign: "center",
-});
+const backStyles = css({ marginBlockStart: 2 });
