@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd ../.. && bunx turbo build --filter=@titan/web",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && bun install",
+  "outputDirectory": ".next"
+}

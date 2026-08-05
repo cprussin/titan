@@ -1,0 +1,38 @@
+{
+  "dependencies": {
+    "@phosphor-icons/react": "catalog:",
+    "@titan/adaptation-engine": "workspace:*",
+    "@titan/component-library": "workspace:*",
+    "@titan/concept2": "workspace:*",
+    "@titan/db": "workspace:*",
+    "@titan/domain": "workspace:*",
+    "@titan/program-engine": "workspace:*",
+    "@titan/programs": "workspace:*",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cprussin/tsconfig": "catalog:",
+    "@pandacss/dev": "catalog:",
+    "@pandacss/preset-panda": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "postcss": "catalog:",
+    "typescript": "catalog:"
+  },
+  "name": "@titan/web",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "build:pandacss": "panda codegen --silent",
+    "start:dev": "next dev -p 3000",
+    "start:prod": "next start -p 3000",
+    "test:types": "tsc --noEmit",
+    "test:unit": "bun test"
+  },
+  "type": "module",
+  "version": "0.0.0"
+}

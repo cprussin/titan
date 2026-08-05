@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "@titan/domain": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cprussin/tsconfig": "catalog:",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    "./concept2-api": "./src/concept2-api.ts",
+    "./match": "./src/match.ts",
+    "./normalize": "./src/normalize.ts",
+    "./oauth": "./src/oauth.ts"
+  },
+  "files": [
+    "src/**/*"
+  ],
+  "name": "@titan/concept2",
+  "private": true,
+  "scripts": {
+    "test:types": "tsc --noEmit",
+    "test:unit": "bun test"
+  },
+  "type": "module",
+  "version": "0.0.0"
+}

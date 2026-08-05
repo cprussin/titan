@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "types": ["node", "react", "react-dom"]
+  },
+  "exclude": ["node_modules", ".next", "**/*.test.ts", "**/*.test.tsx"],
+  "extends": "@cprussin/tsconfig/nextjs.json",
+  "include": ["next-env.d.ts", "src", "panda.config.ts", ".next/types/**/*.ts"]
+}

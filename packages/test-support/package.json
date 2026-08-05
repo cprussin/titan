@@ -1,0 +1,36 @@
+{
+  "dependencies": {
+    "@happy-dom/global-registrator": "catalog:",
+    "@testing-library/jest-dom": "catalog:",
+    "@testing-library/react": "catalog:"
+  },
+  "devDependencies": {
+    "@cprussin/tsconfig": "catalog:",
+    "@types/bun": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "react": "catalog:",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    ".": {
+      "types": "./matchers.d.ts"
+    },
+    "./expect-caught-error-logged": "./src/expect-caught-error-logged.ts",
+    "./preload": "./src/preload.ts"
+  },
+  "files": [
+    "matchers.d.ts",
+    "src/**/*"
+  ],
+  "name": "@titan/test-support",
+  "peerDependencies": {
+    "react": "catalog:"
+  },
+  "private": true,
+  "scripts": {
+    "test:types": "tsc --noEmit"
+  },
+  "type": "module",
+  "version": "0.0.0"
+}

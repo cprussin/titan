@@ -1,0 +1,40 @@
+{
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cprussin/tsconfig": "catalog:",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    "./adaptation-decision": "./src/adaptation-decision.ts",
+    "./body-metric": "./src/body-metric.ts",
+    "./equipment": "./src/equipment.ts",
+    "./exercise": "./src/exercise.ts",
+    "./external": "./src/external.ts",
+    "./ids": "./src/ids.ts",
+    "./movement": "./src/movement.ts",
+    "./one-rep-max": "./src/one-rep-max.ts",
+    "./pace": "./src/pace.ts",
+    "./personal-record": "./src/personal-record.ts",
+    "./prescription": "./src/prescription.ts",
+    "./profile": "./src/profile.ts",
+    "./program": "./src/program.ts",
+    "./progression-policy": "./src/progression-policy.ts",
+    "./readiness": "./src/readiness.ts",
+    "./result": "./src/result.ts",
+    "./workout-session": "./src/workout-session.ts"
+  },
+  "files": [
+    "src/**/*"
+  ],
+  "name": "@titan/domain",
+  "private": true,
+  "scripts": {
+    "test:types": "tsc --noEmit",
+    "test:unit": "bun test"
+  },
+  "type": "module",
+  "version": "0.0.0"
+}
