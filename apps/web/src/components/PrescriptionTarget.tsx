@@ -44,7 +44,7 @@ const primaryStyles = cva({
 });
 
 const recoveryStyles = cva({
-  base: { color: "textTertiary" },
+  base: { color: "muted" },
   variants: {
     size: {
       lg: { fontSize: "sm" },
