@@ -9,6 +9,7 @@ export { Button } from "@titan/component-library/Button";
 export { Card } from "@titan/component-library/Card";
 export { Field } from "@titan/component-library/Field";
 export { Input } from "@titan/component-library/Input";
+export { ModalDialog } from "@titan/component-library/ModalDialog";
 export { Provider } from "@titan/component-library/Provider";
 export { Select } from "@titan/component-library/Select";
 export { Textarea } from "@titan/component-library/Textarea";

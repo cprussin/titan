@@ -4,6 +4,7 @@ import Link from "next/link";
 import { css } from "../../styled-system/css";
 import { grid, hstack, vstack } from "../../styled-system/patterns";
 import { requireAuth } from "../auth/session";
+import { CancelWorkoutButton } from "../components/CancelWorkoutButton";
 import { StartWorkoutButton } from "../components/StartWorkoutButton";
 import { StatTile } from "../components/StatTile";
 import { dateIso } from "../date";
@@ -11,23 +12,27 @@ import { db } from "../db";
 import { formatWeight } from "../format";
 import { describePrescription } from "../prescription-text";
 import { exerciseNames } from "../server/exercise-names";
+import { findResumableSession } from "../server/resumable-session";
 import type { Today } from "../server/today";
 import { resolveToday } from "../server/today";
+import { Button } from "../ui";
 import { USER_ID } from "../user";
 
 const DashboardPage = async () => {
   await requireAuth();
-  const today = await resolveToday(db, USER_ID, dateIso());
+  const date = dateIso();
+  const today = await resolveToday(db, USER_ID, date);
   const [names, metrics, sessions] = await Promise.all([
     exerciseNames(db),
     listBodyMetrics(db, USER_ID, 30),
     listWorkoutSessions(db, USER_ID, 50),
   ]);
+  const resumableId = findResumableSession(sessions, date)?.id;
 
   return (
     <div className={pageStyles}>
       <h1 className={titleStyles}>Today</h1>
-      {renderToday(today, names, metrics, sessions)}
+      {renderToday(today, names, metrics, sessions, resumableId)}
     </div>
   );
 };
@@ -43,6 +48,7 @@ const renderToday = (
     programVersionId: string;
     weekNumber: number;
   }[],
+  resumableId: string | undefined,
 ) => {
   switch (today.kind) {
     case "no-program": {
@@ -65,7 +71,7 @@ const renderToday = (
       );
     }
     case "workout": {
-      return renderWorkout(today, names, metrics, sessions);
+      return renderWorkout(today, names, metrics, sessions, resumableId);
     }
   }
 };
@@ -79,6 +85,7 @@ const renderWorkout = (
     programVersionId: string;
     weekNumber: number;
   }[],
+  resumableId: string | undefined,
 ) => {
   const scheduledDays = today.position.block.weekTemplate.days.length;
   const completed = sessions.filter(
@@ -139,10 +146,21 @@ const renderWorkout = (
       </div>
 
       <div className={actionsStyles}>
-        <Link className={readinessLinkStyles} href="/readiness">
-          Log readiness
-        </Link>
-        <StartWorkoutButton />
+        {resumableId === undefined ? (
+          <>
+            <Link className={readinessLinkStyles} href="/readiness">
+              Log readiness
+            </Link>
+            <StartWorkoutButton />
+          </>
+        ) : (
+          <>
+            <Button href={`/workout/${resumableId}`} size="xl">
+              Resume workout
+            </Button>
+            <CancelWorkoutButton sessionId={resumableId} />
+          </>
+        )}
       </div>
     </div>
   );

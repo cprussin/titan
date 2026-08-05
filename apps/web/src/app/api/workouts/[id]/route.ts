@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiAuthGuard } from "../../../../auth/session";
 import { db } from "../../../../db";
+import { cancelWorkout } from "../../../../server/cancel-workout";
 import { completeWorkout } from "../../../../server/complete-workout";
 import { USER_ID } from "../../../../user";
 
@@ -40,6 +41,20 @@ export const PATCH = async (
         return NextResponse.json({ ok: true });
       }
     }
+  } else {
+    return guard;
+  }
+};
+
+export const DELETE = async (
+  _request: Request,
+  context: { params: Promise<{ id: string }> },
+): Promise<Response> => {
+  const guard = await apiAuthGuard();
+  if (guard === undefined) {
+    const { id } = await context.params;
+    await cancelWorkout(db, id);
+    return NextResponse.json({ ok: true });
   } else {
     return guard;
   }
