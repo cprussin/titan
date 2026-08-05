@@ -7,6 +7,7 @@ import { css } from "../../../../../../styled-system/css";
 import { hstack, vstack } from "../../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../../auth/session";
 import { Badge } from "../../../../../components/Badge";
+import { DaySection } from "../../../../../components/DaySection";
 import { PrescriptionTarget } from "../../../../../components/PrescriptionTarget";
 import { db } from "../../../../../db";
 import { roleTone } from "../../../../../role-tone";
@@ -83,14 +84,12 @@ const renderWorkout = (
   // distinct choices rather than one long run of exercises.
   const rotatesByWeek = rotations.length > 1;
   return (
-    <section className={workoutStyles} key={`${dayOfWeek}-${template.id}`}>
-      <div className={workoutHeaderStyles}>
-        <div className={vstack({ alignItems: "flex-start", gap: 0.5 })}>
-          <span className={dayStyles}>{dayName(dayOfWeek)}</span>
-          <h2 className={workoutNameStyles}>{template.name}</h2>
-        </div>
-        <span className={durationStyles}>{template.targetDurationMin} min</span>
-      </div>
+    <DaySection
+      day={dayName(dayOfWeek)}
+      duration={`${template.targetDurationMin} min`}
+      key={`${dayOfWeek}-${template.id}`}
+      name={template.name}
+    >
       {rotatesByWeek ? (
         <div className={variantsStyles}>
           <p className={variantsHintStyles}>
@@ -109,7 +108,7 @@ const renderWorkout = (
             .map((slot) => renderSlot(slot, names))}
         </ul>
       )}
-    </section>
+    </DaySection>
   );
 };
 
@@ -182,17 +181,14 @@ const metaStyles = css({
   fontWeight: "medium",
 });
 
-// Full-width workouts stacked down the page — on large screens each workout
-// spreads its own exercise list into columns rather than sitting beside another
-// workout, which read awkwardly when their lengths differed.
+// Days stack as a flush accordion on phones (headers divided by their own
+// rules) and spread out on desktop, where each day is always open and spreads
+// its exercise list into columns.
 const scheduleStyles = vstack({
   alignItems: "stretch",
-  gap: 8,
+  gap: 0,
   lg: { gap: 12 },
 });
-
-// Each workout is a flat section, not a card: a ruled header over its exercises.
-const workoutStyles = vstack({ alignItems: "stretch", gap: 3 });
 
 // The exercise list flows into two columns on large screens so a full-width
 // workout uses the room. Rows are separated by spacing, not rules — the only
@@ -202,32 +198,6 @@ const slotListStyles = css({
   display: "grid",
   gridTemplateColumns: { base: "1fr", lg: "repeat(2, minmax(0, 1fr))" },
   rowGap: 3,
-});
-
-const workoutHeaderStyles = hstack({
-  borderBlockEnd: "1px solid {colors.border}",
-  justifyContent: "space-between",
-  paddingBlockEnd: 2,
-});
-
-const dayStyles = css({
-  color: "muted",
-  fontSize: "xs",
-  fontWeight: "medium",
-  letterSpacing: "wide",
-  textTransform: "uppercase",
-});
-
-const workoutNameStyles = css({
-  fontSize: "lg",
-  fontWeight: "semibold",
-  lg: { fontSize: "xl" },
-});
-
-const durationStyles = css({
-  color: "textTertiary",
-  fontSize: "sm",
-  fontVariantNumeric: "tabular-nums",
 });
 
 // The week-variant block: a labeled column of its own exercises.
