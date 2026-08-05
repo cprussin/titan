@@ -51,6 +51,7 @@ const AnalyticsPage = async () => {
       <div className={statGridStyles}>
         <StatTile
           label="Body weight"
+          tone="accent"
           value={
             latestWeight === undefined
               ? "—"
@@ -98,9 +99,11 @@ const chartsStyles = grid({
 
 const sectionStyles = vstack({ alignItems: "stretch", gap: 3 });
 
-// A ruled section heading gives structure without wrapping the chart in a box.
+// A ruled section heading gives structure without wrapping the chart in a box;
+// the rule carries a hint of accent to keep the flat layout from going cold.
 const sectionTitleStyles = css({
-  borderBlockEnd: "1px solid {colors.border}",
+  borderBlockEnd:
+    "1px solid color-mix(in oklab, {colors.accent} 35%, {colors.border})",
   fontSize: "md",
   fontWeight: "semibold",
   lg: { fontSize: "lg" },

@@ -134,7 +134,11 @@ const renderWorkout = (
           label="Est. time"
           value={`${today.resolved.estimatedDurationMin} min`}
         />
-        <StatTile label="This week" value={`${completed}/${scheduledDays}`} />
+        <StatTile
+          label="This week"
+          tone="accent"
+          value={`${completed}/${scheduledDays}`}
+        />
         <StatTile
           hint={trend}
           label="Body weight"

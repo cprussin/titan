@@ -9,6 +9,10 @@ import { PageHeader } from "../../components/PageHeader";
 import { db } from "../../db";
 import { latestPrograms } from "../../server/program-explorer";
 
+// Goals cycle through tones so a program's tag row reads as a splash of color
+// rather than a monochrome run of accent pills.
+const GOAL_TONES = ["accent", "success", "warning"] as const;
+
 const ProgramsPage = async () => {
   await requireAuth();
   const [programs, versions] = await Promise.all([
@@ -36,9 +40,11 @@ const ProgramsPage = async () => {
               <p className={descriptionStyles}>{program.description}</p>
               {program.goals.length > 0 && (
                 <ul className={goalsStyles}>
-                  {program.goals.map((goal) => (
+                  {program.goals.map((goal, index) => (
                     <li key={goal}>
-                      <Badge tone="accent">{goal}</Badge>
+                      <Badge tone={GOAL_TONES[index % GOAL_TONES.length]}>
+                        {goal}
+                      </Badge>
                     </li>
                   ))}
                 </ul>
@@ -115,8 +121,7 @@ const blockRowStyles = hstack({
   // row stuck in its highlighted state.
   _pointerFine: {
     _hover: {
-      backgroundColor:
-        "color-mix(in oklab, {colors.foreground} 4%, transparent)",
+      backgroundColor: "color-mix(in oklab, {colors.accent} 10%, transparent)",
     },
   },
   borderBlockEnd: "1px solid {colors.border}",

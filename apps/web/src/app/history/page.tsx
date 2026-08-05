@@ -85,8 +85,7 @@ const rowStyles = hstack({
   // edges while the hairline stays aligned to the text.
   _pointerFine: {
     _hover: {
-      backgroundColor:
-        "color-mix(in oklab, {colors.foreground} 4%, transparent)",
+      backgroundColor: "color-mix(in oklab, {colors.accent} 10%, transparent)",
     },
   },
   borderBlockEnd: "1px solid {colors.border}",

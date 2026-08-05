@@ -60,9 +60,17 @@ const CompletePage = async ({
         />
 
         <div className={statGridStyles}>
-          <StatTile label="Duration" value={`${durationMin} min`} />
+          <StatTile
+            label="Duration"
+            tone="accent"
+            value={`${durationMin} min`}
+          />
           <StatTile label="Sets" value={`${totalSets}`} />
-          <StatTile label="PRs" value={`${sessionRecords.length}`} />
+          <StatTile
+            label="PRs"
+            tone={sessionRecords.length > 0 ? "success" : "neutral"}
+            value={`${sessionRecords.length}`}
+          />
         </div>
 
         <div className={sectionsStyles}>
@@ -130,9 +138,11 @@ const sectionsStyles = grid({
 
 const sectionStyles = vstack({ alignItems: "stretch", gap: 3 });
 
-// A ruled heading structures each panel without wrapping it in a box.
+// A ruled heading structures each panel without wrapping it in a box; a hint of
+// accent in the rule keeps the recap from reading flat-gray.
 const sectionTitleStyles = css({
-  borderBlockEnd: "1px solid {colors.border}",
+  borderBlockEnd:
+    "1px solid color-mix(in oklab, {colors.accent} 35%, {colors.border})",
   fontSize: "lg",
   fontWeight: "semibold",
   paddingBlockEnd: 2,

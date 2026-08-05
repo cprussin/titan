@@ -1,17 +1,20 @@
-import { css } from "../../styled-system/css";
-import { vstack } from "../../styled-system/patterns";
+import { css, cva } from "../../styled-system/css";
+import type { Tone } from "./Badge";
 
 type Props = {
   hint?: string | undefined;
   label: string;
+  /** Colors the value to make one stat the focal point of a row. Defaults to
+   *  the plain foreground. */
+  tone?: Tone | undefined;
   value: string;
 };
 
-/** A compact labeled statistic for the dashboard and analytics grids. Purely
- *  presentational and server-safe (no hooks). */
-export const StatTile = ({ hint, label, value }: Props) => (
+/** A compact labeled statistic for the dashboard and analytics rows. Flat by
+ *  design (no box) and server-safe (no hooks). */
+export const StatTile = ({ hint, label, tone = "neutral", value }: Props) => (
   <div className={tileStyles}>
-    <span className={valueStyles}>{value}</span>
+    <span className={valueStyles({ tone })}>{value}</span>
     <span className={labelStyles}>{label}</span>
     {hint !== undefined && <span className={hintStyles}>{hint}</span>}
   </div>
@@ -19,8 +22,10 @@ export const StatTile = ({ hint, label, value }: Props) => (
 
 // Flat by design: no box, just a value over its label. Grouping and separation
 // come from the containing stat row, not from a border around each tile.
-const tileStyles = vstack({
+const tileStyles = css({
   alignItems: "flex-start",
+  display: "flex",
+  flexDirection: "column",
   gap: 0.5,
 });
 
@@ -32,14 +37,24 @@ const labelStyles = css({
   textTransform: "uppercase",
 });
 
-const valueStyles = css({
-  color: "foreground",
-  fontSize: "2xl",
-  fontVariantNumeric: "tabular-nums",
-  fontWeight: "bold",
-  letterSpacing: "tight",
-  lg: { fontSize: "3xl" },
-  lineHeight: "tight",
+const valueStyles = cva({
+  base: {
+    fontSize: "2xl",
+    fontVariantNumeric: "tabular-nums",
+    fontWeight: "bold",
+    letterSpacing: "tight",
+    lg: { fontSize: "3xl" },
+    lineHeight: "tight",
+  },
+  variants: {
+    tone: {
+      accent: { color: "accent" },
+      danger: { color: "danger" },
+      neutral: { color: "foreground" },
+      success: { color: "success" },
+      warning: { color: "warning" },
+    },
+  },
 });
 
 const hintStyles = css({

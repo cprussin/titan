@@ -145,14 +145,13 @@ const itemStyles = css({
   paddingBlock: 1,
 });
 
-// The active section: accent-colored throughout, and on the desktop rail it
-// also carries a faint fill so the current page reads at a glance.
+// The active section: accent-colored, and carrying a faint accent fill at every
+// size so the current page reads at a glance — a pill behind the phone tab and
+// a bar on the desktop rail.
 const activeStyles = css({
+  backgroundColor:
+    "color-mix(in oklab, {colors.accent} 14%, {colors.background})",
   color: "accent",
-  lg: {
-    backgroundColor:
-      "color-mix(in oklab, {colors.accent} 12%, {colors.background})",
-  },
 });
 
 const labelStyles = css({

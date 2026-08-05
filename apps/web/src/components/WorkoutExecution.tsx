@@ -591,7 +591,8 @@ const asideStyles = css({
 const outlineStyles = vstack({ alignItems: "stretch", gap: 3 });
 
 const outlineTitleStyles = css({
-  borderBlockEnd: "1px solid {colors.border}",
+  borderBlockEnd:
+    "1px solid color-mix(in oklab, {colors.accent} 35%, {colors.border})",
   color: "muted",
   fontSize: "xs",
   fontWeight: "semibold",
