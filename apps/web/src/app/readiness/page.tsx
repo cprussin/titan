@@ -5,7 +5,7 @@ import { ReadinessForm } from "../../components/ReadinessForm";
 const ReadinessPage = async () => {
   await requireAuth();
   return (
-    <div>
+    <div className={pageStyles}>
       <h1 className={titleStyles}>Readiness</h1>
       <ReadinessForm />
     </div>
@@ -13,6 +13,13 @@ const ReadinessPage = async () => {
 };
 
 export default ReadinessPage;
+
+// The check-in is a short form, so it keeps a comfortable reading width and
+// centers in the wider desktop shell instead of stretching across it.
+const pageStyles = css({
+  marginInline: "auto",
+  maxInlineSize: "32rem",
+});
 
 const titleStyles = css({
   fontSize: "3xl",

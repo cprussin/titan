@@ -92,7 +92,7 @@ export const WorkoutExecution = ({
     return <p className={mutedStyles}>Nothing to do.</p>;
   } else {
     return (
-      <div className={vstack({ alignItems: "stretch", gap: 4 })}>
+      <div className={rootStyles}>
         <ProgressBar
           current={index}
           segments={prescribedExercises.map((exercise) => exercise.slotId)}
@@ -469,6 +469,17 @@ const defaultReps = (prescription: Prescription): number =>
   prescription.type === "strength" || prescription.type === "bodyweight"
     ? prescription.reps
     : 0;
+
+// The guided execution flow is deliberately one-thing-at-a-time, so it stays a
+// single narrow column and centers in the wider desktop shell rather than
+// stretching across it.
+const rootStyles = vstack({
+  alignItems: "stretch",
+  gap: 4,
+  inlineSize: "100%",
+  marginInline: "auto",
+  maxInlineSize: "32rem",
+});
 
 const nameStyles = css({ fontSize: "3xl", fontWeight: "bold" });
 

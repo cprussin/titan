@@ -4,7 +4,7 @@ import type { SelectedVariant } from "@titan/program-engine/variant";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { css } from "../../../../../../styled-system/css";
-import { hstack, vstack } from "../../../../../../styled-system/patterns";
+import { grid, hstack, vstack } from "../../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../../auth/session";
 import { db } from "../../../../../db";
 import { describePrescription } from "../../../../../prescription-text";
@@ -63,7 +63,9 @@ const renderBlock = (context: BlockContext, names: Map<string, string>) => {
         <h1 className={titleStyles}>{block.name}</h1>
         <p className={metaStyles}>{describeCadence(block)}</p>
       </div>
-      {schedule.map((workout) => renderWorkout(workout, names))}
+      <div className={scheduleStyles}>
+        {schedule.map((workout) => renderWorkout(workout, names))}
+      </div>
     </div>
   );
 };
@@ -150,6 +152,12 @@ const metaStyles = css({
   color: "muted",
   fontSize: "sm",
   fontWeight: "medium",
+});
+
+const scheduleStyles = grid({
+  alignItems: "start",
+  gap: 4,
+  gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
 });
 
 const cardStyles = vstack({

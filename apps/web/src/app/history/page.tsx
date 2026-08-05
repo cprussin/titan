@@ -1,7 +1,7 @@
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
 import Link from "next/link";
 import { css } from "../../../styled-system/css";
-import { hstack, vstack } from "../../../styled-system/patterns";
+import { grid, hstack, vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { db } from "../../db";
 import { templateNames } from "../../server/template-names";
@@ -20,7 +20,7 @@ const HistoryPage = async () => {
       {sessions.length === 0 ? (
         <p className={mutedStyles}>No sessions yet — start today's workout.</p>
       ) : (
-        <ul className={vstack({ alignItems: "stretch", gap: 2 })}>
+        <ul className={listStyles}>
           {sessions.map((session) => {
             const sets = session.results.reduce(
               (count, result) => count + result.sets.length,
@@ -63,9 +63,18 @@ export default HistoryPage;
 
 const titleStyles = css({ fontSize: "3xl", fontWeight: "bold" });
 
+const listStyles = grid({
+  alignItems: "stretch",
+  gap: 2,
+  gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+});
+
 const rowStyles = hstack({
-  _hover: { borderColor: "borderStrong" },
+  // Hover feedback only for a mouse-like pointer — on touch a tap shouldn't
+  // leave a lingering border highlight.
+  _pointerFine: { _hover: { borderColor: "borderStrong" } },
   backgroundColor: "card",
+  blockSize: "100%",
   border: "1px solid {colors.border}",
   borderRadius: "lg",
   justifyContent: "space-between",

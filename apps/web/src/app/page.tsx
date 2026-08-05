@@ -126,41 +126,43 @@ const renderWorkout = (
         />
       </div>
 
-      <div className={cardStyles}>
-        <h2 className={sessionTitleStyles}>{today.template.name}</h2>
-        <ul className={planStyles}>
-          {today.resolved.prescribedExercises.map((exercise) => (
-            <li className={rowStyles} key={exercise.slotId}>
-              <div className={vstack({ alignItems: "flex-start", gap: 0.5 })}>
-                <span className={exerciseNameStyles}>
-                  {names.get(exercise.exerciseId) ?? exercise.exerciseId}
-                </span>
-                <span className={targetStyles}>
-                  {describePrescription(exercise.prescription)}
-                </span>
-              </div>
-              <span className={rolePillStyles}>{exercise.role}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <div className={workoutBodyStyles}>
+        <div className={cardStyles}>
+          <h2 className={sessionTitleStyles}>{today.template.name}</h2>
+          <ul className={planStyles}>
+            {today.resolved.prescribedExercises.map((exercise) => (
+              <li className={rowStyles} key={exercise.slotId}>
+                <div className={vstack({ alignItems: "flex-start", gap: 0.5 })}>
+                  <span className={exerciseNameStyles}>
+                    {names.get(exercise.exerciseId) ?? exercise.exerciseId}
+                  </span>
+                  <span className={targetStyles}>
+                    {describePrescription(exercise.prescription)}
+                  </span>
+                </div>
+                <span className={rolePillStyles}>{exercise.role}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-      <div className={actionsStyles}>
-        {resumableId === undefined ? (
-          <>
-            <Link className={readinessLinkStyles} href="/readiness">
-              Log readiness
-            </Link>
-            <StartWorkoutButton />
-          </>
-        ) : (
-          <>
-            <Button href={`/workout/${resumableId}`} size="xl">
-              Resume workout
-            </Button>
-            <CancelWorkoutButton sessionId={resumableId} />
-          </>
-        )}
+        <div className={actionsStyles}>
+          {resumableId === undefined ? (
+            <>
+              <Link className={readinessLinkStyles} href="/readiness">
+                Log readiness
+              </Link>
+              <StartWorkoutButton />
+            </>
+          ) : (
+            <>
+              <Button href={`/workout/${resumableId}`} size="xl">
+                Resume workout
+              </Button>
+              <CancelWorkoutButton sessionId={resumableId} />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -177,6 +179,20 @@ const contextStyles = css({
 });
 
 const statGridStyles = grid({ columns: 3, gap: 2 });
+
+// On desktop the exercise plan and the start/resume actions sit side by side;
+// on phones they stack, actions under the plan.
+const workoutBodyStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: 4,
+  md: {
+    alignItems: "start",
+    display: "grid",
+    gap: 6,
+    gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
+  },
+});
 
 const cardStyles = vstack({
   alignItems: "stretch",

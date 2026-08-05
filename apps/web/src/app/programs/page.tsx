@@ -2,7 +2,7 @@ import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
 import Link from "next/link";
 import { css } from "../../../styled-system/css";
-import { hstack, vstack, wrap } from "../../../styled-system/patterns";
+import { grid, hstack, vstack, wrap } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { db } from "../../db";
 import { latestPrograms } from "../../server/program-explorer";
@@ -39,7 +39,7 @@ const ProgramsPage = async () => {
                 ))}
               </ul>
             )}
-            <ul className={vstack({ alignItems: "stretch", gap: 2 })}>
+            <ul className={blockListStyles}>
               {version.blocks.map((block) => (
                 <li key={block.id}>
                   <Link
@@ -111,8 +111,17 @@ const goalPillStyles = css({
   paddingInline: 2,
 });
 
+const blockListStyles = grid({
+  alignItems: "stretch",
+  gap: 2,
+  gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+});
+
 const blockRowStyles = hstack({
-  _hover: { borderColor: "borderStrong" },
+  // Hover border only for a mouse-like pointer, so a tap on touch doesn't
+  // leave the row stuck in its highlighted state.
+  _pointerFine: { _hover: { borderColor: "borderStrong" } },
+  blockSize: "100%",
   border: "1px solid {colors.border}",
   borderRadius: "lg",
   justifyContent: "space-between",

@@ -57,24 +57,26 @@ const AnalyticsPage = async () => {
         <StatTile label="Rowing" value={formatDistance(rowingMeters)} />
       </div>
 
-      <section className={cardStyles}>
-        <h2 className={sectionTitleStyles}>Body weight</h2>
-        <Sparkline label="Body weight trend" values={weights} />
-        <BodyWeightForm />
-      </section>
+      <div className={chartsStyles}>
+        <section className={cardStyles}>
+          <h2 className={sectionTitleStyles}>Body weight</h2>
+          <Sparkline label="Body weight trend" values={weights} />
+          <BodyWeightForm />
+        </section>
 
-      <section className={cardStyles}>
-        <h2 className={sectionTitleStyles}>
-          Strength · estimated 1RM
-          {strength === undefined
-            ? ""
-            : ` · ${names.get(strength.exerciseId) ?? strength.exerciseId}`}
-        </h2>
-        <Sparkline
-          label="Estimated 1RM trend"
-          values={strength?.values ?? []}
-        />
-      </section>
+        <section className={cardStyles}>
+          <h2 className={sectionTitleStyles}>
+            Strength · estimated 1RM
+            {strength === undefined
+              ? ""
+              : ` · ${names.get(strength.exerciseId) ?? strength.exerciseId}`}
+          </h2>
+          <Sparkline
+            label="Estimated 1RM trend"
+            values={strength?.values ?? []}
+          />
+        </section>
+      </div>
     </div>
   );
 };
@@ -82,6 +84,12 @@ const AnalyticsPage = async () => {
 export default AnalyticsPage;
 
 const titleStyles = css({ fontSize: "3xl", fontWeight: "bold" });
+
+const chartsStyles = grid({
+  alignItems: "start",
+  gap: 4,
+  gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+});
 
 const cardStyles = vstack({
   alignItems: "stretch",
