@@ -77,6 +77,11 @@ const renderWorkout = (
   names: Map<string, string>,
 ) => {
   const { dayOfWeek, template } = workout;
+  const rotations = sessionRotations(template);
+  // More than one rotation means the workout swaps week to week (Week A / B /
+  // …); each rotation gets its own labeled column so the alternatives read as
+  // distinct choices rather than one long run of exercises.
+  const rotatesByWeek = rotations.length > 1;
   return (
     <section className={workoutStyles} key={`${dayOfWeek}-${template.id}`}>
       <div className={workoutHeaderStyles}>
@@ -86,41 +91,57 @@ const renderWorkout = (
         </div>
         <span className={durationStyles}>{template.targetDurationMin} min</span>
       </div>
-      {sessionRotations(template).map((rotation, index) =>
-        renderRotation(rotation, index, names),
+      {rotatesByWeek ? (
+        <div className={variantsStyles}>
+          <p className={variantsHintStyles}>
+            Rotates by week — one option runs each week.
+          </p>
+          <div className={variantsGridStyles}>
+            {rotations.map((rotation, index) =>
+              renderVariant(rotation, index, names),
+            )}
+          </div>
+        </div>
+      ) : (
+        <ul className={slotListStyles}>
+          {rotations
+            .flatMap((rotation) => rotation.slots)
+            .map((slot) => renderSlot(slot, names))}
+        </ul>
       )}
     </section>
   );
 };
 
-const renderRotation = (
+/** One week-variant of a rotating workout: a labeled column over its own slot
+ *  list, set apart so Week A vs Week B is obvious at a glance. */
+const renderVariant = (
   rotation: SelectedVariant,
   index: number,
   names: Map<string, string>,
 ) => (
-  <div
-    className={vstack({ alignItems: "stretch", gap: 2 })}
-    key={rotation.label ?? index}
-  >
-    {rotation.label !== undefined && (
-      <span className={rotationLabelStyles}>{rotation.label}</span>
-    )}
-    <ul className={slotListStyles}>
-      {rotation.slots.map((slot) => (
-        <li className={rowStyles} key={slot.id}>
-          <div className={vstack({ alignItems: "flex-start", gap: 0.5 })}>
-            <span className={exerciseNameStyles}>
-              {names.get(slot.exerciseId) ?? slot.exerciseId}
-            </span>
-            <span className={targetStyles}>
-              {describePrescription(slot.base)}
-            </span>
-          </div>
-          <Badge tone={roleTone(slot.role)}>{slot.role}</Badge>
-        </li>
-      ))}
+  <div className={variantStyles} key={rotation.label ?? index}>
+    <span className={variantLabelStyles}>{rotation.label}</span>
+    <ul className={variantSlotListStyles}>
+      {rotation.slots.map((slot) => renderSlot(slot, names))}
     </ul>
   </div>
+);
+
+/** One exercise row: name and target on the start edge, role badge on the end. */
+const renderSlot = (
+  slot: SelectedVariant["slots"][number],
+  names: Map<string, string>,
+) => (
+  <li className={rowStyles} key={slot.id}>
+    <div className={vstack({ alignItems: "flex-start", gap: 0.5 })}>
+      <span className={exerciseNameStyles}>
+        {names.get(slot.exerciseId) ?? slot.exerciseId}
+      </span>
+      <span className={targetStyles}>{describePrescription(slot.base)}</span>
+    </div>
+    <Badge tone={roleTone(slot.role)}>{slot.role}</Badge>
+  </li>
 );
 
 /** A block's length and deload cadence, for the header subtitle. */
@@ -173,13 +194,14 @@ const scheduleStyles = vstack({
 // Each workout is a flat section, not a card: a ruled header over its exercises.
 const workoutStyles = vstack({ alignItems: "stretch", gap: 3 });
 
-// The exercise list flows into two hairline-ruled columns on large screens so a
-// full-width workout uses the room instead of running one long thin list.
+// The exercise list flows into two columns on large screens so a full-width
+// workout uses the room. Rows are separated by spacing, not rules — the only
+// divider in a workout is the one under its header.
 const slotListStyles = css({
   columnGap: 10,
   display: "grid",
   gridTemplateColumns: { base: "1fr", lg: "repeat(2, minmax(0, 1fr))" },
-  rowGap: 0,
+  rowGap: 3,
 });
 
 const workoutHeaderStyles = hstack({
@@ -208,19 +230,42 @@ const durationStyles = css({
   fontVariantNumeric: "tabular-nums",
 });
 
-const rotationLabelStyles = css({
+// The week-variant block: a labeled column of its own exercises.
+const variantsStyles = vstack({ alignItems: "stretch", gap: 3 });
+
+const variantsHintStyles = css({
+  color: "muted",
+  fontSize: "sm",
+});
+
+// Variants sit side by side on wider screens and stack on phones, each a
+// self-contained column so the alternatives never blur together.
+const variantsGridStyles = css({
+  columnGap: 6,
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 14rem), 1fr))",
+  rowGap: 6,
+});
+
+const variantStyles = vstack({ alignItems: "stretch", gap: 3 });
+
+// The variant's week label heads its column with an accent-ruled underline.
+const variantLabelStyles = css({
+  borderBlockEnd:
+    "1px solid color-mix(in oklab, {colors.accent} 45%, {colors.border})",
   color: "accent",
-  fontSize: "xs",
+  fontSize: "sm",
   fontWeight: "semibold",
   letterSpacing: "wide",
+  paddingBlockEnd: 1.5,
   textTransform: "uppercase",
 });
 
+const variantSlotListStyles = vstack({ alignItems: "stretch", gap: 3 });
+
 const rowStyles = hstack({
-  borderBlockEnd: "1px solid {colors.border}",
   gap: 3,
   justifyContent: "space-between",
-  paddingBlock: 3,
 });
 
 const exerciseNameStyles = css({ fontWeight: "medium" });
