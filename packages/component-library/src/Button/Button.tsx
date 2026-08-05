@@ -245,13 +245,13 @@ const styles = cva({
       primary: {
         backgroundColor: {
           _activeEnabled:
-            "color-mix(in oklab, {colors.background} 85%, {colors.foreground})",
+            "color-mix(in oklab, {colors.foreground} 50%, {colors.background})",
           _hoverEnabled:
-            "color-mix(in oklab, {colors.background} 70%, {colors.foreground})",
-          base: "color-mix(in oklab, {colors.background} 80%, {colors.foreground})",
+            "color-mix(in oklab, {colors.foreground} 72%, {colors.background})",
+          base: "color-mix(in oklab, {colors.foreground} 60%, {colors.background})",
         },
-        borderColor: "transparent",
-        color: "foreground",
+        borderColor: "borderStrong",
+        color: "background",
       },
       solid: {
         backgroundColor: {
