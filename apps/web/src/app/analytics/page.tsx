@@ -1,12 +1,10 @@
 import { listBodyMetrics } from "@titan/db/body-metrics";
-import { getConnection } from "@titan/db/external-connections";
 import { listExternalWorkouts } from "@titan/db/external-workouts";
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
 import { css } from "../../../styled-system/css";
 import { grid, vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { BodyWeightForm } from "../../components/BodyWeightForm";
-import { Concept2Controls } from "../../components/Concept2Controls";
 import { Sparkline } from "../../components/Sparkline";
 import { StatTile } from "../../components/StatTile";
 import { db } from "../../db";
@@ -17,11 +15,10 @@ import { USER_ID } from "../../user";
 
 const AnalyticsPage = async () => {
   await requireAuth();
-  const [metrics, sessions, externals, connection, names] = await Promise.all([
+  const [metrics, sessions, externals, names] = await Promise.all([
     listBodyMetrics(db, USER_ID, 60),
     listWorkoutSessions(db, USER_ID, 100),
     listExternalWorkouts(db, USER_ID, 100),
-    getConnection(db, USER_ID, "concept2"),
     exerciseNames(db),
   ]);
 
@@ -78,16 +75,6 @@ const AnalyticsPage = async () => {
           values={strength?.values ?? []}
         />
       </section>
-
-      <section className={cardStyles}>
-        <h2 className={sectionTitleStyles}>Concept2 rowing</h2>
-        <p className={mutedStyles}>
-          {connection === undefined
-            ? "Connect your Concept2 Logbook to import rows and heart-rate data."
-            : `${externals.length} imported workouts.`}
-        </p>
-        <Concept2Controls connected={connection !== undefined} />
-      </section>
     </div>
   );
 };
@@ -106,5 +93,3 @@ const cardStyles = vstack({
 });
 
 const sectionTitleStyles = css({ fontSize: "md", fontWeight: "semibold" });
-
-const mutedStyles = css({ color: "muted", fontSize: "sm" });

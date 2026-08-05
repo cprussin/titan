@@ -2,21 +2,21 @@
 
 import { ChartLineIcon } from "@phosphor-icons/react/dist/ssr/ChartLine";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ClockCounterClockwise";
+import { GearIcon } from "@phosphor-icons/react/dist/ssr/Gear";
 import { HouseIcon } from "@phosphor-icons/react/dist/ssr/House";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { css, cx } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
-import { ThemeSwitch } from "../ui";
 
 const LINKS = [
   { href: "/", Icon: HouseIcon, label: "Today" },
   { href: "/history", Icon: ClockCounterClockwiseIcon, label: "History" },
   { href: "/analytics", Icon: ChartLineIcon, label: "Trends" },
+  { href: "/settings", Icon: GearIcon, label: "Settings" },
 ] as const;
 
-/** The persistent bottom navigation. Highlights the active section and hosts the
- *  theme toggle. */
+/** The persistent bottom navigation. Highlights the active section. */
 export const AppNav = () => {
   const pathname = usePathname();
   return (
@@ -36,9 +36,6 @@ export const AppNav = () => {
           </Link>
         );
       })}
-      <div className={themeSlotStyles}>
-        <ThemeSwitch />
-      </div>
     </nav>
   );
 };
@@ -70,5 +67,3 @@ const itemStyles = cx(
 const activeStyles = css({ color: "accent" });
 
 const labelStyles = css({ fontSize: "xs", fontWeight: "medium" });
-
-const themeSlotStyles = css({ marginInlineStart: 2 });
