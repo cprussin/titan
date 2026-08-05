@@ -1,5 +1,6 @@
 "use client";
 
+import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
 import type { Prescription } from "@titan/domain/prescription";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
@@ -102,6 +103,7 @@ export const WorkoutExecution = ({
         <TopBar
           actions={<CancelWorkoutButton sessionId={sessionId} size="sm" />}
           breadcrumbs={[{ href: "/", label: "Today" }]}
+          icon={<BarbellIcon size={18} />}
           title={title}
         />
         <ProgressBar

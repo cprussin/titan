@@ -1,3 +1,4 @@
+import { HouseIcon } from "@phosphor-icons/react/dist/ssr/House";
 import { listBodyMetrics } from "@titan/db/body-metrics";
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
 import Link from "next/link";
@@ -34,7 +35,11 @@ const DashboardPage = async () => {
 
   return (
     <div className={pageStyles}>
-      <TopBar description={todayDescription(today)} title="Today" />
+      <TopBar
+        description={todayDescription(today)}
+        icon={<HouseIcon size={18} />}
+        title="Today"
+      />
       {renderToday(today, names, metrics, sessions, resumableId)}
     </div>
   );

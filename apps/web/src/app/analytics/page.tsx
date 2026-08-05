@@ -1,3 +1,4 @@
+import { ChartLineIcon } from "@phosphor-icons/react/dist/ssr/ChartLine";
 import { listBodyMetrics } from "@titan/db/body-metrics";
 import { listExternalWorkouts } from "@titan/db/external-workouts";
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
@@ -45,6 +46,7 @@ const AnalyticsPage = async () => {
     <div className={vstack({ alignItems: "stretch", gap: 6, lg: { gap: 10 } })}>
       <TopBar
         description="Your training and body trends over time."
+        icon={<ChartLineIcon size={18} />}
         title="Trends"
       />
 

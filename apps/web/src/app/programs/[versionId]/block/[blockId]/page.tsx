@@ -1,3 +1,4 @@
+import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
 import type { SelectedVariant } from "@titan/program-engine/variant";
@@ -80,6 +81,7 @@ const renderBlock = (context: BlockContext, names: Map<string, string>) => {
       <TopBar
         breadcrumbs={[{ href: "/programs", label: program.name }]}
         description={describeCadence(block)}
+        icon={<BarbellIcon size={18} />}
         title={block.name}
       />
       <div className={accordionOnlyStyles}>

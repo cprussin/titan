@@ -1,3 +1,4 @@
+import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr/CheckCircle";
 import { listAdaptationDecisionsBySession } from "@titan/db/adaptation-decisions";
 import { listPersonalRecords } from "@titan/db/personal-records";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
@@ -57,6 +58,7 @@ const CompletePage = async ({
         <TopBar
           breadcrumbs={[{ href: "/", label: "Today" }]}
           description="Nice work — here's the recap."
+          icon={<CheckCircleIcon size={18} />}
           title="Workout complete"
         />
 

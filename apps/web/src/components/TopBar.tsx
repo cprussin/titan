@@ -14,54 +14,53 @@ type Props = {
   actions?: ReactNode | undefined;
   breadcrumbs?: readonly Crumb[] | undefined;
   description?: string | undefined;
+  icon?: ReactNode | undefined;
   title: string;
 };
 
 /**
- * The static header bar every page opens with. A slim row — breadcrumb path and
- * page title on the start edge, page-wide actions ("Cancel workout" and the
- * like) on the end — that pins to the top of the viewport and stays put as the
- * page scrolls beneath it. It bleeds to the content edges so its rule runs the
- * full width; an optional description sits just beneath it as a normal,
- * scrolling subtitle.
- *
- * It renders a fragment, not a wrapper, on purpose: the bar must be a direct
- * child of the page's scroll column for `position: sticky` to hold across the
- * whole page rather than only within a short header box.
+ * The static header bar every page opens with, modeled on Linear's: a slim row
+ * pinned to the top of the viewport with a section icon, a breadcrumb-and-title
+ * path at a small, chrome-sized weight, and a page-wide actions slot ("Cancel
+ * workout" and the like) on the end. The description rides inline after the
+ * title as a muted subtitle. It bleeds to the content edges so its rule runs the
+ * full width, and must be a direct child of the page's scroll column so
+ * `position: sticky` holds across the whole page.
  */
-export const TopBar = ({ actions, breadcrumbs, description, title }: Props) => (
-  <>
-    <div className={barStyles}>
-      <div className={pathStyles}>
-        {breadcrumbs !== undefined && breadcrumbs.length > 0 && (
-          <nav aria-label="Breadcrumb" className={crumbsStyles}>
-            {breadcrumbs.map((crumb) => (
-              <Fragment key={crumb.href}>
-                <Link className={crumbLinkStyles} href={crumb.href}>
-                  {crumb.label}
-                </Link>
-                <CaretRightIcon className={separatorStyles} size={12} />
-              </Fragment>
-            ))}
-          </nav>
-        )}
-        <h1 className={titleStyles}>{title}</h1>
-      </div>
-      {actions !== undefined && <div className={actionsStyles}>{actions}</div>}
+export const TopBar = ({
+  actions,
+  breadcrumbs,
+  description,
+  icon,
+  title,
+}: Props) => (
+  <div className={barStyles}>
+    <div className={pathStyles}>
+      {icon !== undefined && <span className={iconStyles}>{icon}</span>}
+      {breadcrumbs?.map((crumb) => (
+        <Fragment key={crumb.href}>
+          <Link className={crumbLinkStyles} href={crumb.href}>
+            {crumb.label}
+          </Link>
+          <CaretRightIcon className={separatorStyles} size={12} />
+        </Fragment>
+      ))}
+      <h1 className={titleStyles}>{title}</h1>
+      {description !== undefined && (
+        <span className={descriptionStyles}>{description}</span>
+      )}
     </div>
-    {description !== undefined && (
-      <p className={descriptionStyles}>{description}</p>
-    )}
-  </>
+    {actions !== undefined && <div className={actionsStyles}>{actions}</div>}
+  </div>
 );
 
-// Pins to the top of the viewport and bleeds to the content edges, negating the
-// main padding so its background and rule run the full width and it sits flush
-// to the top. It's a direct child of the page column, so it stays pinned for
-// the whole scroll.
+// A slim bar pinned to the top of the viewport, bleeding to the content edges
+// (negating the main padding) so its background and rule run the full width. As
+// a direct child of the page column, it stays pinned for the whole scroll.
 const barStyles = css({
   alignItems: "center",
   backgroundColor: "background",
+  blockSize: 11,
   borderBlockEnd: "1px solid {colors.border}",
   display: "flex",
   gap: 3,
@@ -71,7 +70,6 @@ const barStyles = css({
   marginBlockStart: -4,
   marginInline: -4,
   md: { marginInline: -6, paddingInline: 6 },
-  paddingBlock: 2,
   paddingInline: 4,
   position: "sticky",
   zIndex: 5,
@@ -84,31 +82,28 @@ const pathStyles = css({
   minInlineSize: 0,
 });
 
-const crumbsStyles = css({
+const iconStyles = css({
   alignItems: "center",
-  color: "muted",
+  color: "accent",
   display: "flex",
   flexShrink: 0,
-  gap: 1.5,
 });
 
 const crumbLinkStyles = css({
   _hover: { color: "foreground" },
-  color: "accent",
+  color: "muted",
+  flexShrink: 0,
   fontSize: "sm",
   fontWeight: "medium",
   transition: "color {durations.fast} {easings.out}",
 });
 
-const separatorStyles = css({ color: "muted" });
+const separatorStyles = css({ color: "textTertiary" });
 
 const titleStyles = css({
-  fontSize: "lg",
+  flexShrink: 0,
+  fontSize: "sm",
   fontWeight: "semibold",
-  letterSpacing: "tight",
-  minInlineSize: 0,
-  overflow: "hidden",
-  textOverflow: "ellipsis",
   whiteSpace: "nowrap",
 });
 
@@ -119,7 +114,14 @@ const actionsStyles = css({
   gap: 2,
 });
 
+// Rides inline after the title, dimmer, and gives way first — truncating before
+// the title does when the bar runs out of room.
 const descriptionStyles = css({
   color: "muted",
   fontSize: "sm",
+  marginInlineStart: 1,
+  minInlineSize: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
 });

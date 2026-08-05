@@ -1,3 +1,4 @@
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ClockCounterClockwise";
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
 import Link from "next/link";
 import { css } from "../../../styled-system/css";
@@ -24,6 +25,7 @@ const HistoryPage = async () => {
             ? undefined
             : `${sessions.length} logged session${sessions.length === 1 ? "" : "s"}`
         }
+        icon={<ClockCounterClockwiseIcon size={18} />}
         title="History"
       />
       {sessions.length === 0 ? (

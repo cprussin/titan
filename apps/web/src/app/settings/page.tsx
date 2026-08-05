@@ -1,3 +1,4 @@
+import { GearIcon } from "@phosphor-icons/react/dist/ssr/Gear";
 import { getConnection } from "@titan/db/external-connections";
 import { listExternalWorkouts } from "@titan/db/external-workouts";
 import type { ReactNode } from "react";
@@ -21,6 +22,7 @@ const SettingsPage = async () => {
     <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
       <TopBar
         description="Appearance and connected services."
+        icon={<GearIcon size={18} />}
         title="Settings"
       />
 

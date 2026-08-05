@@ -1,3 +1,4 @@
+import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr/CaretRight";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
@@ -26,6 +27,7 @@ const ProgramsPage = async () => {
     <div className={vstack({ alignItems: "stretch", gap: 6, lg: { gap: 10 } })}>
       <TopBar
         description="Your training programs and the blocks that make them up."
+        icon={<BarbellIcon size={18} />}
         title="Programs"
       />
       {entries.length === 0 ? (

@@ -1,3 +1,4 @@
+import { HeartbeatIcon } from "@phosphor-icons/react/dist/ssr/Heartbeat";
 import { vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { ReadinessForm } from "../../components/ReadinessForm";
@@ -10,6 +11,7 @@ const ReadinessPage = async () => {
       <TopBar
         breadcrumbs={[{ href: "/", label: "Today" }]}
         description="A quick check-in before today's session."
+        icon={<HeartbeatIcon size={18} />}
         title="Readiness"
       />
       <ReadinessForm />
