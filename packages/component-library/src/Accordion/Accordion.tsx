@@ -60,12 +60,13 @@ export const Accordion = ({ items, ...props }: Props) => (
 );
 
 const rootStyles = css({
-  borderBlockStart: "1px solid {colors.border}",
   display: "flex",
   flexDirection: "column",
 });
 
+// A rule between rows only — none above the first or below the last.
 const itemStyles = css({
+  _last: { borderBlockEnd: "none" },
   borderBlockEnd: "1px solid {colors.border}",
 });
 
