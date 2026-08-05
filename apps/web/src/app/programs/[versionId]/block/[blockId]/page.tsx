@@ -7,7 +7,7 @@ import { css } from "../../../../../../styled-system/css";
 import { hstack, vstack } from "../../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../../auth/session";
 import { Badge } from "../../../../../components/Badge";
-import { DaySection } from "../../../../../components/DaySection";
+import { DayAccordion } from "../../../../../components/DayAccordion";
 import { PrescriptionTarget } from "../../../../../components/PrescriptionTarget";
 import { db } from "../../../../../db";
 import { roleTone } from "../../../../../role-tone";
@@ -66,49 +66,47 @@ const renderBlock = (context: BlockContext, names: Map<string, string>) => {
         <h1 className={titleStyles}>{block.name}</h1>
         <p className={metaStyles}>{describeCadence(block)}</p>
       </div>
-      <div className={scheduleStyles}>
-        {schedule.map((workout) => renderWorkout(workout, names))}
-      </div>
+      <DayAccordion
+        items={schedule.map((workout) => ({
+          content: renderWorkoutContent(workout, names),
+          day: dayName(workout.dayOfWeek),
+          duration: `${workout.template.targetDurationMin} min`,
+          id: `${workout.dayOfWeek}-${workout.template.id}`,
+          name: workout.template.name,
+        }))}
+      />
     </div>
   );
 };
 
-const renderWorkout = (
+/** A workout's exercises — either a week-rotating set of labeled columns or a
+ *  single two-column list. The day header/collapse is the accordion's job. */
+const renderWorkoutContent = (
   workout: ScheduledWorkout,
   names: Map<string, string>,
 ) => {
-  const { dayOfWeek, template } = workout;
-  const rotations = sessionRotations(template);
+  const rotations = sessionRotations(workout.template);
   // More than one rotation means the workout swaps week to week (Week A / B /
   // …); each rotation gets its own labeled column so the alternatives read as
   // distinct choices rather than one long run of exercises.
   const rotatesByWeek = rotations.length > 1;
-  return (
-    <DaySection
-      day={dayName(dayOfWeek)}
-      duration={`${template.targetDurationMin} min`}
-      key={`${dayOfWeek}-${template.id}`}
-      name={template.name}
-    >
-      {rotatesByWeek ? (
-        <div className={variantsStyles}>
-          <p className={variantsHintStyles}>
-            Rotates by week — one option runs each week.
-          </p>
-          <div className={variantsGridStyles}>
-            {rotations.map((rotation, index) =>
-              renderVariant(rotation, index, names),
-            )}
-          </div>
-        </div>
-      ) : (
-        <ul className={slotListStyles}>
-          {rotations
-            .flatMap((rotation) => rotation.slots)
-            .map((slot) => renderSlot(slot, names))}
-        </ul>
-      )}
-    </DaySection>
+  return rotatesByWeek ? (
+    <div className={variantsStyles}>
+      <p className={variantsHintStyles}>
+        Rotates by week — one option runs each week.
+      </p>
+      <div className={variantsGridStyles}>
+        {rotations.map((rotation, index) =>
+          renderVariant(rotation, index, names),
+        )}
+      </div>
+    </div>
+  ) : (
+    <ul className={slotListStyles}>
+      {rotations
+        .flatMap((rotation) => rotation.slots)
+        .map((slot) => renderSlot(slot, names))}
+    </ul>
   );
 };
 
@@ -179,15 +177,6 @@ const metaStyles = css({
   color: "muted",
   fontSize: "sm",
   fontWeight: "medium",
-});
-
-// Days stack as a flush accordion on phones (headers divided by their own
-// rules) and spread out on desktop, where each day is always open and spreads
-// its exercise list into columns.
-const scheduleStyles = vstack({
-  alignItems: "stretch",
-  gap: 0,
-  lg: { gap: 12 },
 });
 
 // The exercise list flows into two columns on large screens so a full-width
