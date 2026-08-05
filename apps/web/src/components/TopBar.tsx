@@ -18,91 +18,111 @@ type Props = {
 };
 
 /**
- * The consistent bar every page opens with: an optional breadcrumb trail, the
- * page title and one-line description, and an optional actions slot (page-wide
- * controls like "Cancel workout") that sits beside the title on wider screens
- * and stacks beneath it on phones. A single rule under the bar sets it off from
- * the page content. Centralizing it gives every page the same header rhythm
- * instead of each rolling its own.
+ * The static header bar every page opens with. It pins to the top of the
+ * content column (sticky, opaque, with a rule beneath) and holds a compact
+ * breadcrumb-and-title row on the start edge with a page-wide actions slot —
+ * "Cancel workout" and the like — on the end. The bar bleeds to the column
+ * edges so its rule runs the full width; an optional description sits just
+ * beneath it, in normal flow, as a subtitle. Centralizing it gives every page
+ * the same header chrome instead of each rolling its own.
  */
 export const TopBar = ({ actions, breadcrumbs, description, title }: Props) => (
   <div className={rootStyles}>
-    {breadcrumbs !== undefined && breadcrumbs.length > 0 && (
-      <nav aria-label="Breadcrumb" className={crumbsStyles}>
-        {breadcrumbs.map((crumb, index) => (
-          <Fragment key={crumb.href}>
-            {index > 0 && <CaretRightIcon size={12} />}
-            <Link className={crumbLinkStyles} href={crumb.href}>
-              {crumb.label}
-            </Link>
-          </Fragment>
-        ))}
-      </nav>
-    )}
-    <div className={mainStyles}>
-      <div className={textStyles}>
-        <h1 className={titleStyles}>{title}</h1>
-        {description !== undefined && (
-          <p className={descriptionStyles}>{description}</p>
+    <div className={barStyles}>
+      <div className={pathStyles}>
+        {breadcrumbs !== undefined && breadcrumbs.length > 0 && (
+          <nav aria-label="Breadcrumb" className={crumbsStyles}>
+            {breadcrumbs.map((crumb) => (
+              <Fragment key={crumb.href}>
+                <Link className={crumbLinkStyles} href={crumb.href}>
+                  {crumb.label}
+                </Link>
+                <CaretRightIcon className={separatorStyles} size={12} />
+              </Fragment>
+            ))}
+          </nav>
         )}
+        <h1 className={titleStyles}>{title}</h1>
       </div>
       {actions !== undefined && <div className={actionsStyles}>{actions}</div>}
     </div>
+    {description !== undefined && (
+      <p className={descriptionStyles}>{description}</p>
+    )}
   </div>
 );
 
 const rootStyles = css({
-  borderBlockEnd: "1px solid {colors.border}",
   display: "flex",
   flexDirection: "column",
-  gap: 2,
-  paddingBlockEnd: 4,
+});
+
+// The bar pins to the top and bleeds to the content-column edges, negating the
+// main padding so its background and rule run the full width and it sits flush
+// to the top before pinning.
+const barStyles = css({
+  alignItems: "center",
+  backgroundColor: "background",
+  borderBlockEnd: "1px solid {colors.border}",
+  display: "flex",
+  gap: 3,
+  insetBlockStart: 0,
+  justifyContent: "space-between",
+  lg: { marginBlockStart: -8, marginInline: -8, paddingInline: 8 },
+  marginBlockStart: -4,
+  marginInline: -4,
+  md: { marginInline: -6, paddingInline: 6 },
+  paddingBlock: 3,
+  paddingInline: 4,
+  position: "sticky",
+  zIndex: 5,
+});
+
+const pathStyles = css({
+  alignItems: "center",
+  display: "flex",
+  gap: 1.5,
+  minInlineSize: 0,
 });
 
 const crumbsStyles = css({
   alignItems: "center",
   color: "muted",
   display: "flex",
-  flexWrap: "wrap",
-  fontSize: "sm",
-  fontWeight: "medium",
+  flexShrink: 0,
   gap: 1.5,
 });
 
 const crumbLinkStyles = css({
   _hover: { color: "foreground" },
   color: "accent",
+  fontSize: "sm",
+  fontWeight: "medium",
   transition: "color {durations.fast} {easings.out}",
 });
 
-const mainStyles = css({
-  alignItems: "flex-start",
-  display: "flex",
-  flexDirection: "column",
-  gap: 3,
-  justifyContent: "space-between",
-  md: { alignItems: "center", flexDirection: "row" },
-});
-
-const textStyles = css({
-  display: "flex",
-  flexDirection: "column",
-  gap: 1,
-  minInlineSize: 0,
-});
+const separatorStyles = css({ color: "muted" });
 
 const titleStyles = css({
-  fontSize: "3xl",
-  fontWeight: "bold",
+  fontSize: "lg",
+  fontWeight: "semibold",
   letterSpacing: "tight",
-  lg: { fontSize: "4xl" },
+  lg: { fontSize: "xl" },
+  minInlineSize: 0,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
 });
-
-const descriptionStyles = css({ color: "muted", fontSize: "sm" });
 
 const actionsStyles = css({
   alignItems: "center",
   display: "flex",
   flexShrink: 0,
   gap: 2,
+});
+
+const descriptionStyles = css({
+  color: "muted",
+  fontSize: "sm",
+  paddingBlockStart: 4,
 });
