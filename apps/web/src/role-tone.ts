@@ -1,4 +1,4 @@
-import type { Tone } from "./components/Badge";
+import type { Tone } from "./ui";
 
 /** The badge tone that color-codes each exercise role, so a plan reads its
  *  primary / secondary / accessory structure at a glance. */

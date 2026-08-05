@@ -6,7 +6,6 @@ import { notFound } from "next/navigation";
 import { css } from "../../../../../../styled-system/css";
 import { hstack, vstack } from "../../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../../auth/session";
-import { Badge } from "../../../../../components/Badge";
 import { PrescriptionTarget } from "../../../../../components/PrescriptionTarget";
 import { TopBar } from "../../../../../components/TopBar";
 import { db } from "../../../../../db";
@@ -21,7 +20,7 @@ import {
   findBlockContext,
   sessionRotations,
 } from "../../../../../server/program-explorer";
-import { Accordion } from "../../../../../ui";
+import { Accordion, Badge } from "../../../../../ui";
 
 const DAY_NAMES = [
   "Monday",

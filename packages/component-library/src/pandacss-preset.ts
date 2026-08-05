@@ -335,6 +335,13 @@ export const titanPreset = definePreset({
           success: {
             value: { _light: "{colors.green.700}", base: "{colors.green.500}" },
           },
+          textTertiary: {
+            // A step dimmer than `muted` (55%) for the least-prominent text —
+            // separators, counts, timestamps — so a three-level hierarchy
+            // (foreground → muted → tertiary) reads without adding a color.
+            value:
+              "color-mix(in oklab, {colors.foreground} 38%, {colors.background})",
+          },
           warning: {
             value: { _light: "{colors.amber.700}", base: "{colors.amber.500}" },
           },

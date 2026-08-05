@@ -1,5 +1,5 @@
 import { css, cva } from "../../styled-system/css";
-import type { Tone } from "./Badge";
+import type { Tone } from "../ui";
 
 type Props = {
   hint?: string | undefined;

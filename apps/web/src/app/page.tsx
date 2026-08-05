@@ -5,7 +5,6 @@ import Link from "next/link";
 import { css } from "../../styled-system/css";
 import { grid, hstack, vstack } from "../../styled-system/patterns";
 import { requireAuth } from "../auth/session";
-import { Badge } from "../components/Badge";
 import { CancelWorkoutButton } from "../components/CancelWorkoutButton";
 import { PrescriptionTarget } from "../components/PrescriptionTarget";
 import { StartWorkoutButton } from "../components/StartWorkoutButton";
@@ -19,7 +18,7 @@ import { exerciseNames } from "../server/exercise-names";
 import { findResumableSession } from "../server/resumable-session";
 import type { Today } from "../server/today";
 import { resolveToday } from "../server/today";
-import { Button } from "../ui";
+import { Badge, Button } from "../ui";
 import { USER_ID } from "../user";
 
 const DashboardPage = async () => {

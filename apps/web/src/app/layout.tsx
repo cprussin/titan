@@ -3,9 +3,9 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { css } from "../../styled-system/css";
 import { AppNav } from "../components/AppNav";
+import { AppProviders } from "../components/AppProviders";
 import { NavDrawerProvider } from "../components/NavDrawer";
 import { RegisterServiceWorker } from "../components/RegisterServiceWorker";
-import { Provider } from "../ui";
 
 export const metadata: Metadata = {
   appleWebApp: {
@@ -29,13 +29,13 @@ export const viewport: Viewport = {
 const RootLayout = ({ children }: { children: ReactNode }) => (
   <html lang="en" suppressHydrationWarning>
     <body className={bodyStyles}>
-      <Provider>
+      <AppProviders>
         <NavDrawerProvider>
           <main className={mainStyles}>{children}</main>
           <AppNav />
         </NavDrawerProvider>
         <RegisterServiceWorker />
-      </Provider>
+      </AppProviders>
     </body>
   </html>
 );

@@ -1,15 +1,10 @@
-import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr/CaretRight";
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { Fragment } from "react";
 import { css } from "../../styled-system/css";
+import type { Crumb } from "../ui";
+import { Breadcrumbs } from "../ui";
 import { NavMenuButton } from "./NavMenuButton";
 
-/** One breadcrumb: the ancestor `label` and the `href` it links back to. */
-export type Crumb = {
-  href: string;
-  label: string;
-};
+export type { Crumb };
 
 type Props = {
   actions?: ReactNode | undefined;
@@ -39,14 +34,7 @@ export const TopBar = ({
     <div className={pathStyles}>
       <NavMenuButton />
       {icon !== undefined && <span className={iconStyles}>{icon}</span>}
-      {breadcrumbs?.map((crumb) => (
-        <Fragment key={crumb.href}>
-          <Link className={crumbLinkStyles} href={crumb.href}>
-            {crumb.label}
-          </Link>
-          <CaretRightIcon className={separatorStyles} size={12} />
-        </Fragment>
-      ))}
+      {breadcrumbs !== undefined && <Breadcrumbs crumbs={breadcrumbs} />}
       <h1 className={titleStyles}>{title}</h1>
     </div>
     {description !== undefined && (
@@ -91,17 +79,6 @@ const iconStyles = css({
   display: "flex",
   flexShrink: 0,
 });
-
-const crumbLinkStyles = css({
-  _hover: { color: "foreground" },
-  color: "muted",
-  flexShrink: 0,
-  fontSize: "sm",
-  fontWeight: "medium",
-  transition: "color {durations.fast} {easings.out}",
-});
-
-const separatorStyles = css({ color: "textTertiary" });
 
 const titleStyles = css({
   flexShrink: 0,

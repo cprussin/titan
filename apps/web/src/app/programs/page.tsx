@@ -6,10 +6,10 @@ import Link from "next/link";
 import { css } from "../../../styled-system/css";
 import { grid, hstack, vstack, wrap } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
-import { Badge } from "../../components/Badge";
 import { TopBar } from "../../components/TopBar";
 import { db } from "../../db";
 import { latestPrograms } from "../../server/program-explorer";
+import { Badge } from "../../ui";
 
 // Goals cycle through tones so a program's tag row reads as a splash of color
 // rather than a monochrome run of accent pills.
