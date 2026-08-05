@@ -1,7 +1,14 @@
 import type { Program, ProgramVersion } from "@titan/domain/program";
-import { programVersionSchema } from "@titan/domain/program";
+import { programSchema, programVersionSchema } from "@titan/domain/program";
 import type { Db } from "./client";
 import { parseDataRows, parseFirstDataRow } from "./parse-rows";
+
+export const listPrograms = async (db: Db): Promise<Program[]> => {
+  const rows = await db<{ data: unknown }[]>`
+    SELECT data FROM programs ORDER BY id
+  `;
+  return parseDataRows(programSchema, rows);
+};
 
 export const getProgramVersion = async (
   db: Db,

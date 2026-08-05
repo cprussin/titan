@@ -1,5 +1,6 @@
 "use client";
 
+import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
 import { ChartLineIcon } from "@phosphor-icons/react/dist/ssr/ChartLine";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ClockCounterClockwise";
 import { GearIcon } from "@phosphor-icons/react/dist/ssr/Gear";
@@ -11,6 +12,7 @@ import { hstack, vstack } from "../../styled-system/patterns";
 
 const LINKS = [
   { href: "/", Icon: HouseIcon, label: "Today" },
+  { href: "/programs", Icon: BarbellIcon, label: "Programs" },
   { href: "/history", Icon: ClockCounterClockwiseIcon, label: "History" },
   { href: "/analytics", Icon: ChartLineIcon, label: "Trends" },
   { href: "/settings", Icon: GearIcon, label: "Settings" },
