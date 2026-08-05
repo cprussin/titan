@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "@titan/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@cprussin/tsconfig": "catalog:",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    "./deload": "./src/deload.ts",
+    "./estimate-duration": "./src/estimate-duration.ts",
+    "./note": "./src/note.ts",
+    "./outcome": "./src/outcome.ts",
+    "./progress-exercise": "./src/progress-exercise.ts",
+    "./session-adaptation": "./src/session-adaptation.ts",
+    "./weekly-adaptation": "./src/weekly-adaptation.ts"
+  },
+  "files": [
+    "src/**/*"
+  ],
+  "name": "@titan/adaptation-engine",
+  "private": true,
+  "scripts": {
+    "test:types": "tsc --noEmit",
+    "test:unit": "bun test"
+  },
+  "type": "module",
+  "version": "0.0.0"
+}

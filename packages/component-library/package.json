@@ -1,0 +1,63 @@
+{
+  "dependencies": {
+    "@base-ui/react": "catalog:",
+    "@phosphor-icons/react": "catalog:"
+  },
+  "devDependencies": {
+    "@cprussin/tsconfig": "catalog:",
+    "@pandacss/dev": "catalog:",
+    "@pandacss/preset-panda": "catalog:",
+    "@storybook/addon-docs": "catalog:",
+    "@storybook/addon-themes": "catalog:",
+    "@storybook/react-vite": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/user-event": "catalog:",
+    "@titan/test-support": "workspace:*",
+    "@types/bun": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "http-server": "catalog:",
+    "postcss": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "storybook": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  },
+  "exports": {
+    "./Avatar": "./src/Avatar/Avatar.tsx",
+    "./Button": "./src/Button/Button.tsx",
+    "./Card": "./src/Card/Card.tsx",
+    "./Field": "./src/Field/Field.tsx",
+    "./Input": "./src/Input/Input.tsx",
+    "./Kbd": "./src/Kbd/Kbd.tsx",
+    "./ModalDialog": "./src/ModalDialog/ModalDialog.tsx",
+    "./Provider": "./src/Provider/Provider.tsx",
+    "./pandacss-preset": "./src/pandacss-preset.ts",
+    "./Select": "./src/Select/Select.tsx",
+    "./spacing": "./src/spacing.ts",
+    "./TabRail": "./src/TabRail/TabRail.tsx",
+    "./Tabs": "./src/Tabs/Tabs.tsx",
+    "./Textarea": "./src/Textarea/Textarea.tsx",
+    "./ThemeSwitch": "./src/ThemeSwitch/ThemeSwitch.tsx"
+  },
+  "files": [
+    "src/**/**",
+    "styled-system/**/**"
+  ],
+  "name": "@titan/component-library",
+  "peerDependencies": {
+    "react": "catalog:"
+  },
+  "private": true,
+  "scripts": {
+    "build:pandacss": "panda codegen --silent",
+    "build:storybook": "storybook build",
+    "start:dev": "storybook dev -p 4000",
+    "start:prod": "http-server storybook-static -p 4000",
+    "test:types": "tsc --noEmit",
+    "test:unit": "bun test"
+  },
+  "type": "module",
+  "version": "0.0.0"
+}

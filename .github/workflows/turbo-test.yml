@@ -1,0 +1,24 @@
+name: Turbo test
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Superseded pushes shouldn't keep a full test running.
+concurrency:
+  group: turbo-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+      - run: bun install --frozen-lockfile
+      # Types + unit + lint + dependency checks across every workspace. No
+      # database or secrets required — the engines are pure and the app's DB
+      # access is not exercised by the test suite.
+      - run: bun run turbo test

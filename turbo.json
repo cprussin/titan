@@ -1,0 +1,83 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["NODE_ENV"],
+  "globalPassThroughEnv": [
+    "AUTH_PASSWORD",
+    "AUTH_SESSION_SECRET",
+    "CONCEPT2_CLIENT_ID",
+    "CONCEPT2_CLIENT_SECRET",
+    "CONCEPT2_REDIRECT_URI",
+    "DATABASE_URL",
+    "FORCE_COLOR",
+    "VERCEL",
+    "VERCEL_URL"
+  ],
+  "tasks": {
+    "//#build": {
+      "dependsOn": ["//#build:install-modules"]
+    },
+    "//#build:install-modules": {
+      "inputs": [
+        "**/package.json",
+        "bunfig.toml",
+        "!**/.next/**",
+        "!**/dist/**"
+      ],
+      "outputs": ["bun.lock"]
+    },
+
+    "//#fix": {
+      "with": ["//#fix:lint"]
+    },
+    "//#fix:lint": {
+      "cache": false,
+      "dependsOn": ["//#build"]
+    },
+
+    "//#test": {
+      "with": ["//#test:dependencies", "//#test:lint"]
+    },
+    "//#test:dependencies": {
+      "cache": false,
+      "dependsOn": ["//#build"]
+    },
+    "//#test:lint": {
+      "dependsOn": ["//#build"]
+    },
+
+    "build": {
+      "dependsOn": ["//#build", "^build:pandacss", "build:pandacss"],
+      "inputs": ["$TURBO_DEFAULT$", "!README.md", "!**/*.test.*"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+
+    "build:pandacss": {
+      "dependsOn": ["//#build"],
+      "inputs": ["panda.config.ts", "src/**/*.{ts,tsx}", "package.json"],
+      "outputs": ["styled-system/**"]
+    },
+
+    "build:storybook": {
+      "dependsOn": ["//#build", "^build:pandacss", "build:pandacss"],
+      "inputs": ["$TURBO_DEFAULT$", "!README.md", "!**/*.test.*"],
+      "outputs": ["storybook-static/**"]
+    },
+
+    "start:dev": {
+      "cache": false,
+      "dependsOn": ["//#build", "^build:pandacss", "build:pandacss"],
+      "persistent": true
+    },
+
+    "test": {
+      "with": ["test:types", "test:unit"]
+    },
+    "test:types": {
+      "dependsOn": ["//#build", "^build:pandacss", "build:pandacss"]
+    },
+    "test:unit": {
+      "dependsOn": ["//#build", "^build:pandacss", "build:pandacss"]
+    }
+  },
+  "ui": "tui"
+}

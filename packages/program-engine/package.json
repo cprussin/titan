@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "@titan/adaptation-engine": "workspace:*",
+    "@titan/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@cprussin/tsconfig": "catalog:",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    "./resolve-session": "./src/resolve-session.ts",
+    "./schedule": "./src/schedule.ts",
+    "./variant": "./src/variant.ts",
+    "./warmup": "./src/warmup.ts"
+  },
+  "files": [
+    "src/**/*"
+  ],
+  "name": "@titan/program-engine",
+  "private": true,
+  "scripts": {
+    "test:types": "tsc --noEmit",
+    "test:unit": "bun test"
+  },
+  "type": "module",
+  "version": "0.0.0"
+}

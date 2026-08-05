@@ -1,0 +1,41 @@
+{
+  "dependencies": {
+    "@titan/domain": "workspace:*",
+    "@titan/programs": "workspace:*",
+    "postgres": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cprussin/tsconfig": "catalog:",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    "./adaptation-decisions": "./src/adaptation-decisions.ts",
+    "./athlete-state": "./src/athlete-state.ts",
+    "./body-metrics": "./src/body-metrics.ts",
+    "./client": "./src/client.ts",
+    "./exercises": "./src/exercises.ts",
+    "./external-connections": "./src/external-connections.ts",
+    "./external-workouts": "./src/external-workouts.ts",
+    "./initialize": "./src/initialize.ts",
+    "./personal-records": "./src/personal-records.ts",
+    "./program-versions": "./src/program-versions.ts",
+    "./readiness": "./src/readiness.ts",
+    "./users": "./src/users.ts",
+    "./workout-sessions": "./src/workout-sessions.ts"
+  },
+  "files": [
+    "src/**/*"
+  ],
+  "name": "@titan/db",
+  "private": true,
+  "scripts": {
+    "migrate": "bun src/migrate.ts",
+    "seed": "bun src/seed-cli.ts",
+    "test:types": "tsc --noEmit",
+    "test:unit": "bun test"
+  },
+  "type": "module",
+  "version": "0.0.0"
+}

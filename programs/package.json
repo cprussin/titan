@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "@titan/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@cprussin/tsconfig": "catalog:",
+    "@types/bun": "catalog:",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    "./athletic-health-foundation": "./src/athletic-health-foundation.ts",
+    "./catalog": "./src/catalog.ts",
+    "./exercises": "./src/exercises.ts",
+    "./fat-loss-maintenance": "./src/fat-loss-maintenance.ts",
+    "./rowing-performance": "./src/rowing-performance.ts",
+    "./strength-power": "./src/strength-power.ts"
+  },
+  "files": [
+    "src/**/*"
+  ],
+  "name": "@titan/programs",
+  "private": true,
+  "scripts": {
+    "test:types": "tsc --noEmit",
+    "test:unit": "bun test"
+  },
+  "type": "module",
+  "version": "0.0.0"
+}
