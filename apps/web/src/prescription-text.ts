@@ -7,14 +7,28 @@ import {
   formatWeight,
 } from "./format";
 
+/** A prescription's target split into its main line and an optional recovery
+ *  clause, so callers can lay the recovery on its own line instead of letting
+ *  one row grow too wide. */
+export type PrescriptionParts = {
+  primary: string;
+  recovery: string | undefined;
+};
+
 /**
- * A one-line, human-readable target for a prescription — the text shown on the
- * dashboard and during execution. Pure; exhaustive over prescription types.
+ * The target for a prescription, as a primary line plus an optional recovery
+ * clause. Pure; exhaustive over prescription types. Only interval work carries
+ * a recovery clause; everything else keeps its whole target on `primary`.
  */
-export const describePrescription = (prescription: Prescription): string => {
+export const prescriptionParts = (
+  prescription: Prescription,
+): PrescriptionParts => {
   switch (prescription.type) {
     case "strength": {
-      return `${prescription.sets}×${prescription.reps} @ ${formatWeight(prescription.weightLb)}`;
+      return {
+        primary: `${prescription.sets}×${prescription.reps} @ ${formatWeight(prescription.weightLb)}`,
+        recovery: undefined,
+      };
     }
     case "bodyweight": {
       const added =
@@ -22,7 +36,10 @@ export const describePrescription = (prescription: Prescription): string => {
         prescription.addedWeightLb === 0
           ? ""
           : ` +${prescription.addedWeightLb} lb`;
-      return `${prescription.sets}×${prescription.reps}${added}`;
+      return {
+        primary: `${prescription.sets}×${prescription.reps}${added}`,
+        recovery: undefined,
+      };
     }
     case "timed-hold": {
       const added =
@@ -30,41 +47,60 @@ export const describePrescription = (prescription: Prescription): string => {
         prescription.addedWeightLb === 0
           ? ""
           : ` +${prescription.addedWeightLb} lb`;
-      return `${prescription.sets}× ${prescription.holdSec}s hold${added}`;
+      return {
+        primary: `${prescription.sets}× ${prescription.holdSec}s hold${added}`,
+        recovery: undefined,
+      };
     }
     case "timed-cardio": {
       const zone =
         prescription.targetHrZone === undefined
           ? ""
           : ` · Zone ${prescription.targetHrZone}`;
-      return `${formatMinutes(prescription.durationSec / 60)}${zone}`;
+      return {
+        primary: `${formatMinutes(prescription.durationSec / 60)}${zone}`,
+        recovery: undefined,
+      };
     }
     case "distance-cardio": {
       const split =
         prescription.targetSplitSecPer500 === undefined
           ? ""
           : ` @ ${formatSplit(prescription.targetSplitSecPer500)}`;
-      return `${formatDistance(prescription.distanceMeters)}${split}`;
+      return {
+        primary: `${formatDistance(prescription.distanceMeters)}${split}`,
+        recovery: undefined,
+      };
     }
     case "intervals": {
-      return describeIntervals(prescription);
+      const work =
+        prescription.workDistanceMeters === undefined
+          ? `${prescription.workSec ?? 0}s`
+          : formatDistance(prescription.workDistanceMeters);
+      const split =
+        prescription.targetSplitSecPer500 === undefined
+          ? ""
+          : ` @ ${formatSplit(prescription.targetSplitSecPer500)}`;
+      return {
+        primary: `${prescription.count} × ${work}${split}`,
+        recovery: `${formatClock(prescription.recoverySec)} recovery`,
+      };
     }
     case "circuit": {
-      return `${prescription.rounds} rounds · ${prescription.stations.length} stations · ${formatClock(prescription.restSec)} rest`;
+      return {
+        primary: `${prescription.rounds} rounds · ${prescription.stations.length} stations · ${formatClock(prescription.restSec)} rest`,
+        recovery: undefined,
+      };
     }
   }
 };
 
-const describeIntervals = (
-  prescription: Extract<Prescription, { type: "intervals" }>,
-): string => {
-  const work =
-    prescription.workDistanceMeters === undefined
-      ? `${prescription.workSec ?? 0}s`
-      : formatDistance(prescription.workDistanceMeters);
-  const split =
-    prescription.targetSplitSecPer500 === undefined
-      ? ""
-      : ` @ ${formatSplit(prescription.targetSplitSecPer500)}`;
-  return `${prescription.count} × ${work}${split} · ${formatClock(prescription.recoverySec)} recovery`;
+/**
+ * A one-line, human-readable target for a prescription — the recovery clause,
+ * when present, is joined back on with a separator. Prefer {@link
+ * prescriptionParts} where a row can show the recovery on its own line.
+ */
+export const describePrescription = (prescription: Prescription): string => {
+  const { primary, recovery } = prescriptionParts(prescription);
+  return recovery === undefined ? primary : `${primary} · ${recovery}`;
 };

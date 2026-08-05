@@ -7,12 +7,12 @@ import { requireAuth } from "../auth/session";
 import { Badge } from "../components/Badge";
 import { CancelWorkoutButton } from "../components/CancelWorkoutButton";
 import { PageHeader } from "../components/PageHeader";
+import { PrescriptionTarget } from "../components/PrescriptionTarget";
 import { StartWorkoutButton } from "../components/StartWorkoutButton";
 import { StatTile } from "../components/StatTile";
 import { dateIso } from "../date";
 import { db } from "../db";
 import { formatWeight } from "../format";
-import { describePrescription } from "../prescription-text";
 import { roleTone } from "../role-tone";
 import { exerciseNames } from "../server/exercise-names";
 import { findResumableSession } from "../server/resumable-session";
@@ -156,9 +156,7 @@ const renderWorkout = (
                   <span className={exerciseNameStyles}>
                     {names.get(exercise.exerciseId) ?? exercise.exerciseId}
                   </span>
-                  <span className={targetStyles}>
-                    {describePrescription(exercise.prescription)}
-                  </span>
+                  <PrescriptionTarget prescription={exercise.prescription} />
                 </div>
                 <Badge tone={roleTone(exercise.role)}>{exercise.role}</Badge>
               </li>
@@ -229,8 +227,6 @@ const rowStyles = hstack({
 });
 
 const exerciseNameStyles = css({ fontWeight: "medium" });
-
-const targetStyles = css({ color: "muted", fontSize: "sm" });
 
 // Flat on both: just a stacked, sticky action column — no rail box. On desktop
 // it stays in view beside the plan as the plan scrolls.

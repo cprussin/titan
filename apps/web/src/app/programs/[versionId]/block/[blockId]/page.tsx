@@ -7,8 +7,8 @@ import { css } from "../../../../../../styled-system/css";
 import { hstack, vstack } from "../../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../../auth/session";
 import { Badge } from "../../../../../components/Badge";
+import { PrescriptionTarget } from "../../../../../components/PrescriptionTarget";
 import { db } from "../../../../../db";
-import { describePrescription } from "../../../../../prescription-text";
 import { roleTone } from "../../../../../role-tone";
 import { exerciseNames } from "../../../../../server/exercise-names";
 import type {
@@ -138,7 +138,7 @@ const renderSlot = (
       <span className={exerciseNameStyles}>
         {names.get(slot.exerciseId) ?? slot.exerciseId}
       </span>
-      <span className={targetStyles}>{describePrescription(slot.base)}</span>
+      <PrescriptionTarget prescription={slot.base} />
     </div>
     <Badge tone={roleTone(slot.role)}>{slot.role}</Badge>
   </li>
@@ -269,5 +269,3 @@ const rowStyles = hstack({
 });
 
 const exerciseNameStyles = css({ fontWeight: "medium" });
-
-const targetStyles = css({ color: "muted", fontSize: "sm" });

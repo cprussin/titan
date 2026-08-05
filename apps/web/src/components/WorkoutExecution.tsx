@@ -13,6 +13,7 @@ import { roleTone } from "../role-tone";
 import { Button, Input } from "../ui";
 import { Badge } from "./Badge";
 import { CancelWorkoutButton } from "./CancelWorkoutButton";
+import { PrescriptionTarget } from "./PrescriptionTarget";
 import { RestTimer } from "./RestTimer";
 
 type Props = {
@@ -111,9 +112,10 @@ export const WorkoutExecution = ({
               <h1 className={nameStyles}>
                 {exerciseNames[current.exerciseId] ?? current.exerciseId}
               </h1>
-              <p className={targetStyles}>
-                {describePrescription(current.prescription)}
-              </p>
+              <PrescriptionTarget
+                prescription={current.prescription}
+                size="lg"
+              />
             </header>
 
             <PreviousPerformance previous={current.previous} />
@@ -651,8 +653,6 @@ const nameStyles = css({
   letterSpacing: "tight",
   lg: { fontSize: "4xl" },
 });
-
-const targetStyles = css({ color: "muted", fontSize: "lg" });
 
 const setCountStyles = css({
   color: "muted",
