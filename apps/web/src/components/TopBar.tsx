@@ -70,7 +70,7 @@ const barStyles = css({
   lg: { marginBlockStart: -8, marginInline: -8, paddingInline: 8 },
   marginBlockStart: -4,
   marginInline: -4,
-  md: { marginInline: -6, paddingInline: 6 },
+  md: { marginBlockStart: -6, marginInline: -6, paddingInline: 6 },
   paddingInline: 4,
   position: "sticky",
   zIndex: 5,

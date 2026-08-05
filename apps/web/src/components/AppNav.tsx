@@ -18,9 +18,9 @@ const LINKS = [
 ] as const;
 
 /**
- * The persistent primary navigation. A bottom tab bar on phone-sized screens
- * and a fixed left sidebar from `lg` up, where there's room to give each
- * section a full-width labeled row. Highlights the active section.
+ * The persistent primary navigation. A bottom tab bar on phone-sized screens; a
+ * fixed left rail from `md` up — collapsed to icons at `md`, widening to a
+ * full-width labeled sidebar at `lg`. Highlights the active section.
  */
 export const AppNav = () => {
   const pathname = usePathname();
@@ -59,23 +59,28 @@ const navStyles = css({
   insetBlockEnd: 0,
   insetInline: 0,
   justifyContent: "center",
-  // From `lg` up the bar becomes a full-height sidebar rail on the inline
-  // start edge; content is offset by the rail width in the layout.
+  // From `md` up the bar leaves the bottom edge and becomes a fixed rail on the
+  // inline-start edge — collapsed to icons at `md`, widening to a full labeled
+  // sidebar at `lg`. Content is offset by the rail width in the layout.
   lg: {
+    inlineSize: 60,
+    paddingInline: 3,
+  },
+  md: {
     alignItems: "stretch",
     backgroundColor: "background",
     borderBlockStart: "none",
     borderInlineEnd: "1px solid {colors.border}",
     flexDirection: "column",
     gap: 1,
-    inlineSize: 60,
+    inlineSize: 16,
     insetBlockEnd: 0,
     insetBlockStart: 0,
     insetInlineEnd: "auto",
     insetInlineStart: 0,
     justifyContent: "flex-start",
     paddingBlock: 4,
-    paddingInline: 3,
+    paddingInline: 2,
   },
   paddingBlock: 2,
   paddingInline: 3,
@@ -102,27 +107,27 @@ const listStyles = css({
   flexDirection: "row",
   gap: 1,
   justifyContent: "center",
-  lg: {
+  listStyleType: "none",
+  margin: 0,
+  md: {
     flexDirection: "column",
     gap: 0.5,
     inlineSize: "100%",
   },
-  listStyleType: "none",
-  margin: 0,
   padding: 0,
 });
 
-const itemWrapStyles = css({ lg: { inlineSize: "100%" } });
+const itemWrapStyles = css({ md: { inlineSize: "100%" } });
 
 const itemStyles = css({
   _pointerCoarse: { minBlockSize: 12 },
   // Hover tint only for a mouse-like pointer, so a tap on touch doesn't leave
-  // a stuck highlight; on the desktop rail hover also fills a subtle pill. A
-  // coarse pointer gets a taller tap target instead.
+  // a stuck highlight; on the rail (from `md` up) hover also fills a subtle
+  // pill. A coarse pointer gets a taller tap target instead.
   _pointerFine: {
     _hover: {
       color: "foreground",
-      lg: { "&:not([aria-current='page'])": { backgroundColor: "card" } },
+      md: { "&:not([aria-current='page'])": { backgroundColor: "card" } },
     },
   },
   alignItems: "center",
@@ -131,14 +136,20 @@ const itemStyles = css({
   display: "flex",
   flexDirection: "column",
   gap: 0.5,
+  // The collapsed rail centers an icon-only pill; the full sidebar lays the
+  // icon and its label out in a row.
   lg: {
-    borderRadius: "lg",
     flexDirection: "row",
     gap: 3,
     justifyContent: "flex-start",
+    paddingInline: 3,
+  },
+  md: {
+    borderRadius: "lg",
+    justifyContent: "center",
     minInlineSize: 0,
     paddingBlock: 2.5,
-    paddingInline: 3,
+    paddingInline: 0,
     transition: "background-color {durations.fast} {easings.out}",
   },
   minInlineSize: 16,
@@ -154,8 +165,11 @@ const activeStyles = css({
   color: "accent",
 });
 
+// Shown under the icon in the phone tab bar and beside it in the full sidebar;
+// hidden on the collapsed `md` rail, which is icons only.
 const labelStyles = css({
   fontSize: "xs",
   fontWeight: "medium",
-  lg: { fontSize: "sm" },
+  lg: { display: "block", fontSize: "sm" },
+  md: { display: "none" },
 });

@@ -41,18 +41,20 @@ export default RootLayout;
 
 const bodyStyles = css({
   color: "foreground",
-  // Offset the fixed sidebar rail from `lg` up (the tab bar reflows to the
-  // inline-start edge there); below `lg` the bar rides the bottom instead.
+  // Offset the fixed nav rail from `md` up (the tab bar reflows to the
+  // inline-start edge there): a narrow collapsed rail at `md`, the full sidebar
+  // at `lg`. Below `md` the bar rides the bottom instead.
   lg: { paddingInlineStart: 60 },
+  md: { paddingInlineStart: 16 },
   minBlockSize: "100dvh",
 });
 
 const mainStyles = css({
-  // Fills the area beside the sidebar so the top bar and content run the full
-  // width. Padding steps up with the viewport; on `lg` the sidebar replaces the
-  // bottom bar, so the end padding shrinks.
+  // Fills the area beside the rail so the top bar and content run the full
+  // width. Padding steps up with the viewport; from `md` up the rail replaces
+  // the bottom bar, so the tall bottom padding it needed goes away.
   lg: { paddingBlock: 8, paddingInline: 8 },
-  md: { paddingInline: 6 },
+  md: { paddingBlock: 6, paddingInline: 6 },
   paddingBlockEnd: 24,
   paddingBlockStart: 4,
   paddingInline: 4,
