@@ -15,11 +15,13 @@ import { Badge } from "./Badge";
 import { CancelWorkoutButton } from "./CancelWorkoutButton";
 import { PrescriptionTarget } from "./PrescriptionTarget";
 import { RestTimer } from "./RestTimer";
+import { TopBar } from "./TopBar";
 
 type Props = {
   exerciseNames: Record<string, string>;
   prescribedExercises: readonly PrescribedExercise[];
   sessionId: string;
+  title: string;
 };
 
 /** How many working sets a prescription calls for (cardio efforts are one bout). */
@@ -50,6 +52,7 @@ export const WorkoutExecution = ({
   exerciseNames,
   prescribedExercises,
   sessionId,
+  title,
 }: Props) => {
   const router = useRouter();
   const [index, setIndex] = useState(0);
@@ -96,15 +99,15 @@ export const WorkoutExecution = ({
   } else {
     return (
       <div className={rootStyles}>
-        <div className={topBarStyles}>
-          <div className={progressWrapStyles}>
-            <ProgressBar
-              current={index}
-              segments={prescribedExercises.map((exercise) => exercise.slotId)}
-            />
-          </div>
-          <CancelWorkoutButton sessionId={sessionId} size="sm" />
-        </div>
+        <TopBar
+          actions={<CancelWorkoutButton sessionId={sessionId} size="sm" />}
+          breadcrumbs={[{ href: "/", label: "Today" }]}
+          title={title}
+        />
+        <ProgressBar
+          current={index}
+          segments={prescribedExercises.map((exercise) => exercise.slotId)}
+        />
         <div className={bodyStyles}>
           <div className={mainColStyles}>
             <header className={vstack({ alignItems: "flex-start", gap: 2 })}>
@@ -554,15 +557,6 @@ const defaultReps = (prescription: Prescription): number =>
 // Fills the shared content width like every other page; on desktop it splits
 // into the work area plus a standing session outline.
 const rootStyles = vstack({ alignItems: "stretch", gap: 4 });
-
-// The step indicator runs the width with the cancel control tucked at its end.
-const topBarStyles = css({
-  alignItems: "center",
-  display: "flex",
-  gap: 3,
-});
-
-const progressWrapStyles = css({ flex: 1, minInlineSize: 0 });
 
 // One column on phones (outline hidden); a wide work area beside a narrower
 // outline rail on desktop.

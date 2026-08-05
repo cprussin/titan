@@ -6,10 +6,10 @@ import { grid, hstack, vstack } from "../../styled-system/patterns";
 import { requireAuth } from "../auth/session";
 import { Badge } from "../components/Badge";
 import { CancelWorkoutButton } from "../components/CancelWorkoutButton";
-import { PageHeader } from "../components/PageHeader";
 import { PrescriptionTarget } from "../components/PrescriptionTarget";
 import { StartWorkoutButton } from "../components/StartWorkoutButton";
 import { StatTile } from "../components/StatTile";
+import { TopBar } from "../components/TopBar";
 import { dateIso } from "../date";
 import { db } from "../db";
 import { formatWeight } from "../format";
@@ -34,7 +34,7 @@ const DashboardPage = async () => {
 
   return (
     <div className={pageStyles}>
-      <PageHeader description={todayDescription(today)} title="Today" />
+      <TopBar description={todayDescription(today)} title="Today" />
       {renderToday(today, names, metrics, sessions, resumableId)}
     </div>
   );

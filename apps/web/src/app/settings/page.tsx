@@ -5,7 +5,7 @@ import { css } from "../../../styled-system/css";
 import { vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { Concept2Controls } from "../../components/Concept2Controls";
-import { PageHeader } from "../../components/PageHeader";
+import { TopBar } from "../../components/TopBar";
 import { db } from "../../db";
 import { ThemeSwitch } from "../../ui";
 import { USER_ID } from "../../user";
@@ -19,7 +19,7 @@ const SettingsPage = async () => {
 
   return (
     <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
-      <PageHeader
+      <TopBar
         description="Appearance and connected services."
         title="Settings"
       />

@@ -4,7 +4,7 @@ import { css } from "../../../styled-system/css";
 import { hstack, vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { Badge } from "../../components/Badge";
-import { PageHeader } from "../../components/PageHeader";
+import { TopBar } from "../../components/TopBar";
 import { db } from "../../db";
 import { templateNames } from "../../server/template-names";
 import { USER_ID } from "../../user";
@@ -18,7 +18,7 @@ const HistoryPage = async () => {
 
   return (
     <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
-      <PageHeader
+      <TopBar
         description={
           sessions.length === 0
             ? undefined

@@ -6,7 +6,7 @@ import { css } from "../../../styled-system/css";
 import { grid, hstack, vstack, wrap } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { Badge } from "../../components/Badge";
-import { PageHeader } from "../../components/PageHeader";
+import { TopBar } from "../../components/TopBar";
 import { db } from "../../db";
 import { latestPrograms } from "../../server/program-explorer";
 
@@ -24,7 +24,7 @@ const ProgramsPage = async () => {
 
   return (
     <div className={vstack({ alignItems: "stretch", gap: 6, lg: { gap: 10 } })}>
-      <PageHeader
+      <TopBar
         description="Your training programs and the blocks that make them up."
         title="Programs"
       />

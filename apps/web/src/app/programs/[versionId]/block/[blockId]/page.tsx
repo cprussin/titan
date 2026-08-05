@@ -1,13 +1,13 @@
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
 import type { SelectedVariant } from "@titan/program-engine/variant";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { css } from "../../../../../../styled-system/css";
 import { hstack, vstack } from "../../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../../auth/session";
 import { Badge } from "../../../../../components/Badge";
 import { PrescriptionTarget } from "../../../../../components/PrescriptionTarget";
+import { TopBar } from "../../../../../components/TopBar";
 import { db } from "../../../../../db";
 import { roleTone } from "../../../../../role-tone";
 import { exerciseNames } from "../../../../../server/exercise-names";
@@ -77,13 +77,11 @@ const renderBlock = (context: BlockContext, names: Map<string, string>) => {
   }));
   return (
     <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
-      <div className={vstack({ alignItems: "stretch", gap: 1.5 })}>
-        <Link className={backLinkStyles} href="/programs">
-          ← {program.name}
-        </Link>
-        <h1 className={titleStyles}>{block.name}</h1>
-        <p className={metaStyles}>{describeCadence(block)}</p>
-      </div>
+      <TopBar
+        breadcrumbs={[{ href: "/programs", label: program.name }]}
+        description={describeCadence(block)}
+        title={block.name}
+      />
       <div className={accordionOnlyStyles}>
         <Accordion items={days} />
       </div>
@@ -179,25 +177,6 @@ const dayName = (dayOfWeek: number): string => {
     return name;
   }
 };
-
-const backLinkStyles = css({
-  color: "accent",
-  fontSize: "sm",
-  fontWeight: "medium",
-});
-
-const titleStyles = css({
-  fontSize: "3xl",
-  fontWeight: "bold",
-  letterSpacing: "tight",
-  lg: { fontSize: "4xl" },
-});
-
-const metaStyles = css({
-  color: "muted",
-  fontSize: "sm",
-  fontWeight: "medium",
-});
 
 // The collapsible accordion is the phone presentation; the always-expanded
 // overview is the desktop one. Each is hidden at the other's breakpoint.

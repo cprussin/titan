@@ -5,9 +5,9 @@ import { css } from "../../../styled-system/css";
 import { grid, vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { BodyWeightForm } from "../../components/BodyWeightForm";
-import { PageHeader } from "../../components/PageHeader";
 import { Sparkline } from "../../components/Sparkline";
 import { StatTile } from "../../components/StatTile";
+import { TopBar } from "../../components/TopBar";
 import { db } from "../../db";
 import { formatDistance, formatWeight } from "../../format";
 import { exerciseNames } from "../../server/exercise-names";
@@ -43,7 +43,7 @@ const AnalyticsPage = async () => {
 
   return (
     <div className={vstack({ alignItems: "stretch", gap: 6, lg: { gap: 10 } })}>
-      <PageHeader
+      <TopBar
         description="Your training and body trends over time."
         title="Trends"
       />

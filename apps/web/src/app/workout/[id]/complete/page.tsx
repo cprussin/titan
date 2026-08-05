@@ -5,8 +5,8 @@ import { notFound } from "next/navigation";
 import { css } from "../../../../../styled-system/css";
 import { grid, vstack } from "../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../auth/session";
-import { PageHeader } from "../../../../components/PageHeader";
 import { StatTile } from "../../../../components/StatTile";
+import { TopBar } from "../../../../components/TopBar";
 import { db } from "../../../../db";
 import { exerciseNames } from "../../../../server/exercise-names";
 import { Button } from "../../../../ui";
@@ -54,7 +54,8 @@ const CompletePage = async ({
       <div
         className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}
       >
-        <PageHeader
+        <TopBar
+          breadcrumbs={[{ href: "/", label: "Today" }]}
           description="Nice work — here's the recap."
           title="Workout complete"
         />

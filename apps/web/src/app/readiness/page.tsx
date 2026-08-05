@@ -1,13 +1,14 @@
 import { vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
-import { PageHeader } from "../../components/PageHeader";
 import { ReadinessForm } from "../../components/ReadinessForm";
+import { TopBar } from "../../components/TopBar";
 
 const ReadinessPage = async () => {
   await requireAuth();
   return (
     <div className={pageStyles}>
-      <PageHeader
+      <TopBar
+        breadcrumbs={[{ href: "/", label: "Today" }]}
         description="A quick check-in before today's session."
         title="Readiness"
       />
