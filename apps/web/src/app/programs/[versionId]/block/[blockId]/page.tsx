@@ -57,6 +57,24 @@ export default BlockPage;
 const renderBlock = (context: BlockContext, names: Map<string, string>) => {
   const { block, program, version } = context;
   const schedule = blockSchedule(version, block);
+  // Built once, presented two ways: a single-open accordion on phones and every
+  // day expanded at once on desktop. The two are toggled by CSS (not a media-
+  // query hook), so there's no hydration flash and desktop keeps its overview.
+  const days = schedule.map((workout) => ({
+    content: renderWorkoutContent(workout, names),
+    trigger: (
+      <span className={dayTriggerStyles}>
+        <span className={dayHeadingStyles}>
+          <span className={dayLabelStyles}>{dayName(workout.dayOfWeek)}</span>
+          <span className={dayNameStyles}>{workout.template.name}</span>
+        </span>
+        <span className={durationStyles}>
+          {workout.template.targetDurationMin} min
+        </span>
+      </span>
+    ),
+    value: `${workout.dayOfWeek}-${workout.template.id}`,
+  }));
   return (
     <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
       <div className={vstack({ alignItems: "stretch", gap: 1.5 })}>
@@ -66,25 +84,17 @@ const renderBlock = (context: BlockContext, names: Map<string, string>) => {
         <h1 className={titleStyles}>{block.name}</h1>
         <p className={metaStyles}>{describeCadence(block)}</p>
       </div>
-      <Accordion
-        items={schedule.map((workout) => ({
-          content: renderWorkoutContent(workout, names),
-          trigger: (
-            <span className={dayTriggerStyles}>
-              <span className={dayHeadingStyles}>
-                <span className={dayLabelStyles}>
-                  {dayName(workout.dayOfWeek)}
-                </span>
-                <span className={dayNameStyles}>{workout.template.name}</span>
-              </span>
-              <span className={durationStyles}>
-                {workout.template.targetDurationMin} min
-              </span>
-            </span>
-          ),
-          value: `${workout.dayOfWeek}-${workout.template.id}`,
-        }))}
-      />
+      <div className={accordionOnlyStyles}>
+        <Accordion items={days} />
+      </div>
+      <div className={overviewOnlyStyles}>
+        {days.map((day) => (
+          <section className={overviewDayStyles} key={day.value}>
+            <div className={overviewHeaderStyles}>{day.trigger}</div>
+            <div className={overviewBodyStyles}>{day.content}</div>
+          </section>
+        ))}
+      </div>
     </div>
   );
 };
@@ -188,6 +198,26 @@ const metaStyles = css({
   fontSize: "sm",
   fontWeight: "medium",
 });
+
+// The collapsible accordion is the phone presentation; the always-expanded
+// overview is the desktop one. Each is hidden at the other's breakpoint.
+const accordionOnlyStyles = css({ lg: { display: "none" } });
+
+const overviewOnlyStyles = css({
+  display: "none",
+  lg: { display: "flex", flexDirection: "column", gap: 12 },
+});
+
+const overviewDayStyles = css({ display: "flex", flexDirection: "column" });
+
+// The desktop day header mirrors the accordion trigger's row but as a static,
+// ruled heading (no caret, no toggle) since every day is already open.
+const overviewHeaderStyles = css({
+  borderBlockEnd: "1px solid {colors.border}",
+  paddingBlockEnd: 2,
+});
+
+const overviewBodyStyles = css({ paddingBlockStart: 3 });
 
 // The accordion trigger's content: the day label and workout name on the start
 // edge, the duration on the end (the accordion supplies the caret after it).
