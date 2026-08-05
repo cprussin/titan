@@ -46,17 +46,18 @@ export const TopBar = ({
         </Fragment>
       ))}
       <h1 className={titleStyles}>{title}</h1>
-      {description !== undefined && (
-        <span className={descriptionStyles}>{description}</span>
-      )}
     </div>
+    {description !== undefined && (
+      <span className={descriptionStyles}>{description}</span>
+    )}
     {actions !== undefined && <div className={actionsStyles}>{actions}</div>}
   </div>
 );
 
 // A slim bar pinned to the top of the viewport, bleeding to the content edges
 // (negating the main padding) so its background and rule run the full width. As
-// a direct child of the page column, it stays pinned for the whole scroll.
+// a direct child of the page column, it stays pinned for the whole scroll. It's
+// the positioned ancestor for the absolutely-centered description.
 const barStyles = css({
   alignItems: "center",
   backgroundColor: "background",
@@ -114,14 +115,20 @@ const actionsStyles = css({
   gap: 2,
 });
 
-// Rides inline after the title, dimmer, and gives way first — truncating before
-// the title does when the bar runs out of room.
+// Floated to the centre of the bar, dimmer, independent of the path and actions
+// on either side. Absolutely centred so it tracks the bar's midpoint rather than
+// the space left between the flanks; hidden on narrow screens where the flanks
+// would crowd it, and it truncates before overrunning them.
 const descriptionStyles = css({
   color: "muted",
+  display: "none",
   fontSize: "sm",
-  marginInlineStart: 1,
-  minInlineSize: 0,
+  insetInlineStart: "50%",
+  maxInlineSize: "min(40%, 28rem)",
+  md: { display: "block" },
   overflow: "hidden",
+  position: "absolute",
   textOverflow: "ellipsis",
+  transform: "translateX(-50%)",
   whiteSpace: "nowrap",
 });
