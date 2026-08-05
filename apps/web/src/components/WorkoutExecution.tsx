@@ -10,6 +10,7 @@ import { hstack, vstack } from "../../styled-system/patterns";
 import { formatWeight } from "../format";
 import { describePrescription } from "../prescription-text";
 import { Button, Input } from "../ui";
+import { CancelWorkoutButton } from "./CancelWorkoutButton";
 import { RestTimer } from "./RestTimer";
 
 type Props = {
@@ -135,6 +136,10 @@ export const WorkoutExecution = ({
             {describePrescription(next.prescription)}
           </p>
         )}
+
+        <div className={cancelStyles}>
+          <CancelWorkoutButton sessionId={sessionId} />
+        </div>
       </div>
     );
   }
@@ -508,3 +513,5 @@ const nextStyles = css({
 const mutedStyles = css({ color: "muted" });
 
 const progressTrackStyles = hstack({ gap: 1 });
+
+const cancelStyles = css({ marginBlockStart: 2, textAlign: "center" });
