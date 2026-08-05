@@ -4,7 +4,7 @@ import type { SelectedVariant } from "@titan/program-engine/variant";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { css } from "../../../../../../styled-system/css";
-import { grid, hstack, vstack } from "../../../../../../styled-system/patterns";
+import { hstack, vstack } from "../../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../../auth/session";
 import { Badge } from "../../../../../components/Badge";
 import { db } from "../../../../../db";
@@ -105,7 +105,7 @@ const renderRotation = (
     {rotation.label !== undefined && (
       <span className={rotationLabelStyles}>{rotation.label}</span>
     )}
-    <ul className={vstack({ alignItems: "stretch", gap: 0 })}>
+    <ul className={slotListStyles}>
       {rotation.slots.map((slot) => (
         <li className={rowStyles} key={slot.id}>
           <div className={vstack({ alignItems: "flex-start", gap: 0.5 })}>
@@ -161,15 +161,26 @@ const metaStyles = css({
   fontWeight: "medium",
 });
 
-const scheduleStyles = grid({
-  alignItems: "start",
+// Full-width workouts stacked down the page — on large screens each workout
+// spreads its own exercise list into columns rather than sitting beside another
+// workout, which read awkwardly when their lengths differed.
+const scheduleStyles = vstack({
+  alignItems: "stretch",
   gap: 8,
-  gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
-  lg: { columnGap: 12, rowGap: 10 },
+  lg: { gap: 12 },
 });
 
 // Each workout is a flat section, not a card: a ruled header over its exercises.
 const workoutStyles = vstack({ alignItems: "stretch", gap: 3 });
+
+// The exercise list flows into two hairline-ruled columns on large screens so a
+// full-width workout uses the room instead of running one long thin list.
+const slotListStyles = css({
+  columnGap: 10,
+  display: "grid",
+  gridTemplateColumns: { base: "1fr", lg: "repeat(2, minmax(0, 1fr))" },
+  rowGap: 0,
+});
 
 const workoutHeaderStyles = hstack({
   borderBlockEnd: "1px solid {colors.border}",
@@ -206,8 +217,7 @@ const rotationLabelStyles = css({
 });
 
 const rowStyles = hstack({
-  _first: { borderBlockStart: "none", paddingBlockStart: 0 },
-  borderBlockStart: "1px solid {colors.border}",
+  borderBlockEnd: "1px solid {colors.border}",
   gap: 3,
   justifyContent: "space-between",
   paddingBlock: 3,

@@ -18,11 +18,4 @@ const ReadinessPage = async () => {
 
 export default ReadinessPage;
 
-// The check-in is a short form, so it keeps a comfortable reading width and
-// centers in the wider desktop shell instead of stretching across it.
-const pageStyles = vstack({
-  alignItems: "stretch",
-  gap: 6,
-  marginInline: "auto",
-  maxInlineSize: "32rem",
-});
+const pageStyles = vstack({ alignItems: "stretch", gap: 6 });

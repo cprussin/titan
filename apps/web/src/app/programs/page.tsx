@@ -1,8 +1,9 @@
+import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr/CaretRight";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
 import Link from "next/link";
 import { css } from "../../../styled-system/css";
-import { hstack, vstack, wrap } from "../../../styled-system/patterns";
+import { grid, hstack, vstack, wrap } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { Badge } from "../../components/Badge";
 import { PageHeader } from "../../components/PageHeader";
@@ -65,8 +66,11 @@ const ProgramsPage = async () => {
                         {describeBlock(block)}
                       </span>
                     </div>
-                    <span className={workoutCountStyles}>
-                      {countWorkouts(block)}
+                    <span className={blockTrailingStyles}>
+                      <span className={workoutCountStyles}>
+                        {countWorkouts(block)}
+                      </span>
+                      <CaretRightIcon size={16} />
                     </span>
                   </Link>
                 </li>
@@ -108,36 +112,39 @@ const descriptionStyles = css({ color: "muted", fontSize: "sm" });
 
 const goalsStyles = wrap({ gap: 1.5, paddingBlockStart: 1 });
 
-// A flat, hairline-ruled block list — two continuous columns on wider screens.
-const blockListStyles = css({
-  columnGap: 10,
-  display: "grid",
+const blockListStyles = grid({
+  alignItems: "stretch",
+  gap: 2,
   gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
-  rowGap: 0,
 });
 
+// The blocks are navigation buttons — bordered, filled cards with a caret, so
+// they read as tappable rather than as plain list rows.
 const blockRowStyles = hstack({
-  // Hover only for a mouse-like pointer, so a tap on touch doesn't leave the
-  // row stuck in its highlighted state.
   _pointerFine: {
     _hover: {
-      backgroundColor: "color-mix(in oklab, {colors.accent} 10%, transparent)",
+      backgroundColor: "color-mix(in oklab, {colors.accent} 8%, {colors.card})",
+      borderColor: "color-mix(in oklab, {colors.accent} 50%, {colors.border})",
     },
   },
-  borderBlockEnd: "1px solid {colors.border}",
-  borderRadius: "md",
+  backgroundColor: "card",
+  blockSize: "100%",
+  border: "1px solid {colors.border}",
+  borderRadius: "lg",
   gap: 3,
   justifyContent: "space-between",
-  marginInline: -2,
-  paddingBlock: 3.5,
-  paddingInline: 2,
-  transition: "background-color {durations.fast} {easings.out}",
+  paddingBlock: 3,
+  paddingInline: 4,
+  transition:
+    "border-color {durations.fast} {easings.out}, background-color {durations.fast} {easings.out}",
 });
 
 const blockNameStyles = css({ fontWeight: "medium" });
 
 const blockMetaStyles = css({ color: "muted", fontSize: "sm" });
 
-const workoutCountStyles = css({ color: "textTertiary", fontSize: "sm" });
+const blockTrailingStyles = hstack({ color: "textTertiary", gap: 2 });
+
+const workoutCountStyles = css({ fontSize: "sm" });
 
 const mutedStyles = css({ color: "muted" });

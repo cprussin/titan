@@ -16,14 +16,11 @@ type Props = {
  */
 export const PageHeader = ({ actions, description, title }: Props) => (
   <div className={rootStyles}>
-    <div className={headingStyles}>
-      <span className={spineStyles} />
-      <div className={textStyles}>
-        <h1 className={titleStyles}>{title}</h1>
-        {description !== undefined && (
-          <p className={descriptionStyles}>{description}</p>
-        )}
-      </div>
+    <div className={textStyles}>
+      <h1 className={titleStyles}>{title}</h1>
+      {description !== undefined && (
+        <p className={descriptionStyles}>{description}</p>
+      )}
     </div>
     {actions !== undefined && <div className={actionsStyles}>{actions}</div>}
   </div>
@@ -36,22 +33,6 @@ const rootStyles = css({
   gap: 3,
   justifyContent: "space-between",
   md: { alignItems: "center", flexDirection: "row" },
-});
-
-const headingStyles = css({
-  alignItems: "stretch",
-  display: "flex",
-  gap: 3,
-  minInlineSize: 0,
-});
-
-// A short accent spine gives every page a spot of brand color and anchors the
-// title. It stretches to the full height of the title + description.
-const spineStyles = css({
-  backgroundColor: "accent",
-  borderRadius: "full",
-  flexShrink: 0,
-  inlineSize: 1,
 });
 
 const textStyles = css({

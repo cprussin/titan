@@ -95,10 +95,15 @@ export const WorkoutExecution = ({
   } else {
     return (
       <div className={rootStyles}>
-        <ProgressBar
-          current={index}
-          segments={prescribedExercises.map((exercise) => exercise.slotId)}
-        />
+        <div className={topBarStyles}>
+          <div className={progressWrapStyles}>
+            <ProgressBar
+              current={index}
+              segments={prescribedExercises.map((exercise) => exercise.slotId)}
+            />
+          </div>
+          <CancelWorkoutButton sessionId={sessionId} size="sm" />
+        </div>
         <div className={bodyStyles}>
           <div className={mainColStyles}>
             <header className={vstack({ alignItems: "flex-start", gap: 2 })}>
@@ -134,18 +139,13 @@ export const WorkoutExecution = ({
               />
             )}
 
-            {/* On phones the "up next" hint and cancel ride under the logger;
-                on desktop they move into the outline pane at the side. */}
+            {/* The "up next" hint stands in for the outline on phones. */}
             {next !== undefined && (
               <p className={nextStyles}>
                 Next: {exerciseNames[next.exerciseId] ?? next.exerciseId} ·{" "}
                 {describePrescription(next.prescription)}
               </p>
             )}
-
-            <div className={cancelStyles}>
-              <CancelWorkoutButton sessionId={sessionId} />
-            </div>
           </div>
 
           <aside className={asideStyles}>
@@ -154,7 +154,6 @@ export const WorkoutExecution = ({
               exerciseNames={exerciseNames}
               prescribedExercises={prescribedExercises}
             />
-            <CancelWorkoutButton sessionId={sessionId} />
           </aside>
         </div>
       </div>
@@ -323,20 +322,26 @@ const StrengthLogger = ({
             </>
           )}
           <RpePicker onChange={setRpe} value={rpe} />
-          <Button onClick={logSet} size="xl" variant="accent">
-            Log set
-          </Button>
         </div>
       )}
-      <Button
-        disabled={done === 0}
-        loading={busy}
-        onClick={complete}
-        size="lg"
-        variant={done >= sets ? "success" : "outline"}
-      >
-        {done >= sets ? "Complete exercise" : "Finish early"}
-      </Button>
+      {/* The log and finish actions stack on phones and share a row on
+          desktop, where there's width for both. */}
+      <div className={actionRowStyles}>
+        {done < sets && (
+          <Button onClick={logSet} size="lg" variant="accent">
+            Log set
+          </Button>
+        )}
+        <Button
+          disabled={done === 0}
+          loading={busy}
+          onClick={complete}
+          size="lg"
+          variant={done >= sets ? "success" : "outline"}
+        >
+          {done >= sets ? "Complete exercise" : "Finish early"}
+        </Button>
+      </div>
     </div>
   );
 };
@@ -544,16 +549,18 @@ const defaultReps = (prescription: Prescription): number =>
     ? prescription.reps
     : 0;
 
-// The active exercise stays a focused single column on phones; on desktop it
-// pairs with a standing session outline, so the root widens to hold both.
-const rootStyles = vstack({
-  alignItems: "stretch",
-  gap: 4,
-  inlineSize: "100%",
-  lg: { maxInlineSize: "none" },
-  marginInline: "auto",
-  maxInlineSize: "32rem",
+// Fills the shared content width like every other page; on desktop it splits
+// into the work area plus a standing session outline.
+const rootStyles = vstack({ alignItems: "stretch", gap: 4 });
+
+// The step indicator runs the width with the cancel control tucked at its end.
+const topBarStyles = css({
+  alignItems: "center",
+  display: "flex",
+  gap: 3,
 });
+
+const progressWrapStyles = css({ flex: 1, minInlineSize: 0 });
 
 // One column on phones (outline hidden); a wide work area beside a narrower
 // outline rail on desktop.
@@ -681,8 +688,14 @@ const mutedStyles = css({ color: "muted" });
 
 const progressTrackStyles = hstack({ gap: 1 });
 
-const cancelStyles = css({
-  lg: { display: "none" },
-  marginBlockStart: 2,
-  textAlign: "center",
+// Log / finish actions: stacked on phones, shared evenly across a row on
+// desktop where there's width for both side by side.
+const actionRowStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: 3,
+  lg: {
+    "& > *": { flex: 1 },
+    flexDirection: "row",
+  },
 });

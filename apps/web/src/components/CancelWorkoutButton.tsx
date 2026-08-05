@@ -6,11 +6,14 @@ import { Button, ModalDialog } from "../ui";
 
 type Props = {
   sessionId: string;
+  /** The trigger button's size — compact where it sits inline with other
+   *  chrome, larger where it stands alone. Defaults to `lg`. */
+  size?: "sm" | "lg";
 };
 
 /** Cancels an in-progress workout after a confirmation prompt: discards the
  *  session and its logged progress, then returns to today's plan. */
-export const CancelWorkoutButton = ({ sessionId }: Props) => {
+export const CancelWorkoutButton = ({ sessionId, size = "lg" }: Props) => {
   const router = useRouter();
   const [canceling, setCanceling] = useState(false);
 
@@ -46,7 +49,7 @@ export const CancelWorkoutButton = ({ sessionId }: Props) => {
       }
       title="Cancel workout?"
       trigger={
-        <Button size="lg" variant="danger">
+        <Button size={size} variant="danger">
           Cancel workout
         </Button>
       }
