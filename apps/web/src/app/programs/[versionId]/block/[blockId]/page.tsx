@@ -6,8 +6,10 @@ import { notFound } from "next/navigation";
 import { css } from "../../../../../../styled-system/css";
 import { grid, hstack, vstack } from "../../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../../auth/session";
+import { Badge } from "../../../../../components/Badge";
 import { db } from "../../../../../db";
 import { describePrescription } from "../../../../../prescription-text";
+import { roleTone } from "../../../../../role-tone";
 import { exerciseNames } from "../../../../../server/exercise-names";
 import type {
   BlockContext,
@@ -76,8 +78,8 @@ const renderWorkout = (
 ) => {
   const { dayOfWeek, template } = workout;
   return (
-    <section className={cardStyles} key={`${dayOfWeek}-${template.id}`}>
-      <div className={hstack({ justifyContent: "space-between" })}>
+    <section className={workoutStyles} key={`${dayOfWeek}-${template.id}`}>
+      <div className={workoutHeaderStyles}>
         <div className={vstack({ alignItems: "flex-start", gap: 0.5 })}>
           <span className={dayStyles}>{dayName(dayOfWeek)}</span>
           <h2 className={workoutNameStyles}>{template.name}</h2>
@@ -114,7 +116,7 @@ const renderRotation = (
               {describePrescription(slot.base)}
             </span>
           </div>
-          <span className={rolePillStyles}>{slot.role}</span>
+          <Badge tone={roleTone(slot.role)}>{slot.role}</Badge>
         </li>
       ))}
     </ul>
@@ -161,42 +163,52 @@ const metaStyles = css({
 
 const scheduleStyles = grid({
   alignItems: "start",
-  gap: 4,
+  gap: 8,
   gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
-  lg: { gap: 6 },
+  lg: { columnGap: 12, rowGap: 10 },
 });
 
-const cardStyles = vstack({
-  alignItems: "stretch",
-  backgroundColor: "card",
-  border: "1px solid {colors.border}",
-  borderRadius: "2xl",
-  gap: 3,
-  lg: { gap: 4, padding: 6 },
-  padding: 4,
+// Each workout is a flat section, not a card: a ruled header over its exercises.
+const workoutStyles = vstack({ alignItems: "stretch", gap: 3 });
+
+const workoutHeaderStyles = hstack({
+  borderBlockEnd: "1px solid {colors.border}",
+  justifyContent: "space-between",
+  paddingBlockEnd: 2,
 });
 
 const dayStyles = css({
   color: "muted",
   fontSize: "xs",
   fontWeight: "medium",
+  letterSpacing: "wide",
   textTransform: "uppercase",
 });
 
-const workoutNameStyles = css({ fontSize: "lg", fontWeight: "semibold" });
+const workoutNameStyles = css({
+  fontSize: "lg",
+  fontWeight: "semibold",
+  lg: { fontSize: "xl" },
+});
 
-const durationStyles = css({ color: "textTertiary", fontSize: "sm" });
+const durationStyles = css({
+  color: "textTertiary",
+  fontSize: "sm",
+  fontVariantNumeric: "tabular-nums",
+});
 
 const rotationLabelStyles = css({
   color: "accent",
   fontSize: "xs",
   fontWeight: "semibold",
+  letterSpacing: "wide",
   textTransform: "uppercase",
 });
 
 const rowStyles = hstack({
   _first: { borderBlockStart: "none", paddingBlockStart: 0 },
   borderBlockStart: "1px solid {colors.border}",
+  gap: 3,
   justifyContent: "space-between",
   paddingBlock: 3,
 });
@@ -204,12 +216,3 @@ const rowStyles = hstack({
 const exerciseNameStyles = css({ fontWeight: "medium" });
 
 const targetStyles = css({ color: "muted", fontSize: "sm" });
-
-const rolePillStyles = css({
-  backgroundColor: "color-mix(in oklab, {colors.foreground} 8%, transparent)",
-  borderRadius: "full",
-  color: "textTertiary",
-  fontSize: "xs",
-  paddingBlock: 0.5,
-  paddingInline: 2,
-});

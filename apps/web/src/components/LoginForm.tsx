@@ -56,7 +56,7 @@ export const LoginForm = () => {
         value={password}
       />
       {failed && <p className={errorStyles}>Incorrect password.</p>}
-      <Button loading={submitting} type="submit">
+      <Button loading={submitting} type="submit" variant="accent">
         Sign in
       </Button>
     </form>

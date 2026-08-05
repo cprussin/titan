@@ -66,19 +66,22 @@ const SettingRow = ({
   </section>
 );
 
-const groupStyles = vstack({ alignItems: "stretch", gap: 3 });
+// The settings themselves are borderless rows divided by hairlines — the first
+// rule sits above the top row so the group reads as one ledger.
+const groupStyles = css({
+  borderBlockStart: "1px solid {colors.border}",
+  display: "flex",
+  flexDirection: "column",
+});
 
 const rowStyles = css({
   alignItems: "flex-start",
-  backgroundColor: "card",
-  border: "1px solid {colors.border}",
-  borderRadius: "2xl",
+  borderBlockEnd: "1px solid {colors.border}",
   display: "flex",
   flexDirection: "column",
   gap: 3,
   justifyContent: "space-between",
-  lg: { padding: 6 },
-  padding: 4,
+  paddingBlock: 5,
   sm: { alignItems: "center", flexDirection: "row", gap: 6 },
 });
 

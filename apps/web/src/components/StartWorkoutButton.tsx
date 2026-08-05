@@ -32,7 +32,7 @@ export const StartWorkoutButton = () => {
   };
 
   return (
-    <Button loading={starting} onClick={start} size="xl">
+    <Button loading={starting} onClick={start} size="xl" variant="accent">
       Start Workout
     </Button>
   );

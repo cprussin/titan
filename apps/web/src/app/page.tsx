@@ -4,6 +4,7 @@ import Link from "next/link";
 import { css } from "../../styled-system/css";
 import { grid, hstack, vstack } from "../../styled-system/patterns";
 import { requireAuth } from "../auth/session";
+import { Badge } from "../components/Badge";
 import { CancelWorkoutButton } from "../components/CancelWorkoutButton";
 import { PageHeader } from "../components/PageHeader";
 import { StartWorkoutButton } from "../components/StartWorkoutButton";
@@ -12,6 +13,7 @@ import { dateIso } from "../date";
 import { db } from "../db";
 import { formatWeight } from "../format";
 import { describePrescription } from "../prescription-text";
+import { roleTone } from "../role-tone";
 import { exerciseNames } from "../server/exercise-names";
 import { findResumableSession } from "../server/resumable-session";
 import type { Today } from "../server/today";
@@ -80,13 +82,13 @@ const renderToday = (
     }
     case "rest": {
       return (
-        <div className={cardStyles}>
+        <section className={vstack({ alignItems: "flex-start", gap: 2 })}>
           <h2 className={sessionTitleStyles}>Rest day</h2>
-          <p className={mutedStyles}>
+          <p className={restCopyStyles}>
             Recover well — walk, stretch, foam roll, or take an easy row under
             20 minutes. No prescribed intensity.
           </p>
-        </div>
+        </section>
       );
     }
     case "workout": {
@@ -141,9 +143,9 @@ const renderWorkout = (
       </div>
 
       <div className={workoutBodyStyles}>
-        <div className={cardStyles}>
+        <section className={planStyles}>
           <h2 className={sessionTitleStyles}>{today.template.name}</h2>
-          <ul className={planStyles}>
+          <ul className={planListStyles}>
             {today.resolved.prescribedExercises.map((exercise) => (
               <li className={rowStyles} key={exercise.slotId}>
                 <div className={vstack({ alignItems: "flex-start", gap: 0.5 })}>
@@ -154,23 +156,27 @@ const renderWorkout = (
                     {describePrescription(exercise.prescription)}
                   </span>
                 </div>
-                <span className={rolePillStyles}>{exercise.role}</span>
+                <Badge tone={roleTone(exercise.role)}>{exercise.role}</Badge>
               </li>
             ))}
           </ul>
-        </div>
+        </section>
 
         <div className={actionsStyles}>
           {resumableId === undefined ? (
             <>
+              <StartWorkoutButton />
               <Link className={readinessLinkStyles} href="/readiness">
                 Log readiness
               </Link>
-              <StartWorkoutButton />
             </>
           ) : (
             <>
-              <Button href={`/workout/${resumableId}`} size="xl">
+              <Button
+                href={`/workout/${resumableId}`}
+                size="xl"
+                variant="accent"
+              >
                 Resume workout
               </Button>
               <CancelWorkoutButton sessionId={resumableId} />
@@ -184,31 +190,23 @@ const renderWorkout = (
 
 const pageStyles = vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } });
 
-const statGridStyles = grid({ columns: 3, gap: 2, lg: { gap: 4 } });
+const statGridStyles = grid({ columns: 3, gap: 4, lg: { gap: 8 } });
 
-// On desktop the exercise plan and the start/resume actions sit side by side;
-// on phones they stack, actions under the plan.
+// On desktop the exercise plan and the start/resume actions sit side by side,
+// separated by whitespace rather than a box; on phones they stack.
 const workoutBodyStyles = css({
   display: "flex",
   flexDirection: "column",
-  gap: 4,
+  gap: 6,
   md: {
     alignItems: "start",
     display: "grid",
-    gap: 6,
+    gap: 10,
     gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)",
   },
 });
 
-const cardStyles = vstack({
-  alignItems: "stretch",
-  backgroundColor: "card",
-  border: "1px solid {colors.border}",
-  borderRadius: "2xl",
-  gap: 3,
-  lg: { padding: 6 },
-  padding: 4,
-});
+const planStyles = vstack({ alignItems: "stretch", gap: 2 });
 
 const sessionTitleStyles = css({
   fontSize: "lg",
@@ -216,45 +214,28 @@ const sessionTitleStyles = css({
   lg: { fontSize: "xl" },
 });
 
-const planStyles = vstack({ alignItems: "stretch", gap: 0 });
+const planListStyles = vstack({ alignItems: "stretch", gap: 0 });
 
 const rowStyles = hstack({
-  _first: { borderBlockStart: "none", paddingBlockStart: 0 },
+  _first: { borderBlockStart: "none" },
   borderBlockStart: "1px solid {colors.border}",
+  gap: 3,
   justifyContent: "space-between",
-  paddingBlock: 3,
+  paddingBlock: 3.5,
 });
 
 const exerciseNameStyles = css({ fontWeight: "medium" });
 
 const targetStyles = css({ color: "muted", fontSize: "sm" });
 
-const rolePillStyles = css({
-  backgroundColor: "color-mix(in oklab, {colors.foreground} 8%, transparent)",
-  borderRadius: "full",
-  color: "textTertiary",
-  fontSize: "xs",
-  paddingBlock: 0.5,
-  paddingInline: 2,
-});
-
-// On phones the actions are just stacked buttons under the plan; on desktop
-// they gather into a sticky rail card beside it, staying in reach as the plan
-// scrolls.
+// Flat on both: just a stacked, sticky action column — no rail box. On desktop
+// it stays in view beside the plan as the plan scrolls.
 const actionsStyles = css({
   alignItems: "stretch",
   display: "flex",
   flexDirection: "column",
-  gap: 2,
-  md: {
-    backgroundColor: "card",
-    border: "1px solid {colors.border}",
-    borderRadius: "2xl",
-    gap: 3,
-    insetBlockStart: 8,
-    padding: 5,
-    position: "sticky",
-  },
+  gap: 3,
+  md: { insetBlockStart: 8, position: "sticky" },
 });
 
 const readinessLinkStyles = css({
@@ -263,5 +244,7 @@ const readinessLinkStyles = css({
   fontWeight: "medium",
   textAlign: "center",
 });
+
+const restCopyStyles = css({ color: "muted", maxInlineSize: "40rem" });
 
 const mutedStyles = css({ color: "muted" });

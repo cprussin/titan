@@ -2,8 +2,9 @@ import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
 import Link from "next/link";
 import { css } from "../../../styled-system/css";
-import { grid, hstack, vstack, wrap } from "../../../styled-system/patterns";
+import { hstack, vstack, wrap } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
+import { Badge } from "../../components/Badge";
 import { PageHeader } from "../../components/PageHeader";
 import { db } from "../../db";
 import { latestPrograms } from "../../server/program-explorer";
@@ -17,7 +18,7 @@ const ProgramsPage = async () => {
   const entries = latestPrograms(programs, versions);
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
+    <div className={vstack({ alignItems: "stretch", gap: 6, lg: { gap: 10 } })}>
       <PageHeader
         description="Your training programs and the blocks that make them up."
         title="Programs"
@@ -29,20 +30,20 @@ const ProgramsPage = async () => {
         </p>
       ) : (
         entries.map(({ program, version }) => (
-          <section className={cardStyles} key={version.id}>
-            <div className={vstack({ alignItems: "stretch", gap: 1 })}>
+          <section className={programStyles} key={version.id}>
+            <div className={vstack({ alignItems: "stretch", gap: 1.5 })}>
               <h2 className={programNameStyles}>{program.name}</h2>
               <p className={descriptionStyles}>{program.description}</p>
+              {program.goals.length > 0 && (
+                <ul className={goalsStyles}>
+                  {program.goals.map((goal) => (
+                    <li key={goal}>
+                      <Badge tone="accent">{goal}</Badge>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            {program.goals.length > 0 && (
-              <ul className={goalsStyles}>
-                {program.goals.map((goal) => (
-                  <li className={goalPillStyles} key={goal}>
-                    {goal}
-                  </li>
-                ))}
-              </ul>
-            )}
             <ul className={blockListStyles}>
               {version.blocks.map((block) => (
                 <li key={block.id}>
@@ -88,59 +89,44 @@ const countWorkouts = (block: TrainingBlock): string => {
   return `${count} workout${count === 1 ? "" : "s"}`;
 };
 
-const cardStyles = vstack({
-  alignItems: "stretch",
-  backgroundColor: "card",
-  border: "1px solid {colors.border}",
-  borderRadius: "2xl",
-  gap: 3,
-  lg: { gap: 4, padding: 6 },
-  padding: 4,
-});
+// Programs are flat, separated by whitespace — no card around each one.
+const programStyles = vstack({ alignItems: "stretch", gap: 3 });
 
 const programNameStyles = css({
-  fontSize: "lg",
+  fontSize: "xl",
   fontWeight: "semibold",
-  lg: { fontSize: "xl" },
+  lg: { fontSize: "2xl" },
 });
 
 const descriptionStyles = css({ color: "muted", fontSize: "sm" });
 
-const goalsStyles = wrap({ gap: 1.5 });
+const goalsStyles = wrap({ gap: 1.5, paddingBlockStart: 1 });
 
-const goalPillStyles = css({
-  backgroundColor: "color-mix(in oklab, {colors.accent} 14%, transparent)",
-  borderRadius: "full",
-  color: "color-mix(in oklab, {colors.accent} 82%, {colors.foreground})",
-  fontSize: "xs",
-  fontWeight: "medium",
-  paddingBlock: 0.5,
-  paddingInline: 2,
-});
-
-const blockListStyles = grid({
-  alignItems: "stretch",
-  gap: 2,
+// A flat, hairline-ruled block list — two continuous columns on wider screens.
+const blockListStyles = css({
+  columnGap: 10,
+  display: "grid",
   gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+  rowGap: 0,
 });
 
 const blockRowStyles = hstack({
-  // Hover feedback only for a mouse-like pointer, so a tap on touch doesn't
-  // leave the row stuck in its highlighted state.
+  // Hover only for a mouse-like pointer, so a tap on touch doesn't leave the
+  // row stuck in its highlighted state.
   _pointerFine: {
     _hover: {
       backgroundColor:
         "color-mix(in oklab, {colors.foreground} 4%, transparent)",
-      borderColor: "borderStrong",
     },
   },
-  blockSize: "100%",
-  border: "1px solid {colors.border}",
-  borderRadius: "lg",
+  borderBlockEnd: "1px solid {colors.border}",
+  borderRadius: "md",
+  gap: 3,
   justifyContent: "space-between",
-  padding: 3,
-  transition:
-    "border-color {durations.fast} {easings.out}, background-color {durations.fast} {easings.out}",
+  marginInline: -2,
+  paddingBlock: 3.5,
+  paddingInline: 2,
+  transition: "background-color {durations.fast} {easings.out}",
 });
 
 const blockNameStyles = css({ fontWeight: "medium" });

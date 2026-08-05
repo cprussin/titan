@@ -1,8 +1,9 @@
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
 import Link from "next/link";
 import { css } from "../../../styled-system/css";
-import { grid, hstack, vstack } from "../../../styled-system/patterns";
+import { hstack, vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
+import { Badge } from "../../components/Badge";
 import { PageHeader } from "../../components/PageHeader";
 import { db } from "../../db";
 import { templateNames } from "../../server/template-names";
@@ -52,11 +53,11 @@ const HistoryPage = async () => {
                       {session.scheduledDate} · Week {session.weekNumber}
                     </span>
                   </div>
-                  <span className={statusStyles} data-status={session.status}>
-                    {session.status === "completed"
-                      ? `${sets} sets`
-                      : session.status}
-                  </span>
+                  {session.status === "completed" ? (
+                    <Badge tone="success">{`${sets} sets`}</Badge>
+                  ) : (
+                    <Badge tone="warning">In progress</Badge>
+                  )}
                 </Link>
               </li>
             );
@@ -69,32 +70,33 @@ const HistoryPage = async () => {
 
 export default HistoryPage;
 
-const listStyles = grid({
-  alignItems: "stretch",
-  gap: 2,
-  gridTemplateColumns: {
-    base: "1fr",
-    md: "repeat(2, minmax(0, 1fr))",
-    xl: "repeat(3, minmax(0, 1fr))",
-  },
-  lg: { gap: 3 },
+// Two flat, hairline-ruled lists side by side on wider screens — column gap
+// between them, no vertical gap so each column reads as one continuous list.
+const listStyles = css({
+  columnGap: 10,
+  display: "grid",
+  gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+  rowGap: 0,
 });
 
 const rowStyles = hstack({
-  // Hover feedback only for a mouse-like pointer — on touch a tap shouldn't
-  // leave a lingering border highlight; a fine pointer also lifts the card.
+  // Hover only for a mouse-like pointer, so a tap on touch doesn't leave a
+  // lingering tint. The negative inline margin lets the tint bleed to the row
+  // edges while the hairline stays aligned to the text.
   _pointerFine: {
-    _hover: { backgroundColor: "card", borderColor: "borderStrong" },
+    _hover: {
+      backgroundColor:
+        "color-mix(in oklab, {colors.foreground} 4%, transparent)",
+    },
   },
-  backgroundColor: "card",
-  blockSize: "100%",
-  border: "1px solid {colors.border}",
-  borderRadius: "xl",
+  borderBlockEnd: "1px solid {colors.border}",
+  borderRadius: "md",
+  gap: 3,
   justifyContent: "space-between",
-  lg: { padding: 4 },
-  padding: 3,
-  transition:
-    "border-color {durations.fast} {easings.out}, background-color {durations.fast} {easings.out}",
+  marginInline: -2,
+  paddingBlock: 3.5,
+  paddingInline: 2,
+  transition: "background-color {durations.fast} {easings.out}",
 });
 
 const nameStyles = css({ fontWeight: "medium" });
@@ -103,12 +105,6 @@ const metaStyles = css({
   color: "muted",
   fontSize: "sm",
   fontVariantNumeric: "tabular-nums",
-});
-
-const statusStyles = css({
-  "&[data-status='in-progress']": { color: "accent" },
-  color: "muted",
-  fontSize: "sm",
 });
 
 const mutedStyles = css({ color: "muted" });

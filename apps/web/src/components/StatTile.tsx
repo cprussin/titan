@@ -11,26 +11,23 @@ type Props = {
  *  presentational and server-safe (no hooks). */
 export const StatTile = ({ hint, label, value }: Props) => (
   <div className={tileStyles}>
-    <span className={labelStyles}>{label}</span>
     <span className={valueStyles}>{value}</span>
+    <span className={labelStyles}>{label}</span>
     {hint !== undefined && <span className={hintStyles}>{hint}</span>}
   </div>
 );
 
+// Flat by design: no box, just a value over its label. Grouping and separation
+// come from the containing stat row, not from a border around each tile.
 const tileStyles = vstack({
   alignItems: "flex-start",
-  backgroundColor: "card",
-  border: "1px solid {colors.border}",
-  borderRadius: "xl",
-  gap: 1.5,
-  lg: { padding: 5 },
-  padding: 4,
+  gap: 0.5,
 });
 
 const labelStyles = css({
   color: "muted",
   fontSize: "xs",
-  fontWeight: "semibold",
+  fontWeight: "medium",
   letterSpacing: "wide",
   textTransform: "uppercase",
 });

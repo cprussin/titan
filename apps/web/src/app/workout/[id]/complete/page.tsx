@@ -67,7 +67,7 @@ const CompletePage = async ({
 
         <div className={sectionsStyles}>
           {sessionRecords.length > 0 && (
-            <section className={cardStyles}>
+            <section className={sectionStyles}>
               <h2 className={sectionTitleStyles}>Personal records</h2>
               <ul className={listStyles}>
                 {sessionRecords.map((record) => (
@@ -84,7 +84,7 @@ const CompletePage = async ({
             </section>
           )}
 
-          <section className={cardStyles}>
+          <section className={sectionStyles}>
             <h2 className={sectionTitleStyles}>
               Why today looked the way it did
             </h2>
@@ -105,7 +105,7 @@ const CompletePage = async ({
         </div>
 
         <div className={backStyles}>
-          <Button href="/" size="lg">
+          <Button href="/" size="lg" variant="accent">
             Back to dashboard
           </Button>
         </div>
@@ -116,31 +116,26 @@ const CompletePage = async ({
 
 export default CompletePage;
 
-const statGridStyles = grid({ columns: 3, gap: 2, lg: { gap: 4 } });
+const statGridStyles = grid({ columns: 3, gap: 4, lg: { gap: 8 } });
 
 // The two recap panels sit side by side when both are present and there's
 // room; a lone panel (no PRs this session) fills the width instead of stranding
 // half of it.
 const sectionsStyles = grid({
   alignItems: "start",
-  gap: 4,
+  gap: 6,
   gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 20rem), 1fr))",
-  lg: { gap: 6 },
+  lg: { gap: 10 },
 });
 
-const cardStyles = vstack({
-  alignItems: "stretch",
-  backgroundColor: "card",
-  border: "1px solid {colors.border}",
-  borderRadius: "2xl",
-  gap: 3,
-  lg: { gap: 4, padding: 6 },
-  padding: 4,
-});
+const sectionStyles = vstack({ alignItems: "stretch", gap: 3 });
 
+// A ruled heading structures each panel without wrapping it in a box.
 const sectionTitleStyles = css({
+  borderBlockEnd: "1px solid {colors.border}",
   fontSize: "lg",
   fontWeight: "semibold",
+  paddingBlockEnd: 2,
 });
 
 const listStyles = vstack({ alignItems: "stretch", gap: 2 });

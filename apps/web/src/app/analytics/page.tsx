@@ -42,7 +42,7 @@ const AnalyticsPage = async () => {
   );
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
+    <div className={vstack({ alignItems: "stretch", gap: 6, lg: { gap: 10 } })}>
       <PageHeader
         description="Your training and body trends over time."
         title="Trends"
@@ -62,13 +62,13 @@ const AnalyticsPage = async () => {
       </div>
 
       <div className={chartsStyles}>
-        <section className={cardStyles}>
+        <section className={sectionStyles}>
           <h2 className={sectionTitleStyles}>Body weight</h2>
           <Sparkline label="Body weight trend" values={weights} />
           <BodyWeightForm />
         </section>
 
-        <section className={cardStyles}>
+        <section className={sectionStyles}>
           <h2 className={sectionTitleStyles}>
             Strength · estimated 1RM
             {strength === undefined
@@ -87,27 +87,22 @@ const AnalyticsPage = async () => {
 
 export default AnalyticsPage;
 
-const statGridStyles = grid({ columns: 3, gap: 2, lg: { gap: 4 } });
+const statGridStyles = grid({ columns: 3, gap: 4, lg: { gap: 8 } });
 
 const chartsStyles = grid({
   alignItems: "start",
-  gap: 4,
+  gap: 6,
   gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
-  lg: { gap: 6 },
+  lg: { gap: 10 },
 });
 
-const cardStyles = vstack({
-  alignItems: "stretch",
-  backgroundColor: "card",
-  border: "1px solid {colors.border}",
-  borderRadius: "2xl",
-  gap: 3,
-  lg: { gap: 4, padding: 6 },
-  padding: 4,
-});
+const sectionStyles = vstack({ alignItems: "stretch", gap: 3 });
 
+// A ruled section heading gives structure without wrapping the chart in a box.
 const sectionTitleStyles = css({
+  borderBlockEnd: "1px solid {colors.border}",
   fontSize: "md",
   fontWeight: "semibold",
   lg: { fontSize: "lg" },
+  paddingBlockEnd: 2,
 });

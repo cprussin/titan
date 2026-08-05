@@ -9,7 +9,9 @@ import { css } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
 import { formatWeight } from "../format";
 import { describePrescription } from "../prescription-text";
+import { roleTone } from "../role-tone";
 import { Button, Input } from "../ui";
+import { Badge } from "./Badge";
 import { CancelWorkoutButton } from "./CancelWorkoutButton";
 import { RestTimer } from "./RestTimer";
 
@@ -99,8 +101,8 @@ export const WorkoutExecution = ({
         />
         <div className={bodyStyles}>
           <div className={mainColStyles}>
-            <header className={vstack({ alignItems: "flex-start", gap: 1 })}>
-              <span className={roleStyles}>{current.role}</span>
+            <header className={vstack({ alignItems: "flex-start", gap: 2 })}>
+              <Badge tone={roleTone(current.role)}>{current.role}</Badge>
               <h1 className={nameStyles}>
                 {exerciseNames[current.exerciseId] ?? current.exerciseId}
               </h1>
@@ -321,7 +323,7 @@ const StrengthLogger = ({
             </>
           )}
           <RpePicker onChange={setRpe} value={rpe} />
-          <Button onClick={logSet} size="xl">
+          <Button onClick={logSet} size="xl" variant="accent">
             Log set
           </Button>
         </div>
@@ -331,7 +333,7 @@ const StrengthLogger = ({
         loading={busy}
         onClick={complete}
         size="lg"
-        variant={done >= sets ? "solid" : "outline"}
+        variant={done >= sets ? "success" : "outline"}
       >
         {done >= sets ? "Complete exercise" : "Finish early"}
       </Button>
@@ -388,7 +390,7 @@ const CardioLogger = ({ busy, onComplete, prescribed }: CardioLoggerProps) => {
         onChange={setAvgHr}
         value={avgHr}
       />
-      <Button loading={busy} onClick={complete} size="xl">
+      <Button loading={busy} onClick={complete} size="xl" variant="success">
         Complete
       </Button>
     </div>
@@ -585,20 +587,16 @@ const asideStyles = css({
   },
 });
 
-const outlineStyles = vstack({
-  alignItems: "stretch",
-  backgroundColor: "card",
-  border: "1px solid {colors.border}",
-  borderRadius: "xl",
-  gap: 3,
-  padding: 4,
-});
+// Flat: no card around the outline — a ruled "Session" heading over the list.
+const outlineStyles = vstack({ alignItems: "stretch", gap: 3 });
 
 const outlineTitleStyles = css({
+  borderBlockEnd: "1px solid {colors.border}",
   color: "muted",
   fontSize: "xs",
   fontWeight: "semibold",
   letterSpacing: "wide",
+  paddingBlockEnd: 2,
   textTransform: "uppercase",
 });
 
@@ -639,13 +637,11 @@ const outlineNameStyles = css({ fontSize: "sm", fontWeight: "medium" });
 
 const outlineTargetStyles = css({ color: "textTertiary", fontSize: "xs" });
 
-const nameStyles = css({ fontSize: "3xl", fontWeight: "bold" });
-
-const roleStyles = css({
-  color: "accent",
-  fontSize: "xs",
-  fontWeight: "semibold",
-  textTransform: "uppercase",
+const nameStyles = css({
+  fontSize: "3xl",
+  fontWeight: "bold",
+  letterSpacing: "tight",
+  lg: { fontSize: "4xl" },
 });
 
 const targetStyles = css({ color: "muted", fontSize: "lg" });
@@ -664,13 +660,13 @@ const stepperValueStyles = css({
   fontWeight: "bold",
 });
 
+// Flat: a hairline accent rule on the inline-start edge instead of a filled
+// chip, so "last time" reads as a quiet aside with a touch of color.
 const previousStyles = css({
-  backgroundColor: "card",
-  borderRadius: "md",
+  borderInlineStart: "1px solid {colors.accent}",
   color: "muted",
   fontSize: "sm",
-  paddingBlock: 2,
-  paddingInline: 3,
+  paddingInlineStart: 3,
 });
 
 const nextStyles = css({

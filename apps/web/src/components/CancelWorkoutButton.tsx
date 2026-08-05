@@ -46,7 +46,7 @@ export const CancelWorkoutButton = ({ sessionId }: Props) => {
       }
       title="Cancel workout?"
       trigger={
-        <Button size="lg" variant="ghost">
+        <Button size="lg" variant="danger">
           Cancel workout
         </Button>
       }
