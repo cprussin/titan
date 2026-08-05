@@ -18,16 +18,19 @@ type Props = {
 };
 
 /**
- * The static header bar every page opens with. It pins to the top of the
- * content column (sticky, opaque, with a rule beneath) and holds a compact
- * breadcrumb-and-title row on the start edge with a page-wide actions slot —
- * "Cancel workout" and the like — on the end. The bar bleeds to the column
- * edges so its rule runs the full width; an optional description sits just
- * beneath it, in normal flow, as a subtitle. Centralizing it gives every page
- * the same header chrome instead of each rolling its own.
+ * The static header bar every page opens with. A slim row — breadcrumb path and
+ * page title on the start edge, page-wide actions ("Cancel workout" and the
+ * like) on the end — that pins to the top of the viewport and stays put as the
+ * page scrolls beneath it. It bleeds to the content edges so its rule runs the
+ * full width; an optional description sits just beneath it as a normal,
+ * scrolling subtitle.
+ *
+ * It renders a fragment, not a wrapper, on purpose: the bar must be a direct
+ * child of the page's scroll column for `position: sticky` to hold across the
+ * whole page rather than only within a short header box.
  */
 export const TopBar = ({ actions, breadcrumbs, description, title }: Props) => (
-  <div className={rootStyles}>
+  <>
     <div className={barStyles}>
       <div className={pathStyles}>
         {breadcrumbs !== undefined && breadcrumbs.length > 0 && (
@@ -49,17 +52,13 @@ export const TopBar = ({ actions, breadcrumbs, description, title }: Props) => (
     {description !== undefined && (
       <p className={descriptionStyles}>{description}</p>
     )}
-  </div>
+  </>
 );
 
-const rootStyles = css({
-  display: "flex",
-  flexDirection: "column",
-});
-
-// The bar pins to the top and bleeds to the content-column edges, negating the
+// Pins to the top of the viewport and bleeds to the content edges, negating the
 // main padding so its background and rule run the full width and it sits flush
-// to the top before pinning.
+// to the top. It's a direct child of the page column, so it stays pinned for
+// the whole scroll.
 const barStyles = css({
   alignItems: "center",
   backgroundColor: "background",
@@ -72,7 +71,7 @@ const barStyles = css({
   marginBlockStart: -4,
   marginInline: -4,
   md: { marginInline: -6, paddingInline: 6 },
-  paddingBlock: 3,
+  paddingBlock: 2,
   paddingInline: 4,
   position: "sticky",
   zIndex: 5,
@@ -107,7 +106,6 @@ const titleStyles = css({
   fontSize: "lg",
   fontWeight: "semibold",
   letterSpacing: "tight",
-  lg: { fontSize: "xl" },
   minInlineSize: 0,
   overflow: "hidden",
   textOverflow: "ellipsis",
@@ -124,5 +122,4 @@ const actionsStyles = css({
 const descriptionStyles = css({
   color: "muted",
   fontSize: "sm",
-  paddingBlockStart: 4,
 });

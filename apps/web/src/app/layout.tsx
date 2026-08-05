@@ -48,17 +48,11 @@ const bodyStyles = css({
 });
 
 const mainStyles = css({
-  lg: {
-    maxInlineSize: "64rem",
-    paddingBlock: 8,
-    paddingInline: 8,
-  },
-  marginInline: "auto",
-  maxInlineSize: "32rem",
-  // The column widens in steps so list/grid pages fill a tablet and then a
-  // desktop. On `md` the bottom bar is still present, so the end padding stays;
-  // on `lg` the sidebar replaces it and the end padding shrinks.
-  md: { maxInlineSize: "48rem", paddingInline: 6 },
+  // Fills the area beside the sidebar so the top bar and content run the full
+  // width. Padding steps up with the viewport; on `lg` the sidebar replaces the
+  // bottom bar, so the end padding shrinks.
+  lg: { paddingBlock: 8, paddingInline: 8 },
+  md: { paddingInline: 6 },
   paddingBlockEnd: 24,
   paddingBlockStart: 4,
   paddingInline: 4,
