@@ -8,6 +8,7 @@ import { HouseIcon } from "@phosphor-icons/react/dist/ssr/House";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { css, cx } from "../../styled-system/css";
+import { useNavDrawer } from "./NavDrawer";
 
 const LINKS = [
   { href: "/", Icon: HouseIcon, label: "Today" },
@@ -19,37 +20,68 @@ const LINKS = [
 
 /**
  * The persistent primary navigation. A bottom tab bar on phone-sized screens; a
- * fixed left rail from `md` up — collapsed to icons at `md`, widening to a
- * full-width labeled sidebar at `lg`. Highlights the active section.
+ * full left sidebar from `lg` up. In between (`mdToLg`) the same sidebar is
+ * hidden off-canvas and slides in as a drawer — opened by the top-bar menu
+ * button, dismissed by the scrim behind it or by picking a destination.
+ * Highlights the active section.
  */
 export const AppNav = () => {
   const pathname = usePathname();
+  const { close, open } = useNavDrawer();
   return (
-    <nav aria-label="Primary" className={navStyles}>
-      <span className={brandStyles}>Titan</span>
-      <ul className={listStyles}>
-        {LINKS.map(({ Icon, href, label }) => {
-          const active =
-            href === "/" ? pathname === "/" : pathname.startsWith(href);
-          return (
-            <li className={itemWrapStyles} key={href}>
-              <Link
-                aria-current={active ? "page" : undefined}
-                className={cx(itemStyles, active ? activeStyles : undefined)}
-                href={href}
-              >
-                <Icon size={22} weight={active ? "fill" : "regular"} />
-                <span className={labelStyles}>{label}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <>
+      {open && (
+        <button
+          aria-label="Close navigation"
+          className={scrimStyles}
+          onClick={close}
+          type="button"
+        />
+      )}
+      <nav
+        aria-label="Primary"
+        className={navStyles}
+        data-open={open ? "true" : undefined}
+      >
+        <span className={brandStyles}>Titan</span>
+        <ul className={listStyles}>
+          {LINKS.map(({ Icon, href, label }) => {
+            const active =
+              href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <li className={itemWrapStyles} key={href}>
+                <Link
+                  aria-current={active ? "page" : undefined}
+                  className={cx(itemStyles, active ? activeStyles : undefined)}
+                  href={href}
+                  onClick={close}
+                >
+                  <Icon size={22} weight={active ? "fill" : "regular"} />
+                  <span className={labelStyles}>{label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </>
   );
 };
 
+// The page-dimming backdrop behind the open drawer. Only meaningful in the
+// `mdToLg` drawer window; below it there's no drawer and from `lg` up the
+// sidebar is part of the layout, so it never shows there.
+const scrimStyles = css({
+  backgroundColor: "rgba(0, 0, 0, 0.4)",
+  display: "none",
+  inset: 0,
+  mdToLg: { display: "block" },
+  position: "fixed",
+  zIndex: 9,
+});
+
 const navStyles = css({
+  "&[data-open='true']": { mdToLg: { transform: "translateX(0)" } },
   alignItems: "center",
   backgroundColor: "color-mix(in oklab, {colors.background} 80%, transparent)",
   borderBlockStart: "1px solid {colors.border}",
@@ -59,13 +91,10 @@ const navStyles = css({
   insetBlockEnd: 0,
   insetInline: 0,
   justifyContent: "center",
-  // From `md` up the bar leaves the bottom edge and becomes a fixed rail on the
-  // inline-start edge — collapsed to icons at `md`, widening to a full labeled
-  // sidebar at `lg`. Content is offset by the rail width in the layout.
-  lg: {
-    inlineSize: 60,
-    paddingInline: 3,
-  },
+  // From `md` up the bar becomes a full-height sidebar on the inline-start
+  // edge. In the `mdToLg` window it's hidden off-canvas and slides in as a
+  // drawer (translated by `data-open`); from `lg` up it sits in the layout,
+  // which offsets the content by its width.
   md: {
     alignItems: "stretch",
     backgroundColor: "background",
@@ -73,14 +102,19 @@ const navStyles = css({
     borderInlineEnd: "1px solid {colors.border}",
     flexDirection: "column",
     gap: 1,
-    inlineSize: 16,
+    inlineSize: 60,
     insetBlockEnd: 0,
     insetBlockStart: 0,
     insetInlineEnd: "auto",
     insetInlineStart: 0,
     justifyContent: "flex-start",
     paddingBlock: 4,
-    paddingInline: 2,
+    paddingInline: 3,
+  },
+  mdToLg: {
+    boxShadow: "2xl",
+    transform: "translateX(-100%)",
+    transition: "transform {durations.normal} {easings.out}",
   },
   paddingBlock: 2,
   paddingInline: 3,
@@ -88,11 +122,11 @@ const navStyles = css({
   zIndex: 10,
 });
 
-// The wordmark heads the sidebar rail only — hidden in the phone tab bar,
-// where every pixel of the row goes to the tab targets.
+// The wordmark heads the sidebar — hidden in the phone tab bar, where every
+// pixel of the row goes to the tab targets.
 const brandStyles = css({
   display: "none",
-  lg: {
+  md: {
     display: "block",
     fontSize: "xl",
     fontWeight: "bold",
@@ -122,8 +156,8 @@ const itemWrapStyles = css({ md: { inlineSize: "100%" } });
 const itemStyles = css({
   _pointerCoarse: { minBlockSize: 12 },
   // Hover tint only for a mouse-like pointer, so a tap on touch doesn't leave
-  // a stuck highlight; on the rail (from `md` up) hover also fills a subtle
-  // pill. A coarse pointer gets a taller tap target instead.
+  // a stuck highlight; on the sidebar hover also fills a subtle pill. A coarse
+  // pointer gets a taller tap target instead.
   _pointerFine: {
     _hover: {
       color: "foreground",
@@ -136,20 +170,15 @@ const itemStyles = css({
   display: "flex",
   flexDirection: "column",
   gap: 0.5,
-  // The collapsed rail centers an icon-only pill; the full sidebar lays the
-  // icon and its label out in a row.
-  lg: {
+  // The phone tab stacks icon over label; the sidebar lays them in a row.
+  md: {
+    borderRadius: "lg",
     flexDirection: "row",
     gap: 3,
     justifyContent: "flex-start",
-    paddingInline: 3,
-  },
-  md: {
-    borderRadius: "lg",
-    justifyContent: "center",
     minInlineSize: 0,
     paddingBlock: 2.5,
-    paddingInline: 0,
+    paddingInline: 3,
     transition: "background-color {durations.fast} {easings.out}",
   },
   minInlineSize: 16,
@@ -158,18 +187,16 @@ const itemStyles = css({
 
 // The active section: accent-colored, and carrying a faint accent fill at every
 // size so the current page reads at a glance — a pill behind the phone tab and
-// a bar on the desktop rail.
+// a bar on the sidebar.
 const activeStyles = css({
   backgroundColor:
     "color-mix(in oklab, {colors.accent} 14%, {colors.background})",
   color: "accent",
 });
 
-// Shown under the icon in the phone tab bar and beside it in the full sidebar;
-// hidden on the collapsed `md` rail, which is icons only.
+// Shown under the icon in the phone tab bar and beside it in the sidebar.
 const labelStyles = css({
   fontSize: "xs",
   fontWeight: "medium",
-  lg: { display: "block", fontSize: "sm" },
-  md: { display: "none" },
+  md: { fontSize: "sm" },
 });

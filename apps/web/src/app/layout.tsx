@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { css } from "../../styled-system/css";
 import { AppNav } from "../components/AppNav";
+import { NavDrawerProvider } from "../components/NavDrawer";
 import { RegisterServiceWorker } from "../components/RegisterServiceWorker";
 import { Provider } from "../ui";
 
@@ -29,8 +30,10 @@ const RootLayout = ({ children }: { children: ReactNode }) => (
   <html lang="en" suppressHydrationWarning>
     <body className={bodyStyles}>
       <Provider>
-        <main className={mainStyles}>{children}</main>
-        <AppNav />
+        <NavDrawerProvider>
+          <main className={mainStyles}>{children}</main>
+          <AppNav />
+        </NavDrawerProvider>
         <RegisterServiceWorker />
       </Provider>
     </body>
@@ -41,11 +44,10 @@ export default RootLayout;
 
 const bodyStyles = css({
   color: "foreground",
-  // Offset the fixed nav rail from `md` up (the tab bar reflows to the
-  // inline-start edge there): a narrow collapsed rail at `md`, the full sidebar
-  // at `lg`. Below `md` the bar rides the bottom instead.
+  // Offset the content by the sidebar's width only from `lg` up, where the
+  // sidebar is permanent. In the `mdToLg` window the sidebar is an overlaid
+  // drawer, and below `md` it's the bottom bar — neither reserves inline space.
   lg: { paddingInlineStart: 60 },
-  md: { paddingInlineStart: 16 },
   minBlockSize: "100dvh",
 });
 

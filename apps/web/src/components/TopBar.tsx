@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Fragment } from "react";
 import { css } from "../../styled-system/css";
+import { NavMenuButton } from "./NavMenuButton";
 
 /** One breadcrumb: the ancestor `label` and the `href` it links back to. */
 export type Crumb = {
@@ -20,12 +21,12 @@ type Props = {
 
 /**
  * The static header bar every page opens with, modeled on Linear's: a slim row
- * pinned to the top of the viewport with a section icon, a breadcrumb-and-title
- * path at a small, chrome-sized weight, and a page-wide actions slot ("Cancel
- * workout" and the like) on the end. The description rides inline after the
- * title as a muted subtitle. It bleeds to the content edges so its rule runs the
- * full width, and must be a direct child of the page's scroll column so
- * `position: sticky` holds across the whole page.
+ * pinned to the top of the viewport with (in the drawer window) a nav menu
+ * button, a section icon, a breadcrumb-and-title path at a small, chrome-sized
+ * weight, and a page-wide actions slot ("Cancel workout" and the like) on the
+ * end. The description floats muted in the centre. It bleeds to the content
+ * edges so its rule runs the full width, and must be a direct child of the
+ * page's scroll column so `position: sticky` holds across the whole page.
  */
 export const TopBar = ({
   actions,
@@ -36,6 +37,7 @@ export const TopBar = ({
 }: Props) => (
   <div className={barStyles}>
     <div className={pathStyles}>
+      <NavMenuButton />
       {icon !== undefined && <span className={iconStyles}>{icon}</span>}
       {breadcrumbs?.map((crumb) => (
         <Fragment key={crumb.href}>
