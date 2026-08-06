@@ -1,3 +1,4 @@
+import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr/CaretRight";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
 import Link from "next/link";
@@ -39,7 +40,7 @@ const ProgramsPage = async () => {
                 ))}
               </ul>
             )}
-            <ul className={vstack({ alignItems: "stretch", gap: 2 })}>
+            <ul className={blockListStyles}>
               {version.blocks.map((block) => (
                 <li key={block.id}>
                   <Link
@@ -49,14 +50,22 @@ const ProgramsPage = async () => {
                     <div
                       className={vstack({ alignItems: "flex-start", gap: 0.5 })}
                     >
-                      <span className={blockNameStyles}>{block.name}</span>
+                      <span className={blockNameStyles} data-block-name>
+                        {block.name}
+                      </span>
                       <span className={blockMetaStyles}>
                         {describeBlock(block)}
                       </span>
                     </div>
-                    <span className={workoutCountStyles}>
-                      {countWorkouts(block)}
-                    </span>
+                    <div className={hstack({ gap: 1.5 })}>
+                      <span className={workoutCountStyles}>
+                        {countWorkouts(block)}
+                      </span>
+                      <CaretRightIcon
+                        className={caretStyles}
+                        data-block-caret
+                      />
+                    </div>
                   </Link>
                 </li>
               ))}
@@ -90,12 +99,13 @@ const cardStyles = vstack({
   alignItems: "stretch",
   backgroundColor: "card",
   border: "1px solid {colors.border}",
-  borderRadius: "xl",
-  gap: 3,
+  borderRadius: "lg",
+  boxShadow: "md",
+  gap: 2.5,
   padding: 4,
 });
 
-const programNameStyles = css({ fontSize: "lg", fontWeight: "semibold" });
+const programNameStyles = css({ fontSize: "md", fontWeight: "semibold" });
 
 const descriptionStyles = css({ color: "muted", fontSize: "sm" });
 
@@ -111,18 +121,35 @@ const goalPillStyles = css({
   paddingInline: 2,
 });
 
+// The blocks read as a divided list of navigable rows — a top rule on every
+// row (including the first) sets the list off from the goals/description above,
+// and each row's name and caret shift to `accent` on hover to signal the link.
+const blockListStyles = vstack({ alignItems: "stretch", gap: 0 });
+
 const blockRowStyles = hstack({
-  _hover: { borderColor: "borderStrong" },
-  border: "1px solid {colors.border}",
-  borderRadius: "lg",
+  "&:hover [data-block-caret]": { color: "accent" },
+  "&:hover [data-block-name]": { color: "accent" },
+  borderBlockStart: "1px solid {colors.border}",
+  gap: 3,
   justifyContent: "space-between",
-  padding: 3,
+  paddingBlock: 2.5,
 });
 
-const blockNameStyles = css({ fontWeight: "medium" });
+const blockNameStyles = css({
+  fontSize: "sm",
+  fontWeight: "medium",
+  transition: "color {durations.fast} {easings.default}",
+});
 
-const blockMetaStyles = css({ color: "muted", fontSize: "sm" });
+const blockMetaStyles = css({ color: "muted", fontSize: "xs" });
 
-const workoutCountStyles = css({ color: "textTertiary", fontSize: "sm" });
+const workoutCountStyles = css({ color: "textTertiary", fontSize: "xs" });
+
+const caretStyles = css({
+  color: "textTertiary",
+  flexShrink: 0,
+  fontSize: "md",
+  transition: "color {durations.fast} {easings.default}",
+});
 
 const mutedStyles = css({ color: "muted" });
