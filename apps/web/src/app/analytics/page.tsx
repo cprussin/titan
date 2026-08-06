@@ -3,9 +3,10 @@ import { listBodyMetrics } from "@titan/db/body-metrics";
 import { listExternalWorkouts } from "@titan/db/external-workouts";
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
 import { css } from "../../../styled-system/css";
-import { grid, vstack } from "../../../styled-system/patterns";
+import { grid, hstack, vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { BodyWeightForm } from "../../components/BodyWeightForm";
+import { DeleteEntryButton } from "../../components/DeleteEntryButton";
 import { Sparkline } from "../../components/Sparkline";
 import { StatTile } from "../../components/StatTile";
 import { TopBar } from "../../components/TopBar";
@@ -69,6 +70,22 @@ const AnalyticsPage = async () => {
           <h2 className={sectionTitleStyles}>Body weight</h2>
           <Sparkline label="Body weight trend" values={weights} />
           <BodyWeightForm />
+          {metrics.length === 0 ? undefined : (
+            <ul className={weighInListStyles}>
+              {metrics.map((metric) => (
+                <li className={weighInRowStyles} key={metric.id}>
+                  <span className={weighInDateStyles}>{metric.date}</span>
+                  <span className={weighInWeightStyles}>
+                    {formatWeight(metric.weightLb)}
+                  </span>
+                  <DeleteEntryButton
+                    endpoint={`/api/history/body-metrics/${metric.id}`}
+                    itemLabel="weigh-in"
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         <section className={sectionStyles}>
@@ -100,6 +117,32 @@ const chartsStyles = grid({
 });
 
 const sectionStyles = vstack({ alignItems: "stretch", gap: 3 });
+
+// A flat, hairline-ruled ledger of individual weigh-ins, each with a delete
+// affordance so a mistaken entry can be removed.
+const weighInListStyles = css({
+  display: "flex",
+  flexDirection: "column",
+});
+
+const weighInRowStyles = hstack({
+  borderBlockEnd: "1px solid {colors.border}",
+  gap: 3,
+  paddingBlock: 1.5,
+});
+
+const weighInDateStyles = css({
+  color: "muted",
+  flex: 1,
+  fontSize: "sm",
+  fontVariantNumeric: "tabular-nums",
+  minInlineSize: 0,
+});
+
+const weighInWeightStyles = css({
+  fontVariantNumeric: "tabular-nums",
+  fontWeight: "medium",
+});
 
 // A ruled section heading gives structure without wrapping the chart in a box;
 // the rule carries a hint of accent to keep the flat layout from going cold.

@@ -6,6 +6,7 @@ import { css } from "../../../styled-system/css";
 import { vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { Concept2Controls } from "../../components/Concept2Controls";
+import { DeleteHistoryButton } from "../../components/DeleteHistoryButton";
 import { TopBar } from "../../components/TopBar";
 import { db } from "../../db";
 import { ThemeSwitch } from "../../ui";
@@ -40,6 +41,11 @@ const SettingsPage = async () => {
               : `${externals.length} imported workouts.`
           }
           title="Concept2 rowing"
+        />
+        <SettingRow
+          control={<DeleteHistoryButton />}
+          description="Permanently delete all logged workouts and weigh-ins."
+          title="Delete history"
         />
       </div>
     </div>

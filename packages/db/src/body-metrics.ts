@@ -27,3 +27,14 @@ export const listBodyMetrics = async (
   `;
   return parseDataRows(bodyMetricSchema, rows);
 };
+
+export const deleteBodyMetric = async (db: Db, id: string): Promise<void> => {
+  await db`DELETE FROM body_metrics WHERE id = ${id}`;
+};
+
+export const deleteBodyMetricsByUser = async (
+  db: Db,
+  userId: string,
+): Promise<void> => {
+  await db`DELETE FROM body_metrics WHERE user_id = ${userId}`;
+};

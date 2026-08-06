@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { css } from "../../../../../styled-system/css";
 import { grid, vstack } from "../../../../../styled-system/patterns";
 import { requireAuth } from "../../../../auth/session";
+import { DeleteWorkoutButton } from "../../../../components/DeleteWorkoutButton";
 import { StatTile } from "../../../../components/StatTile";
 import { TopBar } from "../../../../components/TopBar";
 import { db } from "../../../../db";
@@ -56,6 +57,7 @@ const CompletePage = async ({
         className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}
       >
         <TopBar
+          actions={<DeleteWorkoutButton sessionId={id} size="sm" />}
           breadcrumbs={[{ href: "/", label: "Today" }]}
           description="Nice work — here's the recap."
           icon={<CheckCircleIcon size={18} />}
