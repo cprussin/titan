@@ -116,7 +116,10 @@ const navStyles = css({
     transform: "translateX(-100%)",
     transition: "transform {durations.normal} {easings.out}",
   },
-  paddingBlock: 2,
+  // Pad the block-start normally, but on the block-end honor the OS safe-area
+  // inset (home indicator / gesture bar) so the tab bar never sits under it.
+  paddingBlockEnd: "max({spacing.2}, env(safe-area-inset-bottom))",
+  paddingBlockStart: 2,
   paddingInline: 3,
   position: "fixed",
   zIndex: 10,
@@ -140,24 +143,29 @@ const listStyles = css({
   display: "flex",
   flexDirection: "row",
   gap: 1,
+  // On phone the row spans the full bar so each tab can grow to fill it; the
+  // sidebar keeps the same full-width column.
+  inlineSize: "100%",
   justifyContent: "center",
   listStyleType: "none",
   margin: 0,
   md: {
     flexDirection: "column",
     gap: 0.5,
-    inlineSize: "100%",
   },
   padding: 0,
 });
 
-const itemWrapStyles = css({ md: { inlineSize: "100%" } });
+// Each phone tab grows equally to fill the bar; the sidebar rows just span its
+// width instead (growing would stretch them down the column).
+const itemWrapStyles = css({
+  flex: 1,
+  md: { flex: "none", inlineSize: "100%" },
+});
 
 const itemStyles = css({
-  _pointerCoarse: { minBlockSize: 12 },
   // Hover tint only for a mouse-like pointer, so a tap on touch doesn't leave
-  // a stuck highlight; on the sidebar hover also fills a subtle pill. A coarse
-  // pointer gets a taller tap target instead.
+  // a stuck highlight; on the sidebar hover also fills a subtle pill.
   _pointerFine: {
     _hover: {
       color: "foreground",
@@ -170,18 +178,23 @@ const itemStyles = css({
   display: "flex",
   flexDirection: "column",
   gap: 0.5,
+  // Fill the grown wrapper so the whole tab is a tap target, and stand tall
+  // enough to be a comfortable one on touch.
+  inlineSize: "100%",
+  justifyContent: "center",
   // The phone tab stacks icon over label; the sidebar lays them in a row.
   md: {
     borderRadius: "lg",
     flexDirection: "row",
     gap: 3,
     justifyContent: "flex-start",
+    minBlockSize: "auto",
     minInlineSize: 0,
     paddingBlock: 2.5,
     paddingInline: 3,
     transition: "background-color {durations.fast} {easings.out}",
   },
-  minInlineSize: 16,
+  minBlockSize: 14,
   paddingBlock: 1,
 });
 
