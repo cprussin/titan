@@ -1,10 +1,13 @@
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ClockCounterClockwise";
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
 import Link from "next/link";
 import { css } from "../../../styled-system/css";
 import { hstack, vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
+import { TopBar } from "../../components/TopBar";
 import { db } from "../../db";
 import { templateNames } from "../../server/template-names";
+import { Badge } from "../../ui";
 import { USER_ID } from "../../user";
 
 const HistoryPage = async () => {
@@ -15,12 +18,20 @@ const HistoryPage = async () => {
   ]);
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 4 })}>
-      <h1 className={titleStyles}>History</h1>
+    <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
+      <TopBar
+        description={
+          sessions.length === 0
+            ? undefined
+            : `${sessions.length} logged session${sessions.length === 1 ? "" : "s"}`
+        }
+        icon={<ClockCounterClockwiseIcon size={18} />}
+        title="History"
+      />
       {sessions.length === 0 ? (
         <p className={mutedStyles}>No sessions yet — start today's workout.</p>
       ) : (
-        <ul className={vstack({ alignItems: "stretch", gap: 2 })}>
+        <ul className={listStyles}>
           {sessions.map((session) => {
             const sets = session.results.reduce(
               (count, result) => count + result.sets.length,
@@ -44,11 +55,11 @@ const HistoryPage = async () => {
                       {session.scheduledDate} · Week {session.weekNumber}
                     </span>
                   </div>
-                  <span className={statusStyles} data-status={session.status}>
-                    {session.status === "completed"
-                      ? `${sets} sets`
-                      : session.status}
-                  </span>
+                  {session.status === "completed" ? (
+                    <Badge tone="success">{`${sets} sets`}</Badge>
+                  ) : (
+                    <Badge tone="warning">In progress</Badge>
+                  )}
                 </Link>
               </li>
             );
@@ -61,25 +72,40 @@ const HistoryPage = async () => {
 
 export default HistoryPage;
 
-const titleStyles = css({ fontSize: "3xl", fontWeight: "bold" });
+// Two flat, hairline-ruled lists side by side on wider screens — column gap
+// between them, no vertical gap so each column reads as one continuous list.
+const listStyles = css({
+  columnGap: 10,
+  display: "grid",
+  gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+  rowGap: 0,
+});
 
 const rowStyles = hstack({
-  _hover: { borderColor: "borderStrong" },
-  backgroundColor: "card",
-  border: "1px solid {colors.border}",
-  borderRadius: "lg",
+  // Hover only for a mouse-like pointer, so a tap on touch doesn't leave a
+  // lingering tint. The negative inline margin lets the tint bleed to the row
+  // edges while the hairline stays aligned to the text.
+  _pointerFine: {
+    _hover: {
+      backgroundColor: "color-mix(in oklab, {colors.accent} 10%, transparent)",
+    },
+  },
+  borderBlockEnd: "1px solid {colors.border}",
+  borderRadius: "md",
+  gap: 3,
   justifyContent: "space-between",
-  padding: 3,
+  marginInline: -2,
+  paddingBlock: 3.5,
+  paddingInline: 2,
+  transition: "background-color {durations.fast} {easings.out}",
 });
 
 const nameStyles = css({ fontWeight: "medium" });
 
-const metaStyles = css({ color: "muted", fontSize: "sm" });
-
-const statusStyles = css({
-  "&[data-status='in-progress']": { color: "accent" },
+const metaStyles = css({
   color: "muted",
   fontSize: "sm",
+  fontVariantNumeric: "tabular-nums",
 });
 
 const mutedStyles = css({ color: "muted" });

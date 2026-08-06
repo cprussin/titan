@@ -25,6 +25,16 @@ export const insertAdaptationDecisions = async (
   );
 };
 
+export const deleteAdaptationDecisionsBySession = async (
+  db: Db,
+  workoutSessionId: string,
+): Promise<void> => {
+  await db`
+    DELETE FROM adaptation_decisions
+    WHERE workout_session_id = ${workoutSessionId}
+  `;
+};
+
 export const listAdaptationDecisionsBySession = async (
   db: Db,
   workoutSessionId: string,

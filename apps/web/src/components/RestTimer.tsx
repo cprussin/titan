@@ -50,13 +50,14 @@ export const RestTimer = ({ initialSeconds, onFinish }: Props) => {
   );
 };
 
+// A soft accent wash marks the rest state — flat (no border), just a tint.
 const wrapStyles = vstack({
   backgroundColor:
-    "color-mix(in oklab, {colors.accent} 12%, {colors.background})",
-  border: "1px solid {colors.border}",
+    "color-mix(in oklab, {colors.accent} 14%, {colors.background})",
   borderRadius: "xl",
   gap: 1,
-  padding: 4,
+  paddingBlock: 6,
+  paddingInline: 4,
 });
 
 const labelStyles = css({

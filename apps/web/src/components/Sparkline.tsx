@@ -47,10 +47,14 @@ const svgStyles = css({
   blockSize: 16,
   color: "accent",
   inlineSize: "100%",
+  lg: { blockSize: 28 },
 });
 
 const emptyStyles = css({
+  alignItems: "center",
   blockSize: 16,
   color: "textTertiary",
+  display: "flex",
   fontSize: "sm",
+  lg: { blockSize: 28 },
 });

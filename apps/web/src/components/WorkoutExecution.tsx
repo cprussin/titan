@@ -1,5 +1,6 @@
 "use client";
 
+import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
 import type { Prescription } from "@titan/domain/prescription";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
@@ -9,13 +10,18 @@ import { css } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
 import { formatWeight } from "../format";
 import { describePrescription } from "../prescription-text";
-import { Button, Input } from "../ui";
+import { roleTone } from "../role-tone";
+import { Badge, Button, Input } from "../ui";
+import { CancelWorkoutButton } from "./CancelWorkoutButton";
+import { PrescriptionTarget } from "./PrescriptionTarget";
 import { RestTimer } from "./RestTimer";
+import { TopBar } from "./TopBar";
 
 type Props = {
   exerciseNames: Record<string, string>;
   prescribedExercises: readonly PrescribedExercise[];
   sessionId: string;
+  title: string;
 };
 
 /** How many working sets a prescription calls for (cardio efforts are one bout). */
@@ -46,6 +52,7 @@ export const WorkoutExecution = ({
   exerciseNames,
   prescribedExercises,
   sessionId,
+  title,
 }: Props) => {
   const router = useRouter();
   const [index, setIndex] = useState(0);
@@ -91,52 +98,129 @@ export const WorkoutExecution = ({
     return <p className={mutedStyles}>Nothing to do.</p>;
   } else {
     return (
-      <div className={vstack({ alignItems: "stretch", gap: 4 })}>
+      <div className={rootStyles}>
+        <TopBar
+          actions={<CancelWorkoutButton sessionId={sessionId} size="sm" />}
+          breadcrumbs={[{ href: "/", label: "Today" }]}
+          icon={<BarbellIcon size={18} />}
+          title={title}
+        />
         <ProgressBar
           current={index}
           segments={prescribedExercises.map((exercise) => exercise.slotId)}
         />
-        <header className={vstack({ alignItems: "flex-start", gap: 1 })}>
-          <span className={roleStyles}>{current.role}</span>
-          <h1 className={nameStyles}>
-            {exerciseNames[current.exerciseId] ?? current.exerciseId}
-          </h1>
-          <p className={targetStyles}>
-            {describePrescription(current.prescription)}
-          </p>
-        </header>
+        <div className={bodyStyles}>
+          <div className={mainColStyles}>
+            <header className={vstack({ alignItems: "flex-start", gap: 2 })}>
+              <Badge tone={roleTone(current.role)}>{current.role}</Badge>
+              <h1 className={nameStyles}>
+                {exerciseNames[current.exerciseId] ?? current.exerciseId}
+              </h1>
+              <PrescriptionTarget
+                prescription={current.prescription}
+                size="lg"
+              />
+            </header>
 
-        <PreviousPerformance previous={current.previous} />
+            <PreviousPerformance previous={current.previous} />
 
-        {resting ? (
-          <RestTimer
-            initialSeconds={restSeconds(current)}
-            onFinish={finishRest}
-          />
-        ) : (
-          <ExerciseLogger
-            busy={busy}
-            logged={logged}
-            onComplete={advance}
-            onLogSet={(set) => {
-              const nowLogged = [...logged, set];
-              setLogged(nowLogged);
-              if (nowLogged.length < totalSets(current.prescription)) {
-                setResting(true);
-              }
-            }}
-            prescribed={current}
-          />
-        )}
+            {resting ? (
+              <RestTimer
+                initialSeconds={restSeconds(current)}
+                onFinish={finishRest}
+              />
+            ) : (
+              <ExerciseLogger
+                busy={busy}
+                logged={logged}
+                onComplete={advance}
+                onLogSet={(set) => {
+                  const nowLogged = [...logged, set];
+                  setLogged(nowLogged);
+                  if (nowLogged.length < totalSets(current.prescription)) {
+                    setResting(true);
+                  }
+                }}
+                prescribed={current}
+              />
+            )}
 
-        {next !== undefined && (
-          <p className={nextStyles}>
-            Next: {exerciseNames[next.exerciseId] ?? next.exerciseId} ·{" "}
-            {describePrescription(next.prescription)}
-          </p>
-        )}
+            {/* The "up next" hint stands in for the outline on phones. */}
+            {next !== undefined && (
+              <p className={nextStyles}>
+                Next: {exerciseNames[next.exerciseId] ?? next.exerciseId} ·{" "}
+                {describePrescription(next.prescription)}
+              </p>
+            )}
+          </div>
+
+          <aside className={asideStyles}>
+            <SessionOutline
+              currentIndex={index}
+              exerciseNames={exerciseNames}
+              prescribedExercises={prescribedExercises}
+            />
+          </aside>
+        </div>
       </div>
     );
+  }
+};
+
+/**
+ * The full session at a glance — every exercise with the current one
+ * highlighted, done ones dimmed, upcoming ones muted. Shown in the desktop
+ * side pane where there's room for standing context; on phones the compact
+ * "Next:" line stands in for it instead.
+ */
+const SessionOutline = ({
+  currentIndex,
+  exerciseNames,
+  prescribedExercises,
+}: {
+  currentIndex: number;
+  exerciseNames: Record<string, string>;
+  prescribedExercises: readonly PrescribedExercise[];
+}) => (
+  <div className={outlineStyles}>
+    <span className={outlineTitleStyles}>Session</span>
+    <ol className={outlineListStyles}>
+      {prescribedExercises.map((exercise, position) => (
+        <li
+          className={outlineRowStyles}
+          data-state={outlineState(position, currentIndex)}
+          key={exercise.slotId}
+        >
+          <span className={outlineBadgeStyles}>{position + 1}</span>
+          <span className={outlineTextStyles}>
+            <span className={outlineNameStyles}>
+              {exerciseNames[exercise.exerciseId] ?? exercise.exerciseId}
+            </span>
+            <span className={outlineTargetStyles}>
+              {describePrescription(exercise.prescription)}
+            </span>
+          </span>
+        </li>
+      ))}
+    </ol>
+  </div>
+);
+
+/** Where an exercise sits relative to the one in progress, for outline styling. */
+const outlineState = (
+  position: number,
+  currentIndex: number,
+): "current" | "done" | "upcoming" => {
+  switch (Math.sign(position - currentIndex)) {
+    case -1: {
+      return "done";
+    }
+    case 0: {
+      return "current";
+    }
+    default: {
+      return "upcoming";
+    }
   }
 };
 
@@ -244,20 +328,26 @@ const StrengthLogger = ({
             </>
           )}
           <RpePicker onChange={setRpe} value={rpe} />
-          <Button onClick={logSet} size="xl">
-            Log set
-          </Button>
         </div>
       )}
-      <Button
-        disabled={done === 0}
-        loading={busy}
-        onClick={complete}
-        size="lg"
-        variant={done >= sets ? "solid" : "outline"}
-      >
-        {done >= sets ? "Complete exercise" : "Finish early"}
-      </Button>
+      {/* The log and finish actions stack on phones and share a row on
+          desktop, where there's width for both. */}
+      <div className={actionRowStyles}>
+        {done < sets && (
+          <Button onClick={logSet} size="lg" variant="accent">
+            Log set
+          </Button>
+        )}
+        <Button
+          disabled={done === 0}
+          loading={busy}
+          onClick={complete}
+          size="lg"
+          variant={done >= sets ? "success" : "outline"}
+        >
+          {done >= sets ? "Complete exercise" : "Finish early"}
+        </Button>
+      </div>
     </div>
   );
 };
@@ -311,7 +401,7 @@ const CardioLogger = ({ busy, onComplete, prescribed }: CardioLoggerProps) => {
         onChange={setAvgHr}
         value={avgHr}
       />
-      <Button loading={busy} onClick={complete} size="xl">
+      <Button loading={busy} onClick={complete} size="xl" variant="success">
         Complete
       </Button>
     </div>
@@ -465,16 +555,99 @@ const defaultReps = (prescription: Prescription): number =>
     ? prescription.reps
     : 0;
 
-const nameStyles = css({ fontSize: "3xl", fontWeight: "bold" });
+// Fills the shared content width like every other page; on desktop it splits
+// into the work area plus a standing session outline.
+const rootStyles = vstack({ alignItems: "stretch", gap: 4 });
 
-const roleStyles = css({
-  color: "accent",
+// One column on phones (outline hidden); a wide work area beside a narrower
+// outline rail on desktop.
+const bodyStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: 4,
+  lg: {
+    alignItems: "start",
+    display: "grid",
+    gap: 8,
+    gridTemplateColumns: "minmax(0, 1.6fr) minmax(0, 1fr)",
+  },
+});
+
+const mainColStyles = vstack({
+  alignItems: "stretch",
+  gap: 4,
+});
+
+// The outline pane: hidden on phones, and on desktop it sticks in view while
+// the work area scrolls through sets.
+const asideStyles = css({
+  display: "none",
+  lg: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+    insetBlockStart: 8,
+    position: "sticky",
+  },
+});
+
+// Flat: no card around the outline — a ruled "Session" heading over the list.
+const outlineStyles = vstack({ alignItems: "stretch", gap: 3 });
+
+const outlineTitleStyles = css({
+  borderBlockEnd:
+    "1px solid color-mix(in oklab, {colors.accent} 35%, {colors.border})",
+  color: "muted",
   fontSize: "xs",
   fontWeight: "semibold",
+  letterSpacing: "wide",
+  paddingBlockEnd: 2,
   textTransform: "uppercase",
 });
 
-const targetStyles = css({ color: "muted", fontSize: "lg" });
+const outlineListStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: 2.5,
+  listStyleType: "none",
+  margin: 0,
+  padding: 0,
+});
+
+const outlineRowStyles = css({
+  "&[data-state='current']": { color: "accent" },
+  "&[data-state='done']": { color: "textTertiary" },
+  alignItems: "baseline",
+  color: "muted",
+  display: "flex",
+  gap: 2.5,
+});
+
+const outlineBadgeStyles = css({
+  fontFamily: "mono",
+  fontSize: "xs",
+  fontWeight: "bold",
+  minInlineSize: 4,
+  textAlign: "end",
+});
+
+const outlineTextStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: 0.5,
+  minInlineSize: 0,
+});
+
+const outlineNameStyles = css({ fontSize: "sm", fontWeight: "medium" });
+
+const outlineTargetStyles = css({ color: "textTertiary", fontSize: "xs" });
+
+const nameStyles = css({
+  fontSize: "3xl",
+  fontWeight: "bold",
+  letterSpacing: "tight",
+  lg: { fontSize: "4xl" },
+});
 
 const setCountStyles = css({
   color: "muted",
@@ -490,21 +663,34 @@ const stepperValueStyles = css({
   fontWeight: "bold",
 });
 
+// Flat: a hairline accent rule on the inline-start edge instead of a filled
+// chip, so "last time" reads as a quiet aside with a touch of color.
 const previousStyles = css({
-  backgroundColor: "card",
-  borderRadius: "md",
+  borderInlineStart: "1px solid {colors.accent}",
   color: "muted",
   fontSize: "sm",
-  paddingBlock: 2,
-  paddingInline: 3,
+  paddingInlineStart: 3,
 });
 
 const nextStyles = css({
   color: "textTertiary",
   fontSize: "sm",
+  lg: { display: "none" },
   textAlign: "center",
 });
 
 const mutedStyles = css({ color: "muted" });
 
 const progressTrackStyles = hstack({ gap: 1 });
+
+// Log / finish actions: stacked on phones, shared evenly across a row on
+// desktop where there's width for both side by side.
+const actionRowStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: 3,
+  lg: {
+    "& > *": { flex: 1 },
+    flexDirection: "row",
+  },
+});

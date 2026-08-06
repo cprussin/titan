@@ -25,12 +25,16 @@
     "vite": "catalog:"
   },
   "exports": {
+    "./Accordion": "./src/Accordion/Accordion.tsx",
     "./Avatar": "./src/Avatar/Avatar.tsx",
+    "./Badge": "./src/Badge/Badge.tsx",
+    "./Breadcrumbs": "./src/Breadcrumbs/Breadcrumbs.tsx",
     "./Button": "./src/Button/Button.tsx",
     "./Card": "./src/Card/Card.tsx",
     "./Field": "./src/Field/Field.tsx",
     "./Input": "./src/Input/Input.tsx",
     "./Kbd": "./src/Kbd/Kbd.tsx",
+    "./LinkProvider": "./src/LinkProvider/LinkProvider.tsx",
     "./ModalDialog": "./src/ModalDialog/ModalDialog.tsx",
     "./Provider": "./src/Provider/Provider.tsx",
     "./pandacss-preset": "./src/pandacss-preset.ts",

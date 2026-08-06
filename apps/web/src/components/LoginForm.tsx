@@ -56,7 +56,7 @@ export const LoginForm = () => {
         value={password}
       />
       {failed && <p className={errorStyles}>Incorrect password.</p>}
-      <Button loading={submitting} type="submit">
+      <Button loading={submitting} type="submit" variant="accent">
         Sign in
       </Button>
     </form>
@@ -66,7 +66,10 @@ export const LoginForm = () => {
 const formStyles = vstack({
   alignItems: "stretch",
   gap: 3,
+  inlineSize: "100%",
   marginBlockStart: 24,
+  marginInline: "auto",
+  maxInlineSize: "24rem",
 });
 
 const titleStyles = css({ fontSize: "4xl", fontWeight: "bold" });

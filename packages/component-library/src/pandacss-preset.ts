@@ -45,6 +45,14 @@ export const titanPreset = definePreset({
       // by a coarse pointer wants larger tap targets and a visible
       // backdrop scrim around overlays.
       pointerCoarse: "@media (pointer: coarse)",
+      // Mouse-like primary input — a device that can hover a precise
+      // pointer. The counterpart to `pointerCoarse`: gate hover-only
+      // affordances (row highlights, cursor-follow tints) behind this so
+      // they never fire on a tap and leave a "stuck" hover on touch
+      // devices. `hover: hover` and `pointer: fine` together exclude both
+      // phones and touchscreens whose primary input is a finger, while
+      // still matching a docked laptop or a touchscreen driven by a mouse.
+      pointerFine: "@media (hover: hover) and (pointer: fine)",
       // Touch device on a tablet-sized or larger screen — centered
       // modal-style overlay. Same large tap targets and visible
       // backdrop as `touchSheet`, but the popup floats in the middle
@@ -326,6 +334,13 @@ export const titanPreset = definePreset({
           },
           success: {
             value: { _light: "{colors.green.700}", base: "{colors.green.500}" },
+          },
+          textTertiary: {
+            // A step dimmer than `muted` (55%) for the least-prominent text —
+            // separators, counts, timestamps — so a three-level hierarchy
+            // (foreground → muted → tertiary) reads without adding a color.
+            value:
+              "color-mix(in oklab, {colors.foreground} 38%, {colors.background})",
           },
           warning: {
             value: { _light: "{colors.amber.700}", base: "{colors.amber.500}" },

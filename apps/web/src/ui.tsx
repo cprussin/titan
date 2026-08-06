@@ -5,10 +5,17 @@
 // them for the app; pages (server components) render these as client children,
 // which is the standard RSC composition pattern.
 
+export { Accordion } from "@titan/component-library/Accordion";
+export { Badge, type Tone } from "@titan/component-library/Badge";
+export {
+  Breadcrumbs,
+  type Crumb,
+} from "@titan/component-library/Breadcrumbs";
 export { Button } from "@titan/component-library/Button";
 export { Card } from "@titan/component-library/Card";
 export { Field } from "@titan/component-library/Field";
 export { Input } from "@titan/component-library/Input";
+export { ModalDialog } from "@titan/component-library/ModalDialog";
 export { Provider } from "@titan/component-library/Provider";
 export { Select } from "@titan/component-library/Select";
 export { Textarea } from "@titan/component-library/Textarea";

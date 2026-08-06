@@ -47,7 +47,7 @@ export const BodyWeightForm = () => {
         type="number"
         value={weight}
       />
-      <Button loading={busy} type="submit">
+      <Button loading={busy} type="submit" variant="accent">
         Log
       </Button>
     </form>

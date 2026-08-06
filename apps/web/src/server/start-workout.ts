@@ -1,17 +1,39 @@
 import { randomUUID } from "node:crypto";
 import { insertAdaptationDecisions } from "@titan/db/adaptation-decisions";
 import type { Db } from "@titan/db/client";
-import { upsertWorkoutSession } from "@titan/db/workout-sessions";
+import {
+  listWorkoutSessions,
+  upsertWorkoutSession,
+} from "@titan/db/workout-sessions";
 import { buildSession } from "./build-session";
+import { findResumableSession } from "./resumable-session";
 import type { Today } from "./today";
 
 type WorkoutToday = Extract<Today, { kind: "workout" }>;
 
 /**
- * Persist a new in-progress session from today's resolved plan, along with the
- * adaptation decisions that produced it. Returns the new session id.
+ * Start today's workout, returning the session id to navigate into. Idempotent:
+ * if an in-progress session already exists for the day it is returned as-is, so
+ * the same workout can't be started twice. Otherwise a new in-progress session
+ * is persisted from the resolved plan along with the adaptation decisions that
+ * produced it.
  */
 export const startWorkout = async (
+  db: Db,
+  userId: string,
+  today: WorkoutToday,
+  readinessId: string | undefined,
+): Promise<string> => {
+  const existing = findResumableSession(
+    await listWorkoutSessions(db, userId, 50),
+    today.scheduledDate,
+  );
+  return existing === undefined
+    ? createWorkout(db, userId, today, readinessId)
+    : existing.id;
+};
+
+const createWorkout = async (
   db: Db,
   userId: string,
   today: WorkoutToday,

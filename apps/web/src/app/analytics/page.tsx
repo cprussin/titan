@@ -1,14 +1,14 @@
+import { ChartLineIcon } from "@phosphor-icons/react/dist/ssr/ChartLine";
 import { listBodyMetrics } from "@titan/db/body-metrics";
-import { getConnection } from "@titan/db/external-connections";
 import { listExternalWorkouts } from "@titan/db/external-workouts";
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
 import { css } from "../../../styled-system/css";
 import { grid, vstack } from "../../../styled-system/patterns";
 import { requireAuth } from "../../auth/session";
 import { BodyWeightForm } from "../../components/BodyWeightForm";
-import { Concept2Controls } from "../../components/Concept2Controls";
 import { Sparkline } from "../../components/Sparkline";
 import { StatTile } from "../../components/StatTile";
+import { TopBar } from "../../components/TopBar";
 import { db } from "../../db";
 import { formatDistance, formatWeight } from "../../format";
 import { exerciseNames } from "../../server/exercise-names";
@@ -17,11 +17,10 @@ import { USER_ID } from "../../user";
 
 const AnalyticsPage = async () => {
   await requireAuth();
-  const [metrics, sessions, externals, connection, names] = await Promise.all([
+  const [metrics, sessions, externals, names] = await Promise.all([
     listBodyMetrics(db, USER_ID, 60),
     listWorkoutSessions(db, USER_ID, 100),
     listExternalWorkouts(db, USER_ID, 100),
-    getConnection(db, USER_ID, "concept2"),
     exerciseNames(db),
   ]);
 
@@ -44,12 +43,17 @@ const AnalyticsPage = async () => {
   );
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 4 })}>
-      <h1 className={titleStyles}>Trends</h1>
+    <div className={vstack({ alignItems: "stretch", gap: 6, lg: { gap: 10 } })}>
+      <TopBar
+        description="Your training and body trends over time."
+        icon={<ChartLineIcon size={18} />}
+        title="Trends"
+      />
 
-      <div className={grid({ columns: 3, gap: 2 })}>
+      <div className={statGridStyles}>
         <StatTile
           label="Body weight"
+          tone="accent"
           value={
             latestWeight === undefined
               ? "—"
@@ -60,51 +64,50 @@ const AnalyticsPage = async () => {
         <StatTile label="Rowing" value={formatDistance(rowingMeters)} />
       </div>
 
-      <section className={cardStyles}>
-        <h2 className={sectionTitleStyles}>Body weight</h2>
-        <Sparkline label="Body weight trend" values={weights} />
-        <BodyWeightForm />
-      </section>
+      <div className={chartsStyles}>
+        <section className={sectionStyles}>
+          <h2 className={sectionTitleStyles}>Body weight</h2>
+          <Sparkline label="Body weight trend" values={weights} />
+          <BodyWeightForm />
+        </section>
 
-      <section className={cardStyles}>
-        <h2 className={sectionTitleStyles}>
-          Strength · estimated 1RM
-          {strength === undefined
-            ? ""
-            : ` · ${names.get(strength.exerciseId) ?? strength.exerciseId}`}
-        </h2>
-        <Sparkline
-          label="Estimated 1RM trend"
-          values={strength?.values ?? []}
-        />
-      </section>
-
-      <section className={cardStyles}>
-        <h2 className={sectionTitleStyles}>Concept2 rowing</h2>
-        <p className={mutedStyles}>
-          {connection === undefined
-            ? "Connect your Concept2 Logbook to import rows and heart-rate data."
-            : `${externals.length} imported workouts.`}
-        </p>
-        <Concept2Controls connected={connection !== undefined} />
-      </section>
+        <section className={sectionStyles}>
+          <h2 className={sectionTitleStyles}>
+            Strength · estimated 1RM
+            {strength === undefined
+              ? ""
+              : ` · ${names.get(strength.exerciseId) ?? strength.exerciseId}`}
+          </h2>
+          <Sparkline
+            label="Estimated 1RM trend"
+            values={strength?.values ?? []}
+          />
+        </section>
+      </div>
     </div>
   );
 };
 
 export default AnalyticsPage;
 
-const titleStyles = css({ fontSize: "3xl", fontWeight: "bold" });
+const statGridStyles = grid({ columns: 3, gap: 4, lg: { gap: 8 } });
 
-const cardStyles = vstack({
-  alignItems: "stretch",
-  backgroundColor: "card",
-  border: "1px solid {colors.border}",
-  borderRadius: "xl",
-  gap: 3,
-  padding: 4,
+const chartsStyles = grid({
+  alignItems: "start",
+  gap: 6,
+  gridTemplateColumns: { base: "1fr", md: "repeat(2, minmax(0, 1fr))" },
+  lg: { gap: 10 },
 });
 
-const sectionTitleStyles = css({ fontSize: "md", fontWeight: "semibold" });
+const sectionStyles = vstack({ alignItems: "stretch", gap: 3 });
 
-const mutedStyles = css({ color: "muted", fontSize: "sm" });
+// A ruled section heading gives structure without wrapping the chart in a box;
+// the rule carries a hint of accent to keep the flat layout from going cold.
+const sectionTitleStyles = css({
+  borderBlockEnd:
+    "1px solid color-mix(in oklab, {colors.accent} 35%, {colors.border})",
+  fontSize: "md",
+  fontWeight: "semibold",
+  lg: { fontSize: "lg" },
+  paddingBlockEnd: 2,
+});

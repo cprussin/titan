@@ -68,7 +68,7 @@ export const ReadinessForm = () => {
           value={`${availableMinutes}`}
         />
       </div>
-      <Button loading={submitting} size="lg" type="submit">
+      <Button loading={submitting} size="lg" type="submit" variant="accent">
         Save & continue
       </Button>
     </form>

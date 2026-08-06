@@ -1,74 +1,202 @@
 "use client";
 
+import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
 import { ChartLineIcon } from "@phosphor-icons/react/dist/ssr/ChartLine";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ClockCounterClockwise";
+import { GearIcon } from "@phosphor-icons/react/dist/ssr/Gear";
 import { HouseIcon } from "@phosphor-icons/react/dist/ssr/House";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { css, cx } from "../../styled-system/css";
-import { hstack, vstack } from "../../styled-system/patterns";
-import { ThemeSwitch } from "../ui";
+import { useNavDrawer } from "./NavDrawer";
 
 const LINKS = [
   { href: "/", Icon: HouseIcon, label: "Today" },
+  { href: "/programs", Icon: BarbellIcon, label: "Programs" },
   { href: "/history", Icon: ClockCounterClockwiseIcon, label: "History" },
   { href: "/analytics", Icon: ChartLineIcon, label: "Trends" },
+  { href: "/settings", Icon: GearIcon, label: "Settings" },
 ] as const;
 
-/** The persistent bottom navigation. Highlights the active section and hosts the
- *  theme toggle. */
+/**
+ * The persistent primary navigation. A bottom tab bar on phone-sized screens; a
+ * full left sidebar from `lg` up. In between (`mdToLg`) the same sidebar is
+ * hidden off-canvas and slides in as a drawer — opened by the top-bar menu
+ * button, dismissed by the scrim behind it or by picking a destination.
+ * Highlights the active section.
+ */
 export const AppNav = () => {
   const pathname = usePathname();
+  const { close, open } = useNavDrawer();
   return (
-    <nav aria-label="Primary" className={navStyles}>
-      {LINKS.map(({ Icon, href, label }) => {
-        const active =
-          href === "/" ? pathname === "/" : pathname.startsWith(href);
-        return (
-          <Link
-            aria-current={active ? "page" : undefined}
-            className={cx(itemStyles, active ? activeStyles : undefined)}
-            href={href}
-            key={href}
-          >
-            <Icon size={22} weight={active ? "fill" : "regular"} />
-            <span className={labelStyles}>{label}</span>
-          </Link>
-        );
-      })}
-      <div className={themeSlotStyles}>
-        <ThemeSwitch />
-      </div>
-    </nav>
+    <>
+      {open && (
+        <button
+          aria-label="Close navigation"
+          className={scrimStyles}
+          onClick={close}
+          type="button"
+        />
+      )}
+      <nav
+        aria-label="Primary"
+        className={navStyles}
+        data-open={open ? "true" : undefined}
+      >
+        <span className={brandStyles}>Titan</span>
+        <ul className={listStyles}>
+          {LINKS.map(({ Icon, href, label }) => {
+            const active =
+              href === "/" ? pathname === "/" : pathname.startsWith(href);
+            return (
+              <li className={itemWrapStyles} key={href}>
+                <Link
+                  aria-current={active ? "page" : undefined}
+                  className={cx(itemStyles, active ? activeStyles : undefined)}
+                  href={href}
+                  onClick={close}
+                >
+                  <Icon size={22} weight={active ? "fill" : "regular"} />
+                  <span className={labelStyles}>{label}</span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </>
   );
 };
 
-const navStyles = hstack({
+// The page-dimming backdrop behind the open drawer. Only meaningful in the
+// `mdToLg` drawer window; below it there's no drawer and from `lg` up the
+// sidebar is part of the layout, so it never shows there.
+const scrimStyles = css({
+  backgroundColor: "rgba(0, 0, 0, 0.4)",
+  display: "none",
+  inset: 0,
+  mdToLg: { display: "block" },
+  position: "fixed",
+  zIndex: 9,
+});
+
+const navStyles = css({
+  "&[data-open='true']": { mdToLg: { transform: "translateX(0)" } },
+  alignItems: "center",
   backgroundColor: "color-mix(in oklab, {colors.background} 80%, transparent)",
   borderBlockStart: "1px solid {colors.border}",
+  display: "flex",
+  flexDirection: "row",
   gap: 1,
   insetBlockEnd: 0,
   insetInline: 0,
   justifyContent: "center",
+  // From `md` up the bar becomes a full-height sidebar on the inline-start
+  // edge. In the `mdToLg` window it's hidden off-canvas and slides in as a
+  // drawer (translated by `data-open`); from `lg` up it sits in the layout,
+  // which offsets the content by its width.
+  md: {
+    alignItems: "stretch",
+    backgroundColor: "background",
+    borderBlockStart: "none",
+    borderInlineEnd: "1px solid {colors.border}",
+    flexDirection: "column",
+    gap: 1,
+    inlineSize: 60,
+    insetBlockEnd: 0,
+    insetBlockStart: 0,
+    insetInlineEnd: "auto",
+    insetInlineStart: 0,
+    justifyContent: "flex-start",
+    paddingBlock: 4,
+    paddingInline: 3,
+  },
+  mdToLg: {
+    boxShadow: "2xl",
+    transform: "translateX(-100%)",
+    transition: "transform {durations.normal} {easings.out}",
+  },
   paddingBlock: 2,
   paddingInline: 3,
   position: "fixed",
   zIndex: 10,
 });
 
-const itemStyles = cx(
-  vstack({ gap: 0.5 }),
-  css({
-    _hover: { color: "foreground" },
-    borderRadius: "md",
-    color: "muted",
-    minInlineSize: 16,
-    paddingBlock: 1,
-  }),
-);
+// The wordmark heads the sidebar — hidden in the phone tab bar, where every
+// pixel of the row goes to the tab targets.
+const brandStyles = css({
+  display: "none",
+  md: {
+    display: "block",
+    fontSize: "xl",
+    fontWeight: "bold",
+    paddingBlockEnd: 4,
+    paddingInline: 2,
+  },
+});
 
-const activeStyles = css({ color: "accent" });
+const listStyles = css({
+  alignItems: "stretch",
+  display: "flex",
+  flexDirection: "row",
+  gap: 1,
+  justifyContent: "center",
+  listStyleType: "none",
+  margin: 0,
+  md: {
+    flexDirection: "column",
+    gap: 0.5,
+    inlineSize: "100%",
+  },
+  padding: 0,
+});
 
-const labelStyles = css({ fontSize: "xs", fontWeight: "medium" });
+const itemWrapStyles = css({ md: { inlineSize: "100%" } });
 
-const themeSlotStyles = css({ marginInlineStart: 2 });
+const itemStyles = css({
+  _pointerCoarse: { minBlockSize: 12 },
+  // Hover tint only for a mouse-like pointer, so a tap on touch doesn't leave
+  // a stuck highlight; on the sidebar hover also fills a subtle pill. A coarse
+  // pointer gets a taller tap target instead.
+  _pointerFine: {
+    _hover: {
+      color: "foreground",
+      md: { "&:not([aria-current='page'])": { backgroundColor: "card" } },
+    },
+  },
+  alignItems: "center",
+  borderRadius: "md",
+  color: "muted",
+  display: "flex",
+  flexDirection: "column",
+  gap: 0.5,
+  // The phone tab stacks icon over label; the sidebar lays them in a row.
+  md: {
+    borderRadius: "lg",
+    flexDirection: "row",
+    gap: 3,
+    justifyContent: "flex-start",
+    minInlineSize: 0,
+    paddingBlock: 2.5,
+    paddingInline: 3,
+    transition: "background-color {durations.fast} {easings.out}",
+  },
+  minInlineSize: 16,
+  paddingBlock: 1,
+});
+
+// The active section: accent-colored, and carrying a faint accent fill at every
+// size so the current page reads at a glance — a pill behind the phone tab and
+// a bar on the sidebar.
+const activeStyles = css({
+  backgroundColor:
+    "color-mix(in oklab, {colors.accent} 14%, {colors.background})",
+  color: "accent",
+});
+
+// Shown under the icon in the phone tab bar and beside it in the sidebar.
+const labelStyles = css({
+  fontSize: "xs",
+  fontWeight: "medium",
+  md: { fontSize: "sm" },
+});

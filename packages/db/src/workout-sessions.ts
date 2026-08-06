@@ -61,3 +61,10 @@ export const upsertWorkoutSession = async (
       data = EXCLUDED.data
   `;
 };
+
+export const deleteWorkoutSession = async (
+  db: Db,
+  id: string,
+): Promise<void> => {
+  await db`DELETE FROM workout_sessions WHERE id = ${id}`;
+};

@@ -3,8 +3,9 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { css } from "../../styled-system/css";
 import { AppNav } from "../components/AppNav";
+import { AppProviders } from "../components/AppProviders";
+import { NavDrawerProvider } from "../components/NavDrawer";
 import { RegisterServiceWorker } from "../components/RegisterServiceWorker";
-import { Provider } from "../ui";
 
 export const metadata: Metadata = {
   appleWebApp: {
@@ -28,11 +29,13 @@ export const viewport: Viewport = {
 const RootLayout = ({ children }: { children: ReactNode }) => (
   <html lang="en" suppressHydrationWarning>
     <body className={bodyStyles}>
-      <Provider>
-        <main className={mainStyles}>{children}</main>
-        <AppNav />
+      <AppProviders>
+        <NavDrawerProvider>
+          <main className={mainStyles}>{children}</main>
+          <AppNav />
+        </NavDrawerProvider>
         <RegisterServiceWorker />
-      </Provider>
+      </AppProviders>
     </body>
   </html>
 );
@@ -41,12 +44,19 @@ export default RootLayout;
 
 const bodyStyles = css({
   color: "foreground",
+  // Offset the content by the sidebar's width only from `lg` up, where the
+  // sidebar is permanent. In the `mdToLg` window the sidebar is an overlaid
+  // drawer, and below `md` it's the bottom bar — neither reserves inline space.
+  lg: { paddingInlineStart: 60 },
   minBlockSize: "100dvh",
 });
 
 const mainStyles = css({
-  marginInline: "auto",
-  maxInlineSize: "32rem",
+  // Fills the area beside the rail so the top bar and content run the full
+  // width. Padding steps up with the viewport; from `md` up the rail replaces
+  // the bottom bar, so the tall bottom padding it needed goes away.
+  lg: { paddingBlock: 8, paddingInline: 8 },
+  md: { paddingBlock: 6, paddingInline: 6 },
   paddingBlockEnd: 24,
   paddingBlockStart: 4,
   paddingInline: 4,
