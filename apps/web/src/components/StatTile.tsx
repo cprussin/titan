@@ -10,8 +10,8 @@ type Props = {
   value: string;
 };
 
-/** A compact labeled statistic for the dashboard and analytics rows. Flat by
- *  design (no box) and server-safe (no hooks). */
+/** A compact labeled statistic for summary rows. Flat by design (no box) and
+ *  server-safe (no hooks). */
 export const StatTile = ({ hint, label, tone = "neutral", value }: Props) => (
   <div className={tileStyles}>
     <span className={valueStyles({ tone })}>{value}</span>

@@ -73,6 +73,10 @@ export const WorkoutExecution = ({
         .then(() => {
           if (isLast) {
             router.push(`/workout/${sessionId}/complete`);
+            // Refresh so the app-wide workout action (resolved in the
+            // persistent (app) layout) drops the now-completed session rather
+            // than lingering as "Continue workout".
+            router.refresh();
           } else {
             setResults(nextResults);
             setLogged([]);
@@ -101,7 +105,7 @@ export const WorkoutExecution = ({
       <div className={rootStyles}>
         <TopBar
           actions={<CancelWorkoutButton sessionId={sessionId} size="sm" />}
-          breadcrumbs={[{ href: "/", label: "Today" }]}
+          breadcrumbs={[{ href: "/", label: "Dashboard" }]}
           icon={<BarbellIcon size={18} />}
           title={title}
         />

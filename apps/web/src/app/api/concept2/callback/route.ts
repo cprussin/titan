@@ -42,7 +42,7 @@ export const GET = async (request: Request): Promise<Response> => {
         userId: USER_ID,
       };
       await upsertConnection(db, connection);
-      return NextResponse.redirect(new URL("/analytics", request.url));
+      return NextResponse.redirect(new URL("/settings", request.url));
     }
   }
 };

@@ -6,8 +6,14 @@ import { useState } from "react";
 import { hstack } from "../../styled-system/patterns";
 import { Button, Input } from "../ui";
 
-/** Logs today's bodyweight and refreshes the analytics view. */
-export const BodyWeightForm = () => {
+type Props = {
+  /** Called after a weigh-in is saved (and the dashboard refreshed) — e.g. to
+   *  close the dialog the form is hosted in. */
+  onLogged?: (() => void) | undefined;
+};
+
+/** Logs today's bodyweight and refreshes the dashboard. */
+export const BodyWeightForm = ({ onLogged }: Props) => {
   const router = useRouter();
   const [weight, setWeight] = useState("");
   const [busy, setBusy] = useState(false);
@@ -26,6 +32,7 @@ export const BodyWeightForm = () => {
           setWeight("");
           setBusy(false);
           router.refresh();
+          onLogged?.();
         })
         .catch((error: unknown) => {
           setBusy(false);
