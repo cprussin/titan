@@ -2,18 +2,16 @@ import { GearIcon } from "@phosphor-icons/react/dist/ssr/Gear";
 import { getConnection } from "@titan/db/external-connections";
 import { listExternalWorkouts } from "@titan/db/external-workouts";
 import type { ReactNode } from "react";
-import { css } from "../../../styled-system/css";
-import { vstack } from "../../../styled-system/patterns";
-import { requireAuth } from "../../auth/session";
-import { Concept2Controls } from "../../components/Concept2Controls";
-import { DeleteHistoryButton } from "../../components/DeleteHistoryButton";
-import { TopBar } from "../../components/TopBar";
-import { db } from "../../db";
-import { ThemeSwitch } from "../../ui";
-import { USER_ID } from "../../user";
+import { css } from "../../../../styled-system/css";
+import { vstack } from "../../../../styled-system/patterns";
+import { Concept2Controls } from "../../../components/Concept2Controls";
+import { DeleteHistoryButton } from "../../../components/DeleteHistoryButton";
+import { TopBar } from "../../../components/TopBar";
+import { db } from "../../../db";
+import { ThemeSwitch } from "../../../ui";
+import { USER_ID } from "../../../user";
 
 const SettingsPage = async () => {
-  await requireAuth();
   const [connection, externals] = await Promise.all([
     getConnection(db, USER_ID, "concept2"),
     listExternalWorkouts(db, USER_ID, 100),

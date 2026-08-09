@@ -1,13 +1,11 @@
 import { getWorkoutSession } from "@titan/db/workout-sessions";
 import { notFound, redirect } from "next/navigation";
-import { requireAuth } from "../../../auth/session";
-import { WorkoutExecution } from "../../../components/WorkoutExecution";
-import { db } from "../../../db";
-import { exerciseNames } from "../../../server/exercise-names";
-import { templateNames } from "../../../server/template-names";
+import { WorkoutExecution } from "../../../../components/WorkoutExecution";
+import { db } from "../../../../db";
+import { exerciseNames } from "../../../../server/exercise-names";
+import { templateNames } from "../../../../server/template-names";
 
 const WorkoutPage = async ({ params }: { params: Promise<{ id: string }> }) => {
-  await requireAuth();
   const { id } = await params;
   const session = await getWorkoutSession(db, id);
   if (session === undefined) {
