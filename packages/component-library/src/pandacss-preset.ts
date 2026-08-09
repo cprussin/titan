@@ -395,6 +395,12 @@ export const titanPreset = definePreset({
             value: "var(--font-sans), 'Barlow', system-ui, sans-serif",
           },
         },
+        letterSpacings: {
+          // A hair of positive tracking for the uppercase condensed wordmark —
+          // caps at display size read better opened up a touch, but far less
+          // than the `wide` tracking the small uppercase micro-labels use.
+          wordmark: { value: "0.01em" },
+        },
         lineHeights: {
           // The tight display leading condensed athletic headings and the
           // set-logger value ride on — a scoreboard reads compact. Reused by

@@ -159,10 +159,7 @@ const brandStyles = css({
     fontFamily: "condensed",
     fontSize: "xl",
     fontWeight: "bold",
-    // A hair of positive tracking for the uppercase condensed wordmark; the
-    // app's established uppercase tracking token (`wide`) stands in for the
-    // spec's 0.01em, since em literals aren't permitted in styles.
-    letterSpacing: "wide",
+    letterSpacing: "wordmark",
     paddingBlockEnd: 4,
     paddingInline: 2,
     textTransform: "uppercase",
