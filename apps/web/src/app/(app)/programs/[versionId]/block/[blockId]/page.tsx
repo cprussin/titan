@@ -1,7 +1,6 @@
 import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
 import { getAthleteState } from "@titan/db/athlete-state";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
-import type { TrainingBlock } from "@titan/domain/program";
 import type { SelectedVariant } from "@titan/program-engine/variant";
 import { notFound } from "next/navigation";
 import { css } from "../../../../../../../styled-system/css";
@@ -99,8 +98,10 @@ const renderBlock = (
             versionId={version.id}
           />
         }
-        breadcrumbs={[{ href: "/programs", label: program.name }]}
-        description={describeCadence(block)}
+        breadcrumbs={[
+          { href: "/programs", label: "Programs" },
+          { label: program.name },
+        ]}
         icon={<BarbellIcon size={18} />}
         title={block.name}
       />
@@ -180,14 +181,6 @@ const renderSlot = (
     <Badge tone={roleTone(slot.role)}>{slot.role}</Badge>
   </li>
 );
-
-/** A block's length and deload cadence, for the header subtitle. */
-const describeCadence = (block: TrainingBlock): string => {
-  const weeks = `${block.durationWeeks} week${block.durationWeeks === 1 ? "" : "s"}`;
-  return block.deloadEveryWeeks === undefined
-    ? weeks
-    : `${weeks} · deload every ${block.deloadEveryWeeks} weeks`;
-};
 
 /** The display name for an ISO weekday (1=Mon…7=Sun). Throws on an
  *  out-of-range day, which the program model forbids. */

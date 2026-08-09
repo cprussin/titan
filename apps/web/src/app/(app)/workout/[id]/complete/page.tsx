@@ -56,10 +56,9 @@ const CompletePage = async ({
       >
         <TopBar
           actions={<DeleteWorkoutButton sessionId={id} size="sm" />}
-          breadcrumbs={[{ href: "/", label: "Dashboard" }]}
-          description="Nice work — here's the recap."
+          breadcrumbs={[{ href: "/history", label: "History" }]}
           icon={<CheckCircleIcon size={18} />}
-          title="Workout complete"
+          title={session.scheduledDate}
         />
 
         <div className={statGridStyles}>

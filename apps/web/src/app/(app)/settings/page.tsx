@@ -19,11 +19,7 @@ const SettingsPage = async () => {
 
   return (
     <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
-      <TopBar
-        description="Appearance and connected services."
-        icon={<GearIcon size={18} />}
-        title="Settings"
-      />
+      <TopBar icon={<GearIcon size={18} />} title="Settings" />
 
       <div className={groupStyles}>
         <SettingRow

@@ -50,6 +50,12 @@ describe(Breadcrumbs, () => {
     );
   });
 
+  it("renders a plain, non-link crumb when href is omitted", () => {
+    render(<Breadcrumbs crumbs={[{ label: "Strength" }]} />);
+    expect(screen.queryByRole("link")).toBeNull();
+    expect(screen.getByText("Strength").tagName).toBe("SPAN");
+  });
+
   it("renders nothing for an empty trail", () => {
     const { container } = render(<Breadcrumbs crumbs={[]} />);
     expect(container.querySelectorAll("a")).toHaveLength(0);

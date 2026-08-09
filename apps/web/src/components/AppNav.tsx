@@ -7,6 +7,7 @@ import { GearIcon } from "@phosphor-icons/react/dist/ssr/Gear";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { css, cx } from "../../styled-system/css";
+import { isActiveNavSection } from "../active-nav-section";
 import type { WorkoutAction } from "../server/workout-action";
 import { useNavDrawer } from "./NavDrawer";
 import { WorkoutActionButton } from "./WorkoutActionButton";
@@ -55,8 +56,7 @@ export const AppNav = ({ workoutAction }: Props) => {
         )}
         <ul className={listStyles}>
           {LINKS.map(({ Icon, href, label }) => {
-            const active =
-              href === "/" ? pathname === "/" : pathname.startsWith(href);
+            const active = isActiveNavSection(href, pathname);
             return (
               <li className={itemWrapStyles} key={href}>
                 <Link

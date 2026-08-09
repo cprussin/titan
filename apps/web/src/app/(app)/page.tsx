@@ -30,11 +30,7 @@ const DashboardPage = async () => {
 
   return (
     <div className={pageStyles}>
-      <TopBar
-        description="Today's session and how your training is trending."
-        icon={<GaugeIcon size={18} />}
-        title="Dashboard"
-      />
+      <TopBar icon={<GaugeIcon size={18} />} title="Dashboard" />
       <TodaySummary
         action={action}
         names={names}
