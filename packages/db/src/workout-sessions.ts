@@ -68,3 +68,10 @@ export const deleteWorkoutSession = async (
 ): Promise<void> => {
   await db`DELETE FROM workout_sessions WHERE id = ${id}`;
 };
+
+export const deleteWorkoutSessionsByUser = async (
+  db: Db,
+  userId: string,
+): Promise<void> => {
+  await db`DELETE FROM workout_sessions WHERE user_id = ${userId}`;
+};
