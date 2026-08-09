@@ -5,15 +5,22 @@ import type {
   SessionTemplate,
 } from "@titan/domain/program";
 import { ProgressionPolicy } from "@titan/domain/progression-policy";
+import {
+  strengthReentryBlock,
+  strengthReentrySessionTemplates,
+} from "./strength-reentry-block";
 
 /**
- * Program 1 — Athletic Health Foundation. Eight weeks, deload every fourth week.
- * The full weekly schedule (Mon Heavy Lower … Sun Recovery) with every exercise
- * slot, its starting prescription, and its progression policy per the spec.
+ * Program 1 — Athletic Health Foundation. A four-week {@link strengthReentryBlock}
+ * on-ramp that restores strength-training tolerance and current working loads,
+ * then the eight-week Foundation Block (deload every fourth week) it feeds
+ * directly into. The full weekly schedule (Mon Heavy Lower … Sun Recovery) with
+ * every exercise slot, its starting prescription, and its progression policy per
+ * the spec.
  */
 export const athleticHealthFoundation: Program = {
   description:
-    "An eight-week foundation block balancing heavy lifting, rowing intervals, Zone 2 aerobic work, and athletic variety for long-term health and body composition.",
+    "A twelve-week block that opens with a four-week Strength Reentry on-ramp, then eight weeks of foundation training balancing heavy lifting, rowing intervals, Zone 2 aerobic work, and athletic variety for long-term health and body composition.",
   goals: [
     "Long-term health",
     "Weight loss",
@@ -40,7 +47,7 @@ const heavyLower: SessionTemplate = {
       }),
       exerciseId: "back-squat",
       generateWarmup: true,
-      id: "foundation-heavy-lower-back-squat",
+      id: "ahf-back-squat",
       progression: ProgressionPolicy.Linear({
         incrementLb: 5,
         missesBeforeDeload: 2,
@@ -55,7 +62,7 @@ const heavyLower: SessionTemplate = {
       base: Prescription.Strength({ reps: 8, sets: 3, weightLb: 155 }),
       exerciseId: "romanian-deadlift",
       generateWarmup: true,
-      id: "foundation-heavy-lower-romanian-deadlift",
+      id: "ahf-romanian-deadlift",
       progression: ProgressionPolicy.Double({
         incrementLb: 5,
         maxReps: 10,
@@ -97,7 +104,7 @@ const heavyLower: SessionTemplate = {
       base: Prescription.TimedHold({ holdSec: 60, sets: 3 }),
       exerciseId: "plank",
       generateWarmup: false,
-      id: "foundation-heavy-lower-plank",
+      id: "ahf-plank",
       progression: ProgressionPolicy.TimedHold({
         addWeightAfterSec: 120,
         holdIncrementSec: 10,
@@ -233,7 +240,7 @@ const heavyUpper: SessionTemplate = {
       }),
       exerciseId: "bench-press",
       generateWarmup: true,
-      id: "foundation-heavy-upper-bench-press",
+      id: "ahf-bench-press",
       progression: ProgressionPolicy.Linear({
         incrementLb: 5,
         missesBeforeDeload: 2,
@@ -262,7 +269,7 @@ const heavyUpper: SessionTemplate = {
       base: Prescription.Strength({ reps: 8, sets: 3, weightLb: 95 }),
       exerciseId: "overhead-press",
       generateWarmup: true,
-      id: "foundation-heavy-upper-overhead-press",
+      id: "ahf-overhead-press",
       progression: ProgressionPolicy.Double({
         incrementLb: 5,
         maxReps: 10,
@@ -276,7 +283,7 @@ const heavyUpper: SessionTemplate = {
       base: Prescription.Strength({ reps: 8, sets: 3, weightLb: 135 }),
       exerciseId: "barbell-row",
       generateWarmup: true,
-      id: "foundation-heavy-upper-barbell-row",
+      id: "ahf-barbell-row",
       progression: ProgressionPolicy.Double({
         incrementLb: 5,
         maxReps: 10,
@@ -304,7 +311,7 @@ const heavyUpper: SessionTemplate = {
       base: Prescription.Bodyweight({ reps: 10, sets: 3 }),
       exerciseId: "ab-wheel",
       generateWarmup: false,
-      id: "foundation-heavy-upper-ab-wheel",
+      id: "ahf-ab-wheel",
       progression: ProgressionPolicy.Amrap({ repCap: 15, sets: 3 }),
       role: "accessory",
     },
@@ -356,7 +363,7 @@ const athleticDay: SessionTemplate = {
           base: Prescription.Strength({ reps: 5, sets: 3, weightLb: 275 }),
           exerciseId: "deadlift",
           generateWarmup: true,
-          id: "foundation-athletic-day-power-deadlift",
+          id: "ahf-deadlift",
           progression: ProgressionPolicy.Linear({
             incrementLb: 10,
             missesBeforeDeload: 2,
@@ -609,6 +616,7 @@ const sessionTemplates: readonly SessionTemplate[] = [
 
 export const athleticHealthFoundationV1: ProgramVersion = {
   blocks: [
+    strengthReentryBlock,
     {
       deloadEveryWeeks: 4,
       durationWeeks: 8,
@@ -630,6 +638,6 @@ export const athleticHealthFoundationV1: ProgramVersion = {
   createdAt: "2026-01-01T00:00:00.000Z",
   id: "athletic-health-foundation-v1",
   programId: "athletic-health-foundation",
-  sessionTemplates: [...sessionTemplates],
+  sessionTemplates: [...sessionTemplates, ...strengthReentrySessionTemplates],
   version: 1,
 };

@@ -6,6 +6,7 @@ import { progressDouble } from "./double";
 import { progressInterval } from "./interval";
 import { progressLinear } from "./linear";
 import type { AdaptationOutcome } from "./outcome";
+import { progressRpeBanded } from "./rpe-banded";
 import { progressTimedHold } from "./timed-hold";
 import { progressZone2 } from "./zone2";
 
@@ -44,6 +45,9 @@ export const progressExercise = (
     }
     case "zone2": {
       return progressZone2(policy, base, priorResults);
+    }
+    case "rpe-banded": {
+      return progressRpeBanded(policy, base, priorResults);
     }
     case "none": {
       return {

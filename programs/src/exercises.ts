@@ -63,6 +63,13 @@ export const exercises: readonly Exercise[] = [
     name: "Weighted Pull-Up",
   },
   {
+    id: "pullup",
+    isUnilateral: false,
+    modality: "bodyweight",
+    movementPattern: "vertical-pull",
+    name: "Pull-Up",
+  },
+  {
     id: "overhead-press",
     isUnilateral: false,
     modality: "barbell",
