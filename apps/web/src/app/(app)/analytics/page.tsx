@@ -2,22 +2,20 @@ import { ChartLineIcon } from "@phosphor-icons/react/dist/ssr/ChartLine";
 import { listBodyMetrics } from "@titan/db/body-metrics";
 import { listExternalWorkouts } from "@titan/db/external-workouts";
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
-import { css } from "../../../styled-system/css";
-import { grid, hstack, vstack } from "../../../styled-system/patterns";
-import { requireAuth } from "../../auth/session";
-import { BodyWeightForm } from "../../components/BodyWeightForm";
-import { DeleteEntryButton } from "../../components/DeleteEntryButton";
-import { Sparkline } from "../../components/Sparkline";
-import { StatTile } from "../../components/StatTile";
-import { TopBar } from "../../components/TopBar";
-import { db } from "../../db";
-import { formatDistance, formatWeight } from "../../format";
-import { exerciseNames } from "../../server/exercise-names";
-import { topStrengthSeries } from "../../server/strength-series";
-import { USER_ID } from "../../user";
+import { css } from "../../../../styled-system/css";
+import { grid, hstack, vstack } from "../../../../styled-system/patterns";
+import { BodyWeightForm } from "../../../components/BodyWeightForm";
+import { DeleteEntryButton } from "../../../components/DeleteEntryButton";
+import { Sparkline } from "../../../components/Sparkline";
+import { StatTile } from "../../../components/StatTile";
+import { TopBar } from "../../../components/TopBar";
+import { db } from "../../../db";
+import { formatDistance, formatWeight } from "../../../format";
+import { exerciseNames } from "../../../server/exercise-names";
+import { topStrengthSeries } from "../../../server/strength-series";
+import { USER_ID } from "../../../user";
 
 const AnalyticsPage = async () => {
-  await requireAuth();
   const [metrics, sessions, externals, names] = await Promise.all([
     listBodyMetrics(db, USER_ID, 60),
     listWorkoutSessions(db, USER_ID, 100),

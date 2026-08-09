@@ -1,17 +1,15 @@
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ClockCounterClockwise";
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
 import Link from "next/link";
-import { css } from "../../../styled-system/css";
-import { hstack, vstack } from "../../../styled-system/patterns";
-import { requireAuth } from "../../auth/session";
-import { TopBar } from "../../components/TopBar";
-import { db } from "../../db";
-import { templateNames } from "../../server/template-names";
-import { Badge } from "../../ui";
-import { USER_ID } from "../../user";
+import { css } from "../../../../styled-system/css";
+import { hstack, vstack } from "../../../../styled-system/patterns";
+import { TopBar } from "../../../components/TopBar";
+import { db } from "../../../db";
+import { templateNames } from "../../../server/template-names";
+import { Badge } from "../../../ui";
+import { USER_ID } from "../../../user";
 
 const HistoryPage = async () => {
-  await requireAuth();
   const [sessions, names] = await Promise.all([
     listWorkoutSessions(db, USER_ID, 60),
     templateNames(db),

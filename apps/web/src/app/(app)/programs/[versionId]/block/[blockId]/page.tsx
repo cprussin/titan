@@ -3,24 +3,23 @@ import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
 import type { SelectedVariant } from "@titan/program-engine/variant";
 import { notFound } from "next/navigation";
-import { css } from "../../../../../../styled-system/css";
-import { hstack, vstack } from "../../../../../../styled-system/patterns";
-import { requireAuth } from "../../../../../auth/session";
-import { PrescriptionTarget } from "../../../../../components/PrescriptionTarget";
-import { TopBar } from "../../../../../components/TopBar";
-import { db } from "../../../../../db";
-import { roleTone } from "../../../../../role-tone";
-import { exerciseNames } from "../../../../../server/exercise-names";
+import { css } from "../../../../../../../styled-system/css";
+import { hstack, vstack } from "../../../../../../../styled-system/patterns";
+import { PrescriptionTarget } from "../../../../../../components/PrescriptionTarget";
+import { TopBar } from "../../../../../../components/TopBar";
+import { db } from "../../../../../../db";
+import { roleTone } from "../../../../../../role-tone";
+import { exerciseNames } from "../../../../../../server/exercise-names";
 import type {
   BlockContext,
   ScheduledWorkout,
-} from "../../../../../server/program-explorer";
+} from "../../../../../../server/program-explorer";
 import {
   blockSchedule,
   findBlockContext,
   sessionRotations,
-} from "../../../../../server/program-explorer";
-import { Accordion, Badge } from "../../../../../ui";
+} from "../../../../../../server/program-explorer";
+import { Accordion, Badge } from "../../../../../../ui";
 
 const DAY_NAMES = [
   "Monday",
@@ -37,7 +36,6 @@ const BlockPage = async ({
 }: {
   params: Promise<{ blockId: string; versionId: string }>;
 }) => {
-  await requireAuth();
   const { blockId, versionId } = await params;
   const [programs, versions, names] = await Promise.all([
     listPrograms(db),

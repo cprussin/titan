@@ -3,20 +3,18 @@ import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
 import Link from "next/link";
-import { css } from "../../../styled-system/css";
-import { grid, hstack, vstack, wrap } from "../../../styled-system/patterns";
-import { requireAuth } from "../../auth/session";
-import { TopBar } from "../../components/TopBar";
-import { db } from "../../db";
-import { latestPrograms } from "../../server/program-explorer";
-import { Badge, Card } from "../../ui";
+import { css } from "../../../../styled-system/css";
+import { grid, hstack, vstack, wrap } from "../../../../styled-system/patterns";
+import { TopBar } from "../../../components/TopBar";
+import { db } from "../../../db";
+import { latestPrograms } from "../../../server/program-explorer";
+import { Badge, Card } from "../../../ui";
 
 // Goals cycle through tones so a program's tag row reads as a splash of color
 // rather than a monochrome run of accent pills.
 const GOAL_TONES = ["accent", "success", "warning"] as const;
 
 const ProgramsPage = async () => {
-  await requireAuth();
   const [programs, versions] = await Promise.all([
     listPrograms(db),
     listProgramVersions(db),

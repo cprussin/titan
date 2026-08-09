@@ -3,23 +3,21 @@ import { listAdaptationDecisionsBySession } from "@titan/db/adaptation-decisions
 import { listPersonalRecords } from "@titan/db/personal-records";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
 import { notFound } from "next/navigation";
-import { css } from "../../../../../styled-system/css";
-import { grid, vstack } from "../../../../../styled-system/patterns";
-import { requireAuth } from "../../../../auth/session";
-import { DeleteWorkoutButton } from "../../../../components/DeleteWorkoutButton";
-import { StatTile } from "../../../../components/StatTile";
-import { TopBar } from "../../../../components/TopBar";
-import { db } from "../../../../db";
-import { exerciseNames } from "../../../../server/exercise-names";
-import { Button } from "../../../../ui";
-import { USER_ID } from "../../../../user";
+import { css } from "../../../../../../styled-system/css";
+import { grid, vstack } from "../../../../../../styled-system/patterns";
+import { DeleteWorkoutButton } from "../../../../../components/DeleteWorkoutButton";
+import { StatTile } from "../../../../../components/StatTile";
+import { TopBar } from "../../../../../components/TopBar";
+import { db } from "../../../../../db";
+import { exerciseNames } from "../../../../../server/exercise-names";
+import { Button } from "../../../../../ui";
+import { USER_ID } from "../../../../../user";
 
 const CompletePage = async ({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) => {
-  await requireAuth();
   const { id } = await params;
   const session = await getWorkoutSession(db, id);
   if (session === undefined) {
