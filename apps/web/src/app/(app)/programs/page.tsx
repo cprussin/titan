@@ -8,6 +8,7 @@ import Link from "next/link";
 import { css } from "../../../../styled-system/css";
 import { vstack, wrap } from "../../../../styled-system/patterns";
 import { BlockActionsMenu } from "../../../components/BlockActionsMenu";
+import { DeleteProgramButton } from "../../../components/DeleteProgramButton";
 import { TopBar } from "../../../components/TopBar";
 import { db } from "../../../db";
 import { isActiveBlock } from "../../../server/active-block";
@@ -77,7 +78,13 @@ const renderProgramCard = (
 ) => (
   <Card key={version.id}>
     <div className={headerStyles}>
-      <h3 className={programNameStyles}>{program.name}</h3>
+      <div className={nameRowStyles}>
+        <h3 className={programNameStyles}>{program.name}</h3>
+        <DeleteProgramButton
+          programId={program.id}
+          programName={program.name}
+        />
+      </div>
       {program.goals.length > 0 && (
         <ul className={goalsStyles}>
           {program.goals.map((goal, index) => (
@@ -166,10 +173,21 @@ const gridStyles = css({
 // the colored tags anchor the top of each card before the name.
 const headerStyles = vstack({ alignItems: "flex-start", gap: 1 });
 
+// The program name and its delete control share the top row: the name grows to
+// fill and the trailing trash button stays snug on the end edge.
+const nameRowStyles = css({
+  alignItems: "center",
+  display: "flex",
+  gap: 2,
+  inlineSize: "100%",
+});
+
 const programNameStyles = css({
+  flexGrow: 1,
   fontSize: "md",
   fontWeight: "semibold",
   lg: { fontSize: "lg" },
+  minInlineSize: 0,
 });
 
 const descriptionStyles = css({ color: "muted", fontSize: "sm" });

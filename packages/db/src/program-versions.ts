@@ -5,9 +5,21 @@ import { parseDataRows, parseFirstDataRow } from "./parse-rows";
 
 export const listPrograms = async (db: Db): Promise<Program[]> => {
   const rows = await db<{ data: unknown }[]>`
-    SELECT data FROM programs ORDER BY id
+    SELECT data FROM programs
+    WHERE data->>'tombstonedAt' IS NULL
+    ORDER BY id
   `;
   return parseDataRows(programSchema, rows);
+};
+
+export const getProgram = async (
+  db: Db,
+  id: string,
+): Promise<Program | undefined> => {
+  const rows = await db<
+    { data: unknown }[]
+  >`SELECT data FROM programs WHERE id = ${id}`;
+  return parseFirstDataRow(programSchema, rows);
 };
 
 export const getProgramVersion = async (
@@ -37,6 +49,17 @@ export const upsertProgram = async (
     INSERT INTO programs (id, data) VALUES (${program.id}, ${db.json(program)})
     ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data
   `;
+};
+
+/** Hard-delete a program and every one of its versions. Use only when no
+ *  logged workout references any of those versions — otherwise the program is
+ *  tombstoned so its history stays resolvable. */
+export const deleteProgramWithVersions = async (
+  db: Db,
+  programId: string,
+): Promise<void> => {
+  await db`DELETE FROM program_versions WHERE program_id = ${programId}`;
+  await db`DELETE FROM programs WHERE id = ${programId}`;
 };
 
 export const upsertProgramVersion = async (

@@ -62,6 +62,22 @@ export const upsertWorkoutSession = async (
   `;
 };
 
+/** Whether any logged workout references a version of `programId` — the test
+ *  for whether deleting the program would destroy history. */
+export const programHasWorkoutSessions = async (
+  db: Db,
+  programId: string,
+): Promise<boolean> => {
+  const rows = await db<{ exists: boolean }[]>`
+    SELECT EXISTS (
+      SELECT 1 FROM workout_sessions ws
+      JOIN program_versions pv ON pv.id = ws.program_version_id
+      WHERE pv.program_id = ${programId}
+    ) AS exists
+  `;
+  return rows[0]?.exists === true;
+};
+
 export const deleteWorkoutSession = async (
   db: Db,
   id: string,
