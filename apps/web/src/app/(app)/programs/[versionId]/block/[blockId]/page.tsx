@@ -1,7 +1,11 @@
+import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
+import { FlagCheckeredIcon } from "@phosphor-icons/react/dist/ssr/FlagCheckered";
 import { getAthleteState } from "@titan/db/athlete-state";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
+import type { Program, ProgramVersion } from "@titan/domain/program";
 import type { SelectedVariant } from "@titan/program-engine/variant";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { css } from "../../../../../../../styled-system/css";
 import { hstack, vstack } from "../../../../../../../styled-system/patterns";
@@ -14,14 +18,23 @@ import { isActiveBlock } from "../../../../../../server/active-block";
 import { exerciseNames } from "../../../../../../server/exercise-names";
 import type {
   BlockContext,
+  BlockOutcome,
+  BlockWeek,
   ScheduledWorkout,
+  WeekWorkout,
 } from "../../../../../../server/program-explorer";
 import {
+  BlockOutcomeKind,
+  blockOutcome,
   blockSchedule,
+  blockWeekSchedules,
+  blockWeekSummary,
   findBlockContext,
   sessionRotations,
+  showsWeekSections,
+  stripWeekPrefix,
 } from "../../../../../../server/program-explorer";
-import { Accordion, Badge } from "../../../../../../ui";
+import { Accordion, Badge, Card } from "../../../../../../ui";
 import { USER_ID } from "../../../../../../user";
 
 const DAY_NAMES = [
@@ -66,25 +79,14 @@ const renderBlock = (
   active: boolean,
 ) => {
   const { block, program, version } = context;
-  const schedule = blockSchedule(version, block);
-  // Built once, presented two ways: a single-open accordion on phones and every
-  // day expanded at once on desktop. The two are toggled by CSS (not a media-
-  // query hook), so there's no hydration flash and desktop keeps its overview.
-  const days = schedule.map((workout) => ({
-    content: renderWorkoutContent(workout, names),
-    trigger: (
-      <span className={dayTriggerStyles}>
-        <span className={dayHeadingStyles}>
-          <span className={dayLabelStyles}>{dayName(workout.dayOfWeek)}</span>
-          <span className={dayNameStyles}>{workout.template.name}</span>
-        </span>
-        <span className={durationStyles}>
-          {workout.template.targetDurationMin} min
-        </span>
-      </span>
-    ),
-    value: `${workout.dayOfWeek}-${workout.template.id}`,
-  }));
+  // A progression block (weeks fundamentally different) is shown week by week,
+  // so Week 1 reads exactly as Week 1 runs; a repeating block keeps its single
+  // day-by-day weekly schedule.
+  const body = showsWeekSections(block) ? (
+    renderWeeks(blockWeekSchedules(version, block), names)
+  ) : (
+    <FixedSchedule names={names} schedule={blockSchedule(version, block)} />
+  );
   return (
     <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
       <TopBar
@@ -105,6 +107,143 @@ const renderBlock = (
         icon={<BarbellIcon size={18} />}
         title={block.name}
       />
+      {body}
+      {renderOutcome(blockOutcome(version, block), program, version)}
+    </div>
+  );
+};
+
+/** The week-sectioned view: one accordion row per training week, the first open,
+ *  each holding that week's concrete day-by-day plan. */
+const renderWeeks = (
+  weeks: readonly BlockWeek[],
+  names: Map<string, string>,
+) => (
+  <Accordion
+    defaultValue={weeks.slice(0, 1).map(weekValue)}
+    items={weeks.map((week) => ({
+      content: (
+        <div className={weekDaysStyles}>
+          {week.isDeload ? (
+            <p className={deloadNoteStyles}>
+              Deload week — the engine holds loads and trims volume ~40–50%.
+            </p>
+          ) : undefined}
+          {week.workouts.map((workout) => renderWeekDay(workout, names))}
+        </div>
+      ),
+      trigger: (
+        <span className={weekTriggerStyles}>
+          <span className={weekHeadingStyles}>
+            <span className={weekLabelStyles}>Week {week.week}</span>
+            <span className={weekSummaryStyles}>{blockWeekSummary(week)}</span>
+          </span>
+          {week.isDeload ? <Badge tone="warning">Deload</Badge> : undefined}
+        </span>
+      ),
+      value: weekValue(week),
+    }))}
+    multiple
+  />
+);
+
+/** One day within a week: its heading (weekday, session, the week's variant) and
+ *  the exact exercises that run that week. */
+const renderWeekDay = (workout: WeekWorkout, names: Map<string, string>) => (
+  <section
+    className={weekDayStyles}
+    key={`${workout.dayOfWeek}-${workout.template.id}`}
+  >
+    <div className={weekDayHeaderStyles}>
+      <span className={dayHeadingStyles}>
+        <span className={dayLabelStyles}>{dayName(workout.dayOfWeek)}</span>
+        <span className={dayNameStyles}>
+          {workout.template.name}
+          {workout.variant.label === undefined ? undefined : (
+            <span className={variantTagStyles}>
+              {stripWeekPrefix(workout.variant.label)}
+            </span>
+          )}
+        </span>
+      </span>
+      <span className={durationStyles}>
+        {workout.template.targetDurationMin} min
+      </span>
+    </div>
+    <ul className={slotListStyles}>
+      {workout.variant.slots.map((slot) => renderSlot(slot, names))}
+    </ul>
+  </section>
+);
+
+/** The end-of-block hand-off: the next block the athlete rolls into, or program
+ *  completion. A repeating block just keeps cycling, so it shows nothing. */
+const renderOutcome = (
+  outcome: BlockOutcome,
+  program: Program,
+  version: ProgramVersion,
+) => {
+  switch (outcome.kind) {
+    case BlockOutcomeKind.NextBlock: {
+      return (
+        <Card title="When this block ends">
+          <Link
+            className={outcomeLinkStyles}
+            href={`/programs/${version.id}/block/${outcome.block.id}`}
+          >
+            <span className={outcomeTextStyles}>
+              <span className={outcomeLeadStyles}>Rolls into</span>
+              <span className={outcomeTargetStyles}>{outcome.block.name}</span>
+              <span className={outcomeMetaStyles}>
+                Week 1 — working loads carry forward from this block.
+              </span>
+            </span>
+            <ArrowRightIcon className={outcomeArrowStyles} size={18} />
+          </Link>
+        </Card>
+      );
+    }
+    case BlockOutcomeKind.ProgramComplete: {
+      return (
+        <Card title="When this block ends">
+          <p className={outcomeCompleteStyles}>
+            <FlagCheckeredIcon size={18} />
+            <span>You'll have completed {program.name}.</span>
+          </p>
+        </Card>
+      );
+    }
+    case BlockOutcomeKind.RepeatsIndefinitely: {
+      return undefined;
+    }
+  }
+};
+
+/** The rotating desktop/phone day view for a block whose weeks are all alike. */
+const FixedSchedule = ({
+  schedule,
+  names,
+}: {
+  schedule: readonly ScheduledWorkout[];
+  names: Map<string, string>;
+}) => {
+  const days = schedule.map((workout) => ({
+    content: renderWorkoutContent(workout, names),
+    trigger: (
+      <span className={dayTriggerStyles}>
+        <span className={dayHeadingStyles}>
+          <span className={dayLabelStyles}>{dayName(workout.dayOfWeek)}</span>
+          <span className={dayNameStyles}>{workout.template.name}</span>
+        </span>
+        <span className={durationStyles}>
+          {workout.template.targetDurationMin} min
+        </span>
+      </span>
+    ),
+    value: `${workout.dayOfWeek}-${workout.template.id}`,
+  }));
+  return (
+    <>
       <div className={accordionOnlyStyles}>
         <Accordion items={days} />
       </div>
@@ -116,7 +255,7 @@ const renderBlock = (
           </section>
         ))}
       </div>
-    </div>
+    </>
   );
 };
 
@@ -192,6 +331,103 @@ const dayName = (dayOfWeek: number): string => {
     return name;
   }
 };
+
+const weekValue = (week: BlockWeek): string => `week-${week.week}`;
+
+// The week trigger: the week label + its one-line summary on the start edge, a
+// deload badge (when present) on the end.
+const weekTriggerStyles = css({
+  alignItems: "center",
+  display: "flex",
+  gap: 3,
+  inlineSize: "100%",
+  justifyContent: "space-between",
+});
+
+const weekHeadingStyles = css({
+  alignItems: "flex-start",
+  display: "flex",
+  flexDirection: "column",
+  gap: 0.5,
+  minInlineSize: 0,
+});
+
+const weekLabelStyles = css({
+  fontSize: "lg",
+  fontWeight: "semibold",
+  lg: { fontSize: "xl" },
+});
+
+const weekSummaryStyles = css({
+  color: "textTertiary",
+  fontSize: "sm",
+  textAlign: "start",
+});
+
+const weekDaysStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: 6,
+});
+
+const deloadNoteStyles = css({
+  color: "muted",
+  fontSize: "sm",
+});
+
+const weekDayStyles = css({ display: "flex", flexDirection: "column", gap: 3 });
+
+// A day heading inside a week: ruled like the desktop overview header so days
+// read as distinct blocks within the open week.
+const weekDayHeaderStyles = css({
+  alignItems: "center",
+  borderBlockEnd: "1px solid {colors.border}",
+  display: "flex",
+  gap: 3,
+  justifyContent: "space-between",
+  paddingBlockEnd: 2,
+});
+
+// The variant label sits beside the session name as a muted, accent-tinted tag.
+const variantTagStyles = css({
+  color: "accent",
+  fontSize: "sm",
+  fontWeight: "medium",
+  marginInlineStart: 2,
+});
+
+const outcomeLinkStyles = css({
+  _hover: { color: "accent" },
+  alignItems: "center",
+  borderRadius: "md",
+  color: "foreground",
+  display: "flex",
+  gap: 3,
+  justifyContent: "space-between",
+});
+
+const outcomeTextStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  gap: 0.5,
+  minInlineSize: 0,
+});
+
+const outcomeLeadStyles = css({
+  color: "muted",
+  fontSize: "xs",
+  fontWeight: "medium",
+  letterSpacing: "wide",
+  textTransform: "uppercase",
+});
+
+const outcomeTargetStyles = css({ fontSize: "lg", fontWeight: "semibold" });
+
+const outcomeMetaStyles = css({ color: "textTertiary", fontSize: "sm" });
+
+const outcomeArrowStyles = css({ color: "muted", flexShrink: 0 });
+
+const outcomeCompleteStyles = hstack({ color: "muted", gap: 2 });
 
 // The collapsible accordion is the phone presentation; the always-expanded
 // overview is the desktop one. Each is hidden at the other's breakpoint.

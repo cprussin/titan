@@ -13,6 +13,19 @@ export const mostRecent = (
   priorResults: readonly ExerciseResult[],
 ): ExerciseResult | undefined => priorResults.at(-1);
 
+/**
+ * The RPE logged on the final working set (the highest `setIndex`), or
+ * `undefined` when that set logged none. RPE-banded progression gates on the
+ * final set specifically — the last set is where effort is judged — so this is
+ * deliberately not the average.
+ */
+export const finalSetRpe = (result: ExerciseResult): number | undefined => {
+  const finalSet = [...result.sets]
+    .sort((a, b) => a.setIndex - b.setIndex)
+    .at(-1);
+  return finalSet?.rpe;
+};
+
 /** Average RPE across the sets that logged one, or `undefined` if none did. */
 export const averageRpe = (result: ExerciseResult): number | undefined => {
   const rpes = result.sets

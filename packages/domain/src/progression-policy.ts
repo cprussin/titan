@@ -81,6 +81,29 @@ const zone2Schema = z.object({
 
 export type Zone2Policy = z.infer<typeof zone2Schema>;
 
+/** One load step of an {@link RpeBandedPolicy}: add `incrementLb` when the
+ *  final working set's RPE is at or below `maxRpe`. */
+const rpeBandSchema = z.object({
+  incrementLb: z.number().positive(),
+  maxRpe: z.number().positive().max(10),
+});
+
+export type RpeBand = z.infer<typeof rpeBandSchema>;
+
+const rpeBandedSchema = z.object({
+  /** Load steps ordered ascending by `maxRpe`. The tightest band whose `maxRpe`
+   *  covers the final-set RPE applies; a final-set RPE above every band's
+   *  ceiling (or a missed session) repeats the load. Distinct upper/lower
+   *  increments and the "faster while regaining" schedule are expressed by the
+   *  chosen bands, so no separate cap is needed. */
+  bands: z.array(rpeBandSchema).min(1),
+  kind: z.literal("rpe-banded"),
+  reps: z.number().int().positive(),
+  sets: z.number().int().positive(),
+});
+
+export type RpeBandedPolicy = z.infer<typeof rpeBandedSchema>;
+
 /** No automatic progression — recovery work and open-ended easy cardio. */
 const noneSchema = z.object({
   kind: z.literal("none"),
@@ -95,6 +118,7 @@ export const progressionPolicySchema = z.discriminatedUnion("kind", [
   timedHoldSchema,
   intervalSchema,
   zone2Schema,
+  rpeBandedSchema,
   noneSchema,
 ]);
 
@@ -118,6 +142,10 @@ export const ProgressionPolicy = {
     kind: "linear",
   }),
   None: (): NonePolicy => ({ kind: "none" }),
+  RpeBanded: (args: Omit<RpeBandedPolicy, "kind">): RpeBandedPolicy => ({
+    ...args,
+    kind: "rpe-banded",
+  }),
   TimedHold: (args: Omit<TimedHoldPolicy, "kind">): TimedHoldPolicy => ({
     ...args,
     kind: "timed-hold",

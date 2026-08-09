@@ -100,6 +100,12 @@ export const trainingBlockSchema = z.object({
   durationWeeks: z.number().int().positive(),
   id: idSchema,
   name: z.string(),
+  /** How the block's weeks relate. `"progression"` — each week is a distinct
+   *  step in a bounded arc (e.g. a reentry ramp), so the block reads week by
+   *  week and hands off to whatever follows. `"repeating"` (the default when
+   *  absent) — a stable weekly template cycled with progression and deloads, the
+   *  same shape every week, with no fixed end to announce. */
+  weekStructure: z.enum(["progression", "repeating"]).optional(),
   /** The repeating weekly layout for the block. */
   weekTemplate: weekTemplateSchema,
 });

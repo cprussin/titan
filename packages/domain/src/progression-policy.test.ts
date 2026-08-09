@@ -45,6 +45,29 @@ describe("progressionPolicySchema", () => {
     expect(progressionPolicySchema.parse(value)).toEqual(value);
   });
 
+  it("parses an rpe-banded policy", () => {
+    const value = ProgressionPolicy.RpeBanded({
+      bands: [
+        { incrementLb: 10, maxRpe: 6 },
+        { incrementLb: 5, maxRpe: 8 },
+      ],
+      reps: 5,
+      sets: 3,
+    });
+    expect(progressionPolicySchema.parse(value)).toEqual(value);
+  });
+
+  it("rejects an rpe-banded policy with no bands", () => {
+    expect(
+      progressionPolicySchema.safeParse({
+        bands: [],
+        kind: "rpe-banded",
+        reps: 5,
+        sets: 3,
+      }).success,
+    ).toBe(false);
+  });
+
   it("rejects a linear policy with retainOnDeload above 1", () => {
     expect(
       progressionPolicySchema.safeParse({
