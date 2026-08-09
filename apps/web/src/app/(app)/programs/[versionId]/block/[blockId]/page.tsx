@@ -9,6 +9,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { css } from "../../../../../../../styled-system/css";
 import { hstack, vstack } from "../../../../../../../styled-system/patterns";
+import { DeleteBlockButton } from "../../../../../../components/DeleteBlockButton";
 import { PrescriptionTarget } from "../../../../../../components/PrescriptionTarget";
 import { SetActiveBlockButton } from "../../../../../../components/SetActiveBlockButton";
 import { TopBar } from "../../../../../../components/TopBar";
@@ -91,14 +92,21 @@ const renderBlock = (
     <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
       <TopBar
         actions={
-          <SetActiveBlockButton
-            active={active}
-            blockId={block.id}
-            label="Set as active"
-            size="sm"
-            variant="accent"
-            versionId={version.id}
-          />
+          <>
+            <SetActiveBlockButton
+              active={active}
+              blockId={block.id}
+              label="Set as active"
+              size="sm"
+              variant="accent"
+              versionId={version.id}
+            />
+            <DeleteBlockButton
+              blockId={block.id}
+              blockName={block.name}
+              versionId={version.id}
+            />
+          </>
         }
         breadcrumbs={[
           { href: "/programs", label: "Programs" },

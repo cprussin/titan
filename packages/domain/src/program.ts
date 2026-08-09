@@ -131,6 +131,10 @@ export const programSchema = z.object({
   goals: z.array(z.string()),
   id: idSchema,
   name: z.string(),
+  /** When set, the program has been deleted but is retained because logged
+   *  workouts still reference its versions. Tombstoned programs are hidden from
+   *  the explorer; the history they back stays intact. Absent on live programs. */
+  tombstonedAt: z.string().optional(),
 });
 
 export type Program = z.infer<typeof programSchema>;

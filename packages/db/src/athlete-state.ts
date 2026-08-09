@@ -41,6 +41,20 @@ export const getAthleteState = async (
       });
 };
 
+/** Clear any athlete's active position that points at a version of `programId`,
+ *  so hard-deleting the program leaves no dangling active pointer behind. */
+export const clearAthleteStateForProgram = async (
+  db: Db,
+  programId: string,
+): Promise<void> => {
+  await db`
+    DELETE FROM athlete_state
+    WHERE program_version_id IN (
+      SELECT id FROM program_versions WHERE program_id = ${programId}
+    )
+  `;
+};
+
 export const setAthleteState = async (
   db: Db,
   state: AthleteState,
