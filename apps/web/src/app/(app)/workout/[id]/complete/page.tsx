@@ -56,7 +56,7 @@ const CompletePage = async ({
       >
         <TopBar
           actions={<DeleteWorkoutButton sessionId={id} size="sm" />}
-          breadcrumbs={[{ href: "/", label: "Today" }]}
+          breadcrumbs={[{ href: "/", label: "Dashboard" }]}
           description="Nice work — here's the recap."
           icon={<CheckCircleIcon size={18} />}
           title="Workout complete"

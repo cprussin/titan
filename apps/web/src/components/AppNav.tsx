@@ -1,22 +1,28 @@
 "use client";
 
 import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
-import { ChartLineIcon } from "@phosphor-icons/react/dist/ssr/ChartLine";
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ClockCounterClockwise";
+import { GaugeIcon } from "@phosphor-icons/react/dist/ssr/Gauge";
 import { GearIcon } from "@phosphor-icons/react/dist/ssr/Gear";
-import { HouseIcon } from "@phosphor-icons/react/dist/ssr/House";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { css, cx } from "../../styled-system/css";
+import type { WorkoutAction } from "../server/workout-action";
 import { useNavDrawer } from "./NavDrawer";
+import { WorkoutActionButton } from "./WorkoutActionButton";
 
 const LINKS = [
-  { href: "/", Icon: HouseIcon, label: "Today" },
+  { href: "/", Icon: GaugeIcon, label: "Dashboard" },
   { href: "/programs", Icon: BarbellIcon, label: "Programs" },
   { href: "/history", Icon: ClockCounterClockwiseIcon, label: "History" },
-  { href: "/analytics", Icon: ChartLineIcon, label: "Trends" },
   { href: "/settings", Icon: GearIcon, label: "Settings" },
 ] as const;
+
+type Props = {
+  /** The primary workout action to dock in the wide-screen rail, or `undefined`
+   *  when there's nothing to launch (a rest day, or no program placed). */
+  workoutAction?: WorkoutAction | undefined;
+};
 
 /**
  * The persistent primary navigation. A bottom tab bar on phone-sized screens; a
@@ -25,7 +31,7 @@ const LINKS = [
  * button, dismissed by the scrim behind it or by picking a destination.
  * Highlights the active section.
  */
-export const AppNav = () => {
+export const AppNav = ({ workoutAction }: Props) => {
   const pathname = usePathname();
   const { close, open } = useNavDrawer();
   return (
@@ -44,6 +50,9 @@ export const AppNav = () => {
         data-open={open ? "true" : undefined}
       >
         <span className={brandStyles}>Titan</span>
+        {workoutAction !== undefined && (
+          <WorkoutActionButton action={workoutAction} variant="sidebar" />
+        )}
         <ul className={listStyles}>
           {LINKS.map(({ Icon, href, label }) => {
             const active =
