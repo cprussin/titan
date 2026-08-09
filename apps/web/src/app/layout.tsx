@@ -1,9 +1,34 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
+import { Barlow, Barlow_Condensed, IBM_Plex_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import { css } from "../../styled-system/css";
 import { AppProviders } from "../components/AppProviders";
 import { RegisterServiceWorker } from "../components/RegisterServiceWorker";
+
+// Self-hosted via next/font so the faces are inlined at build time and no
+// font request sits on the critical path. The CSS variables feed the Panda
+// `condensed` / `sans` / `mono` font tokens.
+const sans = Barlow({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-sans",
+  weight: ["400", "500", "600", "700"],
+});
+
+const condensed = Barlow_Condensed({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-condensed",
+  weight: ["400", "600", "700"],
+});
+
+const mono = IBM_Plex_Mono({
+  display: "swap",
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500", "600"],
+});
 
 export const metadata: Metadata = {
   appleWebApp: {
@@ -28,7 +53,11 @@ export const viewport: Viewport = {
 // app and the login screen, so the primary navigation lives in the `(app)`
 // route group's layout instead — nothing to show for a logged-out visitor.
 const RootLayout = ({ children }: { children: ReactNode }) => (
-  <html lang="en" suppressHydrationWarning>
+  <html
+    className={`${sans.variable} ${condensed.variable} ${mono.variable}`}
+    lang="en"
+    suppressHydrationWarning
+  >
     <body className={bodyStyles}>
       <AppProviders>
         {children}

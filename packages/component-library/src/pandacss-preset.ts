@@ -154,6 +154,7 @@ export const titanPreset = definePreset({
       },
       backgroundColor: "background",
       color: "foreground",
+      fontFamily: "sans",
     },
   },
   name: "titan",
@@ -285,7 +286,7 @@ export const titanPreset = definePreset({
         // derived token recomputes automatically.
         colors: {
           accent: {
-            value: { _light: "{colors.cyan.600}", base: "{colors.cyan.500}" },
+            value: { _light: "#2C5FD6", base: "#3D7BFF" },
           },
           backdrop: {
             // Black scrim works for both modes: in dark mode it creates
@@ -294,10 +295,7 @@ export const titanPreset = definePreset({
             value: "rgb(from black r g b / 70%)",
           },
           background: {
-            value: {
-              _light: "{colors.neutral.50}",
-              base: "{colors.neutral.900}",
-            },
+            value: { _light: "#FAFAF9", base: "#0A0A0B" },
           },
           border: {
             value:
@@ -312,17 +310,14 @@ export const titanPreset = definePreset({
               "color-mix(in oklab, {colors.foreground} 6%, {colors.background})",
           },
           danger: {
-            value: { _light: "{colors.red.600}", base: "{colors.red.500}" },
+            value: { _light: "#D93B22", base: "#F4614A" },
           },
           dangerSoft: {
             value:
               "color-mix(in oklab, {colors.danger} 70%, {colors.background})",
           },
           foreground: {
-            value: {
-              _light: "{colors.neutral.900}",
-              base: "{colors.neutral.200}",
-            },
+            value: { _light: "#17171A", base: "#F2F1EF" },
           },
           muted: {
             value:
@@ -333,7 +328,13 @@ export const titanPreset = definePreset({
               "color-mix(in oklab, {colors.foreground} 25%, {colors.background})",
           },
           success: {
-            value: { _light: "{colors.green.700}", base: "{colors.green.500}" },
+            value: { _light: "#178A50", base: "#3FD98A" },
+          },
+          surfaceDesk: {
+            // The recessed ground behind an app column narrower than the
+            // viewport — a hair off `background`, recomputing with the theme.
+            value:
+              "color-mix(in oklab, {colors.foreground} 3%, {colors.background})",
           },
           textTertiary: {
             // A step dimmer than `muted` (55%) for the least-prominent text —
@@ -343,7 +344,7 @@ export const titanPreset = definePreset({
               "color-mix(in oklab, {colors.foreground} 38%, {colors.background})",
           },
           warning: {
-            value: { _light: "{colors.amber.700}", base: "{colors.amber.500}" },
+            value: { _light: "#A9740A", base: "#E8B23B" },
           },
         },
         shadows: {
@@ -382,10 +383,23 @@ export const titanPreset = definePreset({
           outQuart: { value: "cubic-bezier(0.25, 1, 0.5, 1)" },
         },
         fonts: {
+          condensed: {
+            value:
+              "var(--font-condensed), 'Barlow Condensed', system-ui, sans-serif",
+          },
           mono: {
             value:
-              "ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Monaco, Consolas, monospace",
+              "var(--font-mono), 'IBM Plex Mono', ui-monospace, Menlo, monospace",
           },
+          sans: {
+            value: "var(--font-sans), 'Barlow', system-ui, sans-serif",
+          },
+        },
+        lineHeights: {
+          // The tight display leading condensed athletic headings and the
+          // set-logger value ride on — a scoreboard reads compact. Reused by
+          // every condensed display style, so it earns a token.
+          condensed: { value: "1.05" },
         },
         opacity: {
           disabled: { value: "0.6" },
@@ -393,6 +407,15 @@ export const titanPreset = definePreset({
           // drop target reads clearly underneath it.
           dragging: { value: "0.4" },
           pulseMin: { value: "0.3" },
+        },
+        shadows: {
+          // A soft accent halo used as a **text-shadow** in exactly one place —
+          // the set-logger value (§3.2). Recomputes with the theme because it
+          // mixes the accent semantic token. Never reuse it elsewhere.
+          glow: {
+            value:
+              "0 0 24px color-mix(in oklab, {colors.accent} 40%, transparent)",
+          },
         },
         // `sizes` mirrors `spacing` so bare numbers on size props
         // (`inlineSize`, `blockSize`, `min*Size`, `max*Size`) resolve through

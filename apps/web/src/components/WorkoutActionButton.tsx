@@ -31,7 +31,7 @@ export const WorkoutActionButton = ({ action, variant }: Props) => {
   if (variant === "fab") {
     return onActiveSession ? undefined : (
       <div className={fabStyles}>
-        <WorkoutActionControl action={action} rounded />
+        <WorkoutActionControl action={action} rounded size="xl" />
       </div>
     );
   } else {

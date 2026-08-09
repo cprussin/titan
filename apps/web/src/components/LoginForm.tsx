@@ -72,7 +72,14 @@ const formStyles = vstack({
   maxInlineSize: "24rem",
 });
 
-const titleStyles = css({ fontSize: "4xl", fontWeight: "bold" });
+const titleStyles = css({
+  fontFamily: "condensed",
+  fontSize: "4xl",
+  fontWeight: "bold",
+  letterSpacing: "tight",
+  lineHeight: "condensed",
+  textTransform: "uppercase",
+});
 
 const subtitleStyles = css({ color: "muted" });
 

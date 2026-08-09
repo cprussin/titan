@@ -33,8 +33,14 @@ const wrapStyles = css({
   gap: 0.5,
 });
 
+// Mono with tabular figures so targets align down a plan list instead of
+// ragging.
 const primaryStyles = cva({
-  base: { color: "muted" },
+  base: {
+    color: "muted",
+    fontFamily: "mono",
+    fontVariantNumeric: "tabular-nums",
+  },
   variants: {
     size: {
       lg: { fontSize: "lg" },
@@ -44,7 +50,11 @@ const primaryStyles = cva({
 });
 
 const recoveryStyles = cva({
-  base: { color: "muted" },
+  base: {
+    color: "muted",
+    fontFamily: "mono",
+    fontVariantNumeric: "tabular-nums",
+  },
   variants: {
     size: {
       lg: { fontSize: "sm" },

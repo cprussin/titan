@@ -1,4 +1,6 @@
+import { listAdaptationDecisionsBySession } from "@titan/db/adaptation-decisions";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
+import type { AdaptationDecision } from "@titan/domain/adaptation-decision";
 import { notFound, redirect } from "next/navigation";
 import { WorkoutExecution } from "../../../../components/WorkoutExecution";
 import { db } from "../../../../db";
@@ -12,15 +14,34 @@ const WorkoutPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   } else if (session.status === "completed") {
     redirect(`/workout/${id}/complete`);
   } else {
-    const names = await exerciseNames(db);
+    const [names, decisions] = await Promise.all([
+      exerciseNames(db),
+      listAdaptationDecisionsBySession(db, id),
+    ]);
     return (
       <WorkoutExecution
         exerciseNames={Object.fromEntries(names)}
+        explanations={explanationsByExercise(decisions)}
         prescribedExercises={session.prescribedExercises}
         sessionId={id}
       />
     );
   }
 };
+
+/** Maps each exercise-layer adaptation decision to its explanation, keyed by
+ *  exercise id, so the execution screen can surface why today's target is what
+ *  it is. Non-exercise decisions (session/weekly) carry no exercise id and are
+ *  dropped. */
+const explanationsByExercise = (
+  decisions: readonly AdaptationDecision[],
+): Record<string, string> =>
+  Object.fromEntries(
+    decisions.flatMap((decision) =>
+      decision.exerciseId === undefined
+        ? []
+        : [[decision.exerciseId, decision.explanation] as const],
+    ),
+  );
 
 export default WorkoutPage;

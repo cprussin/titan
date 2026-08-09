@@ -187,11 +187,12 @@ const eyebrowStyles = css({
 });
 
 const titleStyles = css({
+  fontFamily: "condensed",
   fontSize: "2xl",
   fontWeight: "bold",
   letterSpacing: "tight",
   lg: { fontSize: "3xl" },
-  lineHeight: "tight",
+  lineHeight: "condensed",
 });
 
 const metaStyles = css({ color: "muted", fontSize: "sm" });

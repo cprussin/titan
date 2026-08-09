@@ -1,6 +1,8 @@
 "use client";
 
 import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
+import { MinusIcon } from "@phosphor-icons/react/dist/ssr/Minus";
+import { PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
 import type { Prescription } from "@titan/domain/prescription";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
@@ -19,6 +21,11 @@ import { TopBar } from "./TopBar";
 
 type Props = {
   exerciseNames: Record<string, string>;
+  /** The adaptation explanation for each exercise, keyed by exercise id — why
+   *  today's target is what it is. Surfaced as a quiet aside during execution.
+   *  Sourced from the session's stored adaptation decisions (not the domain
+   *  {@link PrescribedExercise}, which is persisted verbatim). */
+  explanations: Record<string, string>;
   prescribedExercises: readonly PrescribedExercise[];
   sessionId: string;
 };
@@ -49,6 +56,7 @@ const isStrengthLike = (
  */
 export const WorkoutExecution = ({
   exerciseNames,
+  explanations,
   prescribedExercises,
   sessionId,
 }: Props) => {
@@ -124,6 +132,8 @@ export const WorkoutExecution = ({
             </header>
 
             <PreviousPerformance previous={current.previous} />
+
+            <AdaptationNote explanation={explanations[current.exerciseId]} />
 
             {resting ? (
               <RestTimer
@@ -426,7 +436,7 @@ const Stepper = ({ label, onChange, step, value }: StepperProps) => (
         size="lg"
         variant="outline"
       >
-        −
+        <MinusIcon size={18} />
       </Button>
       <span className={stepperValueStyles}>{value}</span>
       <Button
@@ -435,7 +445,7 @@ const Stepper = ({ label, onChange, step, value }: StepperProps) => (
         size="lg"
         variant="outline"
       >
-        +
+        <PlusIcon size={18} />
       </Button>
     </div>
   </div>
@@ -498,6 +508,18 @@ const PreviousPerformance = ({
     </p>
   );
 };
+
+// The engine's reason for today's target, one step dimmer than "Last time":
+// a hairline `border` rule (not accent) and tertiary text, so it reads as a
+// quiet aside rather than an alert.
+const AdaptationNote = ({
+  explanation,
+}: {
+  explanation: string | undefined;
+}) =>
+  explanation === undefined ? undefined : (
+    <p className={adaptationStyles}>{explanation}</p>
+  );
 
 const ProgressBar = ({
   current,
@@ -627,6 +649,7 @@ const outlineRowStyles = css({
 const outlineBadgeStyles = css({
   fontFamily: "mono",
   fontSize: "xs",
+  fontVariantNumeric: "tabular-nums",
   fontWeight: "bold",
   minInlineSize: 4,
   textAlign: "end",
@@ -644,10 +667,12 @@ const outlineNameStyles = css({ fontSize: "sm", fontWeight: "medium" });
 const outlineTargetStyles = css({ color: "textTertiary", fontSize: "xs" });
 
 const nameStyles = css({
+  fontFamily: "condensed",
   fontSize: "3xl",
   fontWeight: "bold",
   letterSpacing: "tight",
   lg: { fontSize: "4xl" },
+  lineHeight: "condensed",
 });
 
 const setCountStyles = css({
@@ -658,10 +683,17 @@ const setCountStyles = css({
 
 const fieldLabelStyles = css({ color: "muted", fontSize: "sm" });
 
+// The one glowing element in the product: the number under your thumb mid-set,
+// read at arm's length. `shadows.glow` appears here and nowhere else.
 const stepperValueStyles = css({
-  fontFamily: "mono",
-  fontSize: "4xl",
+  color: "accent",
+  fontFamily: "condensed",
+  fontSize: "5xl",
+  fontVariantNumeric: "tabular-nums",
   fontWeight: "bold",
+  letterSpacing: "tight",
+  lineHeight: "condensed",
+  textShadow: "glow",
 });
 
 // Flat: a hairline accent rule on the inline-start edge instead of a filled
@@ -669,6 +701,13 @@ const stepperValueStyles = css({
 const previousStyles = css({
   borderInlineStart: "1px solid {colors.accent}",
   color: "muted",
+  fontSize: "sm",
+  paddingInlineStart: 3,
+});
+
+const adaptationStyles = css({
+  borderInlineStart: "1px solid {colors.border}",
+  color: "textTertiary",
   fontSize: "sm",
   paddingInlineStart: 3,
 });

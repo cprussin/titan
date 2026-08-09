@@ -70,5 +70,7 @@ const labelStyles = css({
 const timeStyles = css({
   fontFamily: "mono",
   fontSize: "5xl",
+  // A clock that shifts width as it counts is a bug.
+  fontVariantNumeric: "tabular-nums",
   fontWeight: "bold",
 });

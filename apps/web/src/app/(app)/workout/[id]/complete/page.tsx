@@ -10,7 +10,7 @@ import { StatTile } from "../../../../../components/StatTile";
 import { TopBar } from "../../../../../components/TopBar";
 import { db } from "../../../../../db";
 import { exerciseNames } from "../../../../../server/exercise-names";
-import { Button } from "../../../../../ui";
+import { Badge, Button } from "../../../../../ui";
 import { USER_ID } from "../../../../../user";
 
 const CompletePage = async ({
@@ -46,8 +46,20 @@ const CompletePage = async ({
             ),
           )
         : session.estimatedDurationMin;
-    const adaptations = decisions.filter(
-      (decision) => decision.action !== "maintain",
+    // One row per exercise the engine adapted, tagged Progressed when the
+    // explanation opens with an "Increase"/"Extend" (the product's forward
+    // moves) and Held otherwise. Non-exercise decisions carry no exercise id.
+    const exerciseAdaptations = decisions.flatMap((decision) =>
+      decision.exerciseId === undefined
+        ? []
+        : [
+            {
+              explanation: decision.explanation,
+              id: decision.id,
+              name: names.get(decision.exerciseId) ?? decision.exerciseId,
+              progressed: isProgression(decision.explanation),
+            },
+          ],
     );
 
     return (
@@ -98,15 +110,25 @@ const CompletePage = async ({
             <h2 className={sectionTitleStyles}>
               Why today looked the way it did
             </h2>
-            {adaptations.length === 0 ? (
+            {exerciseAdaptations.length === 0 ? (
               <p className={mutedStyles}>
                 Steady week — prescriptions held from your program.
               </p>
             ) : (
-              <ul className={listStyles}>
-                {adaptations.map((decision) => (
-                  <li className={explanationStyles} key={decision.id}>
-                    {decision.explanation}
+              <ul className={adaptationListStyles}>
+                {exerciseAdaptations.map((adaptation) => (
+                  <li className={adaptationRowStyles} key={adaptation.id}>
+                    <span className={adaptationTextStyles}>
+                      <span className={adaptationNameStyles}>
+                        {adaptation.name}
+                      </span>
+                      <span className={explanationStyles}>
+                        {adaptation.explanation}
+                      </span>
+                    </span>
+                    <Badge tone={adaptation.progressed ? "success" : "neutral"}>
+                      {adaptation.progressed ? "Progressed" : "Held"}
+                    </Badge>
                   </li>
                 ))}
               </ul>
@@ -125,6 +147,12 @@ const CompletePage = async ({
 };
 
 export default CompletePage;
+
+/** Whether an adaptation explanation reports a forward move — the engine opens
+ *  these with "Increase" (load/reps) or "Extend" (duration/range). Anything
+ *  else (a repeat, a deload, a hold) reads as held. */
+const isProgression = (explanation: string): boolean =>
+  explanation.startsWith("Increase") || explanation.startsWith("Extend");
 
 const statGridStyles = grid({ columns: 3, gap: 4, lg: { gap: 8 } });
 
@@ -160,6 +188,34 @@ const rowStyles = css({
 });
 
 const emphasisStyles = css({ color: "success", fontWeight: "semibold" });
+
+// Each adaptation is a hairline-ruled row: the exercise over its reason on the
+// start, a Progressed/Held badge on the trailing edge. No rule above the first.
+const adaptationRowStyles = css({
+  _first: { borderBlockStart: "none", paddingBlockStart: 0 },
+  alignItems: "flex-start",
+  borderBlockStart: "1px solid {colors.border}",
+  display: "flex",
+  gap: 3,
+  justifyContent: "space-between",
+  paddingBlock: 2.5,
+});
+
+const adaptationListStyles = vstack({
+  alignItems: "stretch",
+  gap: 0,
+  listStyleType: "none",
+  margin: 0,
+  padding: 0,
+});
+
+const adaptationTextStyles = vstack({
+  alignItems: "flex-start",
+  gap: 0.5,
+  minInlineSize: 0,
+});
+
+const adaptationNameStyles = css({ fontWeight: "medium" });
 
 const explanationStyles = css({ color: "muted", fontSize: "sm" });
 

@@ -167,9 +167,11 @@ const gridStyles = css({
 const headerStyles = vstack({ alignItems: "flex-start", gap: 1 });
 
 const programNameStyles = css({
-  fontSize: "md",
-  fontWeight: "semibold",
-  lg: { fontSize: "lg" },
+  fontFamily: "condensed",
+  fontSize: "2xl",
+  fontWeight: "bold",
+  letterSpacing: "tight",
+  lineHeight: "condensed",
 });
 
 const descriptionStyles = css({ color: "muted", fontSize: "sm" });
