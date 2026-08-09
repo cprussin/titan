@@ -9,6 +9,9 @@ type Props = {
   action: WorkoutAction;
   /** Pill the control for the mobile FAB; leave square elsewhere. */
   rounded?: boolean | undefined;
+  /** The control height. `xl` for the prominent mobile FAB; `lg` (default)
+   *  everywhere the control docks inline. */
+  size?: "lg" | "xl" | undefined;
 };
 
 /**
@@ -18,17 +21,21 @@ type Props = {
  * takes the neutral solid fill with a forward arrow — clearly not a fresh
  * start, without competing with it for attention.
  */
-export const WorkoutActionControl = ({ action, rounded = false }: Props) =>
+export const WorkoutActionControl = ({
+  action,
+  rounded = false,
+  size = "lg",
+}: Props) =>
   action.kind === "continue" ? (
     <Button
       beforeIcon={<ArrowRightIcon size={20} weight="bold" />}
       href={`/workout/${action.sessionId}`}
       rounded={rounded}
-      size="lg"
-      variant="solid"
+      size={size}
+      variant={rounded ? "accent" : "solid"}
     >
       Continue workout
     </Button>
   ) : (
-    <StartWorkout rounded={rounded} />
+    <StartWorkout rounded={rounded} size={size} />
   );

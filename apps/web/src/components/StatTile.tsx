@@ -39,12 +39,13 @@ const labelStyles = css({
 
 const valueStyles = cva({
   base: {
+    fontFamily: "condensed",
     fontSize: "2xl",
     fontVariantNumeric: "tabular-nums",
     fontWeight: "bold",
     letterSpacing: "tight",
     lg: { fontSize: "3xl" },
-    lineHeight: "tight",
+    lineHeight: "condensed",
   },
   variants: {
     tone: {

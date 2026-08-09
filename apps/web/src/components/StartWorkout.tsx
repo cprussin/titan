@@ -16,6 +16,8 @@ const RATINGS = [1, 2, 3, 4, 5] as const;
 type Props = {
   /** Pill the trigger for the mobile FAB; leave square for the sidebar. */
   rounded: boolean;
+  /** Trigger height — `xl` for the prominent mobile FAB, `lg` inline. */
+  size?: "lg" | "xl" | undefined;
 };
 
 /**
@@ -24,7 +26,7 @@ type Props = {
  * skipping starts straight away. Either path creates the session server-side
  * and navigates into it.
  */
-export const StartWorkout = ({ rounded }: Props) => {
+export const StartWorkout = ({ rounded, size = "lg" }: Props) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [energy, setEnergy] = useState(3);
@@ -91,9 +93,9 @@ export const StartWorkout = ({ rounded }: Props) => {
       title="Ready to train?"
       trigger={
         <Button
-          beforeIcon={<PlayIcon size={20} weight="fill" />}
+          beforeIcon={<PlayIcon size={20} />}
           rounded={rounded}
-          size="lg"
+          size={size}
           variant="accent"
         >
           Start workout
