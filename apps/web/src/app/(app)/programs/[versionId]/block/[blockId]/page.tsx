@@ -1,4 +1,5 @@
 import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
+import { getAthleteState } from "@titan/db/athlete-state";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
 import type { SelectedVariant } from "@titan/program-engine/variant";
@@ -6,9 +7,11 @@ import { notFound } from "next/navigation";
 import { css } from "../../../../../../../styled-system/css";
 import { hstack, vstack } from "../../../../../../../styled-system/patterns";
 import { PrescriptionTarget } from "../../../../../../components/PrescriptionTarget";
+import { SetActiveBlockButton } from "../../../../../../components/SetActiveBlockButton";
 import { TopBar } from "../../../../../../components/TopBar";
 import { db } from "../../../../../../db";
 import { roleTone } from "../../../../../../role-tone";
+import { isActiveBlock } from "../../../../../../server/active-block";
 import { exerciseNames } from "../../../../../../server/exercise-names";
 import type {
   BlockContext,
@@ -20,6 +23,7 @@ import {
   sessionRotations,
 } from "../../../../../../server/program-explorer";
 import { Accordion, Badge } from "../../../../../../ui";
+import { USER_ID } from "../../../../../../user";
 
 const DAY_NAMES = [
   "Monday",
@@ -37,22 +41,31 @@ const BlockPage = async ({
   params: Promise<{ blockId: string; versionId: string }>;
 }) => {
   const { blockId, versionId } = await params;
-  const [programs, versions, names] = await Promise.all([
+  const [programs, versions, names, state] = await Promise.all([
     listPrograms(db),
     listProgramVersions(db),
     exerciseNames(db),
+    getAthleteState(db, USER_ID),
   ]);
   const context = findBlockContext(programs, versions, versionId, blockId);
   if (context === undefined) {
     notFound();
   } else {
-    return renderBlock(context, names);
+    return renderBlock(
+      context,
+      names,
+      isActiveBlock(state, context.version, blockId),
+    );
   }
 };
 
 export default BlockPage;
 
-const renderBlock = (context: BlockContext, names: Map<string, string>) => {
+const renderBlock = (
+  context: BlockContext,
+  names: Map<string, string>,
+  active: boolean,
+) => {
   const { block, program, version } = context;
   const schedule = blockSchedule(version, block);
   // Built once, presented two ways: a single-open accordion on phones and every
@@ -76,6 +89,16 @@ const renderBlock = (context: BlockContext, names: Map<string, string>) => {
   return (
     <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
       <TopBar
+        actions={
+          <SetActiveBlockButton
+            active={active}
+            blockId={block.id}
+            label="Set as active"
+            size="sm"
+            variant="accent"
+            versionId={version.id}
+          />
+        }
         breadcrumbs={[{ href: "/programs", label: program.name }]}
         description={describeCadence(block)}
         icon={<BarbellIcon size={18} />}
