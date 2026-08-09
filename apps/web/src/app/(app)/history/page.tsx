@@ -17,15 +17,7 @@ const HistoryPage = async () => {
 
   return (
     <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
-      <TopBar
-        description={
-          sessions.length === 0
-            ? undefined
-            : `${sessions.length} logged session${sessions.length === 1 ? "" : "s"}`
-        }
-        icon={<ClockCounterClockwiseIcon size={18} />}
-        title="History"
-      />
+      <TopBar icon={<ClockCounterClockwiseIcon size={18} />} title="History" />
       {sessions.length === 0 ? (
         <p className={mutedStyles}>No sessions yet — start today's workout.</p>
       ) : (

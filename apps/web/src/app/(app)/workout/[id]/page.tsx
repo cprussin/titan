@@ -3,7 +3,6 @@ import { notFound, redirect } from "next/navigation";
 import { WorkoutExecution } from "../../../../components/WorkoutExecution";
 import { db } from "../../../../db";
 import { exerciseNames } from "../../../../server/exercise-names";
-import { templateNames } from "../../../../server/template-names";
 
 const WorkoutPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
@@ -13,16 +12,12 @@ const WorkoutPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   } else if (session.status === "completed") {
     redirect(`/workout/${id}/complete`);
   } else {
-    const [names, templates] = await Promise.all([
-      exerciseNames(db),
-      templateNames(db),
-    ]);
+    const names = await exerciseNames(db);
     return (
       <WorkoutExecution
         exerciseNames={Object.fromEntries(names)}
         prescribedExercises={session.prescribedExercises}
         sessionId={id}
-        title={templates.get(session.sessionTemplateId) ?? "Workout"}
       />
     );
   }

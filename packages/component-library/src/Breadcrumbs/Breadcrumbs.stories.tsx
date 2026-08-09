@@ -39,3 +39,9 @@ export const Breadcrumbs: StoryObj<typeof BreadcrumbsComponent> = {};
 export const SingleCrumb: StoryObj<typeof BreadcrumbsComponent> = {
   args: { crumbs: [{ href: "/", label: "Today" }] },
 };
+
+export const WithPlainCrumb: StoryObj<typeof BreadcrumbsComponent> = {
+  args: {
+    crumbs: [{ href: "/programs", label: "Programs" }, { label: "Strength" }],
+  },
+};

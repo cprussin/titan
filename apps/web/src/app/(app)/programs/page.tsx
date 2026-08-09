@@ -34,11 +34,7 @@ const ProgramsPage = async () => {
 
   return (
     <div className={pageStyles}>
-      <TopBar
-        description="Your training programs and the blocks that make them up."
-        icon={<BarbellIcon size={18} />}
-        title="Programs"
-      />
+      <TopBar icon={<BarbellIcon size={18} />} title="Programs" />
       {entries.length === 0 ? (
         <p className={mutedStyles}>
           No programs loaded. Run <code>bun run --filter @titan/db seed</code>{" "}

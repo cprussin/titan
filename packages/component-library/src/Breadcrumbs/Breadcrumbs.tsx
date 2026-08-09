@@ -3,9 +3,11 @@ import { Fragment } from "react";
 import { css } from "../../styled-system/css";
 import { useLink } from "../LinkProvider/LinkProvider";
 
-/** One breadcrumb: the ancestor `label` and the `href` it links back to. */
+/** One breadcrumb: the ancestor `label` and, when it has a page of its own, the
+ *  `href` it links back to. A crumb with no `href` renders as plain text — for
+ *  an ancestor that names a level of the hierarchy but has no page to open. */
 export type Crumb = {
-  href: string;
+  href?: string | undefined;
   label: string;
 };
 
@@ -24,10 +26,14 @@ export const Breadcrumbs = ({ crumbs }: Props) => {
   return (
     <>
       {crumbs.map((crumb) => (
-        <Fragment key={crumb.href}>
-          <Link className={linkStyles} href={crumb.href}>
-            {crumb.label}
-          </Link>
+        <Fragment key={crumb.label}>
+          {crumb.href === undefined ? (
+            <span className={plainStyles}>{crumb.label}</span>
+          ) : (
+            <Link className={linkStyles} href={crumb.href}>
+              {crumb.label}
+            </Link>
+          )}
           <CaretRightIcon className={separatorStyles} size={12} />
         </Fragment>
       ))}
@@ -42,6 +48,15 @@ const linkStyles = css({
   fontSize: "sm",
   fontWeight: "medium",
   transition: "color {durations.fast} {easings.out}",
+});
+
+// A crumb with no page of its own: same weight as a link but static — no hover
+// affordance, since there's nothing to open.
+const plainStyles = css({
+  color: "muted",
+  flexShrink: 0,
+  fontSize: "sm",
+  fontWeight: "medium",
 });
 
 const separatorStyles = css({ color: "textTertiary", flexShrink: 0 });

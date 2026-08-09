@@ -21,7 +21,6 @@ type Props = {
   exerciseNames: Record<string, string>;
   prescribedExercises: readonly PrescribedExercise[];
   sessionId: string;
-  title: string;
 };
 
 /** How many working sets a prescription calls for (cardio efforts are one bout). */
@@ -52,7 +51,6 @@ export const WorkoutExecution = ({
   exerciseNames,
   prescribedExercises,
   sessionId,
-  title,
 }: Props) => {
   const router = useRouter();
   const [index, setIndex] = useState(0);
@@ -105,9 +103,8 @@ export const WorkoutExecution = ({
       <div className={rootStyles}>
         <TopBar
           actions={<CancelWorkoutButton sessionId={sessionId} size="sm" />}
-          breadcrumbs={[{ href: "/", label: "Dashboard" }]}
           icon={<BarbellIcon size={18} />}
-          title={title}
+          title="Current Workout"
         />
         <ProgressBar
           current={index}
