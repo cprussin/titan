@@ -1,11 +1,8 @@
 "use client";
 
 import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
-import { MinusIcon } from "@phosphor-icons/react/dist/ssr/Minus";
-import { PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
 import type { NormalizedWorkout } from "@titan/domain/external";
 import type { LoadUnit } from "@titan/domain/load-unit";
-import { loadStep } from "@titan/domain/load-unit";
 import type { Modality } from "@titan/domain/movement";
 import type { Prescription } from "@titan/domain/prescription";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
@@ -24,6 +21,7 @@ import { CancelWorkoutButton } from "./CancelWorkoutButton";
 import { Concept2Check } from "./Concept2Check";
 import { PrescriptionTarget } from "./PrescriptionTarget";
 import { RestTimer } from "./RestTimer";
+import { StrengthLogger } from "./StrengthLogger";
 import { TopBar } from "./TopBar";
 
 type Props = {
@@ -162,12 +160,22 @@ export const WorkoutExecution = ({
                 logged={logged}
                 modality={exerciseModalities[current.exerciseId]}
                 onComplete={advance}
+                onEditSet={(setIndex, set) => {
+                  setLogged((sets) =>
+                    sets.map((existing, position) =>
+                      position === setIndex ? set : existing,
+                    ),
+                  );
+                }}
                 onLogSet={(set) => {
                   const nowLogged = [...logged, set];
                   setLogged(nowLogged);
                   if (nowLogged.length < totalSets(current.prescription)) {
                     setResting(true);
                   }
+                }}
+                onUndoLastSet={() => {
+                  setLogged((sets) => sets.slice(0, -1));
                 }}
                 prescribed={current}
                 sessionId={sessionId}
@@ -257,7 +265,9 @@ type LoggerProps = {
   busy: boolean;
   logged: readonly SetResult[];
   onComplete: (result: ExerciseResult) => void;
+  onEditSet: (index: number, set: SetResult) => void;
   onLogSet: (set: SetResult) => void;
+  onUndoLastSet: () => void;
   prescribed: PrescribedExercise;
 };
 
@@ -275,7 +285,9 @@ const ExerciseLogger = ({
   logged,
   modality,
   onComplete,
+  onEditSet,
   onLogSet,
+  onUndoLastSet,
   prescribed,
   sessionId,
 }: ExerciseLoggerProps) => {
@@ -285,7 +297,9 @@ const ExerciseLogger = ({
       busy={busy}
       logged={logged}
       onComplete={onComplete}
+      onEditSet={onEditSet}
       onLogSet={onLogSet}
+      onUndoLastSet={onUndoLastSet}
       prescribed={prescribed}
       prescription={prescription}
     />
@@ -298,102 +312,6 @@ const ExerciseLogger = ({
       prescribed={prescribed}
       sessionId={sessionId}
     />
-  );
-};
-
-type StrengthLoggerProps = LoggerProps & {
-  prescription: Extract<
-    Prescription,
-    { type: "strength" | "bodyweight" | "timed-hold" }
-  >;
-};
-
-const StrengthLogger = ({
-  busy,
-  logged,
-  onComplete,
-  onLogSet,
-  prescribed,
-  prescription,
-}: StrengthLoggerProps) => {
-  const sets = prescription.sets;
-  const done = logged.length;
-  const [weight, setWeight] = useState(defaultWeight(prescription));
-  const [reps, setReps] = useState(defaultReps(prescription));
-  const [holdSec, setHoldSec] = useState(
-    prescription.type === "timed-hold" ? prescription.holdSec : 0,
-  );
-  const [rpe, setRpe] = useState<number | undefined>(undefined);
-
-  const logSet = () => {
-    onLogSet({
-      completed: true,
-      setIndex: done,
-      ...(prescription.type === "timed-hold" ? { holdSec } : { reps, weight }),
-      ...(rpe === undefined ? {} : { rpe }),
-    });
-    setRpe(undefined);
-  };
-
-  const complete = () => {
-    onComplete({
-      exerciseId: prescribed.exerciseId,
-      id: crypto.randomUUID(),
-      prescription,
-      sets: [...logged],
-      slotId: prescribed.slotId,
-    });
-  };
-
-  return (
-    <div className={vstack({ alignItems: "stretch", gap: 3 })}>
-      <p className={setCountStyles}>
-        {done >= sets ? "All sets logged" : `Set ${done + 1} of ${sets}`}
-      </p>
-      {done < sets && (
-        <div className={vstack({ alignItems: "stretch", gap: 3 })}>
-          {prescription.type === "timed-hold" ? (
-            <Stepper
-              label="Hold (sec)"
-              onChange={setHoldSec}
-              step={5}
-              value={holdSec}
-            />
-          ) : (
-            <>
-              {prescription.type === "strength" && (
-                <Stepper
-                  label={`Weight (${prescription.unit})`}
-                  onChange={setWeight}
-                  step={loadStep(prescription.unit)}
-                  value={weight}
-                />
-              )}
-              <Stepper label="Reps" onChange={setReps} step={1} value={reps} />
-            </>
-          )}
-          <RpePicker onChange={setRpe} value={rpe} />
-        </div>
-      )}
-      {/* The log and finish actions stack on phones and share a row on
-          desktop, where there's width for both. */}
-      <div className={actionRowStyles}>
-        {done < sets && (
-          <Button onClick={logSet} size="lg" variant="accent">
-            Log set
-          </Button>
-        )}
-        <Button
-          disabled={done === 0}
-          loading={busy}
-          onClick={complete}
-          size="lg"
-          variant={done >= sets ? "success" : "outline"}
-        >
-          {done >= sets ? "Complete exercise" : "Finish early"}
-        </Button>
-      </div>
-    </div>
   );
 };
 
@@ -476,63 +394,6 @@ const CardioLogger = ({
     </div>
   );
 };
-
-type StepperProps = {
-  label: string;
-  onChange: (value: number) => void;
-  step: number;
-  value: number;
-};
-
-const Stepper = ({ label, onChange, step, value }: StepperProps) => (
-  <div className={vstack({ alignItems: "stretch", gap: 1 })}>
-    <span className={fieldLabelStyles}>{label}</span>
-    <div className={hstack({ gap: 2, justifyContent: "space-between" })}>
-      <Button
-        label={`Decrease ${label}`}
-        onClick={() => onChange(Math.max(0, value - step))}
-        size="lg"
-        variant="outline"
-      >
-        <MinusIcon size={18} />
-      </Button>
-      <span className={stepperValueStyles}>{value}</span>
-      <Button
-        label={`Increase ${label}`}
-        onClick={() => onChange(value + step)}
-        size="lg"
-        variant="outline"
-      >
-        <PlusIcon size={18} />
-      </Button>
-    </div>
-  </div>
-);
-
-const RPE_OPTIONS = [7, 8, 9, 10] as const;
-
-type RpePickerProps = {
-  onChange: (value: number | undefined) => void;
-  value: number | undefined;
-};
-
-const RpePicker = ({ onChange, value }: RpePickerProps) => (
-  <div className={vstack({ alignItems: "stretch", gap: 1 })}>
-    <span className={fieldLabelStyles}>RPE (optional)</span>
-    <div className={hstack({ gap: 2 })}>
-      {RPE_OPTIONS.map((option) => (
-        <Button
-          key={option}
-          onClick={() => onChange(option === value ? undefined : option)}
-          size="md"
-          variant={option === value ? "accent" : "outline"}
-        >
-          {`${option}`}
-        </Button>
-      ))}
-    </div>
-  </div>
-);
 
 type NumberFieldProps = {
   label: string;
@@ -662,14 +523,6 @@ const topSet = (result: ExerciseResult): SetResult | undefined =>
 const restSeconds = (prescribed: PrescribedExercise): number =>
   prescribed.role === "primary" ? 150 : 90;
 
-const defaultWeight = (prescription: Prescription): number =>
-  prescription.type === "strength" ? prescription.weight : 0;
-
-const defaultReps = (prescription: Prescription): number =>
-  prescription.type === "strength" || prescription.type === "bodyweight"
-    ? prescription.reps
-    : 0;
-
 // Fills the shared content width like every other page; on desktop it splits
 // into the work area plus a standing session outline.
 const rootStyles = vstack({ alignItems: "stretch", gap: 4 });
@@ -767,28 +620,9 @@ const nameStyles = css({
   lineHeight: "condensed",
 });
 
-const setCountStyles = css({
-  color: "muted",
-  fontSize: "sm",
-  fontWeight: "medium",
-});
-
 const fieldLabelStyles = css({ color: "muted", fontSize: "sm" });
 
 const durationEchoStyles = css({ color: "textTertiary", fontSize: "xs" });
-
-// The one glowing element in the product: the number under your thumb mid-set,
-// read at arm's length. `shadows.glow` appears here and nowhere else.
-const stepperValueStyles = css({
-  color: "accent",
-  fontFamily: "condensed",
-  fontSize: "5xl",
-  fontVariantNumeric: "tabular-nums",
-  fontWeight: "bold",
-  letterSpacing: "tight",
-  lineHeight: "condensed",
-  textShadow: "glow",
-});
 
 // Flat: a hairline accent rule on the inline-start edge instead of a filled
 // chip, so "last time" reads as a quiet aside with a touch of color.
@@ -816,15 +650,3 @@ const nextStyles = css({
 const mutedStyles = css({ color: "muted" });
 
 const progressTrackStyles = hstack({ gap: 1 });
-
-// Log / finish actions: stacked on phones, shared evenly across a row on
-// desktop where there's width for both side by side.
-const actionRowStyles = css({
-  display: "flex",
-  flexDirection: "column",
-  gap: 3,
-  lg: {
-    "& > *": { flex: 1 },
-    flexDirection: "row",
-  },
-});
