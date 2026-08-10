@@ -55,7 +55,8 @@ bun run --filter @titan/web test:types
 
    ```sh
    cp apps/web/.env.example apps/web/.env.local
-   # edit apps/web/.env.local: DATABASE_URL, AUTH_PASSWORD, AUTH_SESSION_SECRET, …
+   # edit apps/web/.env.local: DATABASE_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+   # GOOGLE_ALLOWED_EMAILS, AUTH_PROXY_URL, AUTH_SESSION_SECRET, …
    ```
 
 2. Start the app:
@@ -64,7 +65,7 @@ bun run --filter @titan/web test:types
    bun run turbo start:dev --filter @titan/web
    ```
 
-   Open http://localhost:3000, sign in with `AUTH_PASSWORD`, and start training.
+   Open http://localhost:3000, sign in with Google, and start training.
    On first use the app **initializes the database automatically** — it applies
    the schema and seeds the bundled programs if the database is empty. (You can
    still run `bun run --filter @titan/db migrate` and `… seed` manually if you

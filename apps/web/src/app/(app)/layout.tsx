@@ -18,14 +18,14 @@ import { USER_ID } from "../../user";
  * nav.
  */
 const AppLayout = async ({ children }: { children: ReactNode }) => {
-  await requireAuth();
+  const user = await requireAuth();
   const workoutAction = await currentWorkoutAction(db, USER_ID, dateIso());
   return (
     <NavDrawerProvider>
       <div className={contentStyles}>
         <main className={mainStyles}>{children}</main>
       </div>
-      <AppNav workoutAction={workoutAction} />
+      <AppNav user={user} workoutAction={workoutAction} />
       {workoutAction !== undefined && (
         <WorkoutActionButton action={workoutAction} variant="fab" />
       )}

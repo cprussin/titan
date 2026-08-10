@@ -34,10 +34,30 @@ athlete at week 1 — no migrate/seed command to run.
    | Variable | Value |
    |---|---|
    | `DATABASE_URL` | the Neon **pooled** connection string from step 1 |
-   | `AUTH_PASSWORD` | the password you'll sign in with |
+   | `GOOGLE_CLIENT_ID` | OAuth client ID (see below) |
+   | `GOOGLE_CLIENT_SECRET` | OAuth client secret (see below) |
+   | `GOOGLE_ALLOWED_EMAILS` | comma-separated Google email(s) allowed to sign in |
+   | `AUTH_PROXY_URL` | `https://<your-app>.vercel.app` (production URL, no trailing slash) |
+   | `AUTH_PREVIEW_HOST_SUFFIX` | your Vercel preview suffix, e.g. `-<your-team>.vercel.app` (enables preview sign-in) |
    | `AUTH_SESSION_SECRET` | a long random string (`openssl rand -hex 32`) |
 
-4. Deploy. Open the app, sign in with `AUTH_PASSWORD`, and start training. On
+   Set every variable for **both** Production and Preview (identical values —
+   `AUTH_SESSION_SECRET` and `AUTH_PROXY_URL` in particular must match across
+   environments).
+
+   For the Google credentials, create an **OAuth client ID** (type: *Web
+   application*) in the
+   [Google Cloud console](https://console.cloud.google.com/apis/credentials)
+   and add a **single** authorized redirect URI:
+   `https://<your-app>.vercel.app/api/auth/callback`.
+
+   **Preview deployments** get their own URLs, which Google can't be told about
+   individually. Instead they route sign-in through the production callback
+   above and are handed back an authenticated session — so a preview only needs
+   `AUTH_PROXY_URL` (pointing at production) and `AUTH_PREVIEW_HOST_SUFFIX` (so
+   the callback trusts your preview domains). No per-branch Google setup.
+
+4. Deploy. Open the app, sign in with Google, and start training. On
    iOS/Android, use the browser's **Add to Home Screen** to install the PWA.
 
 See [`apps/web/.env.example`](../apps/web/.env.example) for the full variable

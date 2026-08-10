@@ -6,6 +6,7 @@
 // which is the standard RSC composition pattern.
 
 export { Accordion } from "@titan/component-library/Accordion";
+export { Avatar } from "@titan/component-library/Avatar";
 export { Badge, type Tone } from "@titan/component-library/Badge";
 export {
   Breadcrumbs,

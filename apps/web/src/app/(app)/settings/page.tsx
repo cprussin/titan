@@ -4,15 +4,18 @@ import { listExternalWorkouts } from "@titan/db/external-workouts";
 import type { ReactNode } from "react";
 import { css } from "../../../../styled-system/css";
 import { vstack } from "../../../../styled-system/patterns";
+import { requireAuth } from "../../../auth/session";
 import { Concept2Controls } from "../../../components/Concept2Controls";
 import { DeleteHistoryButton } from "../../../components/DeleteHistoryButton";
+import { LogOutButton } from "../../../components/LogOutButton";
 import { TopBar } from "../../../components/TopBar";
 import { db } from "../../../db";
 import { ThemeSwitch } from "../../../ui";
 import { USER_ID } from "../../../user";
 
 const SettingsPage = async () => {
-  const [connection, externals] = await Promise.all([
+  const [user, connection, externals] = await Promise.all([
+    requireAuth(),
     getConnection(db, USER_ID, "concept2"),
     listExternalWorkouts(db, USER_ID, 100),
   ]);
@@ -22,6 +25,11 @@ const SettingsPage = async () => {
       <TopBar icon={<GearIcon size={18} />} title="Settings" />
 
       <div className={groupStyles}>
+        <SettingRow
+          control={<LogOutButton />}
+          description={`Signed in as ${user.email}.`}
+          title="Account"
+        />
         <SettingRow
           control={<ThemeSwitch />}
           description="Switch between light, dark, and system."
