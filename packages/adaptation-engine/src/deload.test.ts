@@ -5,10 +5,10 @@ import { deloadPrescription } from "./deload";
 describe("deloadPrescription", () => {
   it("cuts strength sets by ~40%", () => {
     const deloaded = deloadPrescription(
-      Prescription.Strength({ reps: 5, sets: 5, weightLb: 225 }),
+      Prescription.Strength({ reps: 5, sets: 5, weight: 225 }),
     );
     // 5 × 0.6 = 3, weight and reps preserved
-    expect(deloaded).toMatchObject({ reps: 5, sets: 3, weightLb: 225 });
+    expect(deloaded).toMatchObject({ reps: 5, sets: 3, weight: 225 });
   });
 
   it("cuts interval count by ~30%", () => {
@@ -33,7 +33,7 @@ describe("deloadPrescription", () => {
 
   it("never drops below a single set", () => {
     const deloaded = deloadPrescription(
-      Prescription.Strength({ reps: 5, sets: 1, weightLb: 100 }),
+      Prescription.Strength({ reps: 5, sets: 1, weight: 100 }),
     );
     expect(deloaded).toMatchObject({ sets: 1 });
   });

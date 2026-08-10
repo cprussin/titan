@@ -73,7 +73,7 @@ const resolveSlot = (
   const previous = history.at(-1);
   const warmup =
     slot.generateWarmup && prescription.type === "strength"
-      ? generateWarmup(prescription.weightLb)
+      ? generateWarmup(prescription.weight, prescription.unit)
       : [];
   return {
     decision,

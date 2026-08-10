@@ -6,7 +6,7 @@ import { buildSession } from "./build-session";
 
 const prescribed: PrescribedExercise = {
   exerciseId: "back-squat",
-  prescription: Prescription.Strength({ reps: 5, sets: 5, weightLb: 230 }),
+  prescription: Prescription.Strength({ reps: 5, sets: 5, weight: 230 }),
   progression: ProgressionPolicy.None(),
   role: "primary",
   slotId: "squat",

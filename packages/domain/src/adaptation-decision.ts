@@ -37,7 +37,8 @@ export const adaptationDecisionSchema = z.object({
   action: adaptationActionSchema,
   createdAt: z.string(),
   /** Structured before/after values backing the explanation (e.g.
-   *  `{ fromLb: 225, toLb: 230, avgRpe: 7.8 }`). Numbers only, for analytics. */
+   *  `{ from: 100, to: 102.5, avgRpe: 7.8 }`, in the exercise's load unit).
+   *  Numbers only, for analytics. */
   details: z.record(z.string(), z.number()).optional(),
   exerciseId: idSchema.optional(),
   /** Human-readable justification, always present. */

@@ -6,14 +6,14 @@ import { progressRpeBanded } from "./rpe-banded";
 
 const policy = ProgressionPolicy.RpeBanded({
   bands: [
-    { incrementLb: 10, maxRpe: 6 },
-    { incrementLb: 5, maxRpe: 8 },
+    { increment: 10, maxRpe: 6 },
+    { increment: 5, maxRpe: 8 },
   ],
   reps: 5,
   sets: 3,
 });
 
-const base = Prescription.Strength({ reps: 5, sets: 3, weightLb: 135 });
+const base = Prescription.Strength({ reps: 5, sets: 3, weight: 135 });
 
 /** RPE for a set: earlier sets log an easy 5 so tests can prove the policy
  *  reads the *final* working set, not the average; the final set (index 2) logs
@@ -32,14 +32,14 @@ const rpeForSet = (
   }
 };
 
-/** A recorded session at `weightLb`. `reps` below the target marks a miss. */
+/** A recorded session at `weight`. `reps` below the target marks a miss. */
 const session = (
-  weightLb: number,
+  weight: number,
   opts: { finalRpe?: number; reps?: number },
 ): ExerciseResult => ({
   exerciseId: "back-squat",
-  id: `r-${weightLb}-${opts.finalRpe ?? "na"}`,
-  prescription: Prescription.Strength({ reps: 5, sets: 3, weightLb }),
+  id: `r-${weight}-${opts.finalRpe ?? "na"}`,
+  prescription: Prescription.Strength({ reps: 5, sets: 3, weight }),
   sets: Array.from({ length: 3 }, (_, setIndex) => {
     const rpe = rpeForSet(setIndex, opts.finalRpe);
     return {
@@ -66,7 +66,7 @@ describe("progressRpeBanded", () => {
     expect(outcome.action).toBe("increase-load");
     expect(outcome.prescription).toMatchObject({
       type: "strength",
-      weightLb: 165,
+      weight: 165,
     });
     expect(outcome.explanation).toContain("155 lb to 165 lb");
   });
@@ -76,7 +76,7 @@ describe("progressRpeBanded", () => {
       session(155, { finalRpe: 7.5 }),
     ]);
     expect(outcome.action).toBe("increase-load");
-    expect(outcome.prescription).toMatchObject({ weightLb: 160 });
+    expect(outcome.prescription).toMatchObject({ weight: 160 });
   });
 
   it("judges by the final working set, not the average", () => {
@@ -85,7 +85,7 @@ describe("progressRpeBanded", () => {
       session(155, { finalRpe: 8.5 }),
     ]);
     expect(outcome.action).toBe("repeat");
-    expect(outcome.prescription).toMatchObject({ weightLb: 155 });
+    expect(outcome.prescription).toMatchObject({ weight: 155 });
   });
 
   it("repeats when reps were missed regardless of RPE", () => {
@@ -93,13 +93,13 @@ describe("progressRpeBanded", () => {
       session(155, { finalRpe: 5, reps: 3 }),
     ]);
     expect(outcome.action).toBe("repeat");
-    expect(outcome.prescription).toMatchObject({ weightLb: 155 });
+    expect(outcome.prescription).toMatchObject({ weight: 155 });
   });
 
   it("holds when reps were met but no final-set RPE was recorded", () => {
     const outcome = progressRpeBanded(policy, base, [session(155, {})]);
     expect(outcome.action).toBe("repeat");
-    expect(outcome.prescription).toMatchObject({ weightLb: 155 });
+    expect(outcome.prescription).toMatchObject({ weight: 155 });
     expect(outcome.explanation).toContain("RPE");
   });
 

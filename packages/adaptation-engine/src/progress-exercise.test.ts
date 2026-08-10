@@ -12,10 +12,10 @@ describe("progressExercise", () => {
   });
 
   it("routes a linear policy to load progression", () => {
-    const base = Prescription.Strength({ reps: 5, sets: 5, weightLb: 135 });
+    const base = Prescription.Strength({ reps: 5, sets: 5, weight: 135 });
     const outcome = progressExercise(
       ProgressionPolicy.Linear({
-        incrementLb: 5,
+        increment: 5,
         missesBeforeDeload: 2,
         reps: 5,
         retainOnDeload: 0.9,
@@ -30,7 +30,7 @@ describe("progressExercise", () => {
           prescription: Prescription.Strength({
             reps: 5,
             sets: 5,
-            weightLb: 135,
+            weight: 135,
           }),
           sets: Array.from({ length: 5 }, (_, setIndex) => ({
             completed: true,
@@ -42,6 +42,6 @@ describe("progressExercise", () => {
       ],
     );
     expect(outcome.action).toBe("increase-load");
-    expect(outcome.prescription).toMatchObject({ weightLb: 140 });
+    expect(outcome.prescription).toMatchObject({ weight: 140 });
   });
 });

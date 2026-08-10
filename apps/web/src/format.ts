@@ -1,3 +1,5 @@
+import type { LoadUnit } from "@titan/domain/load-unit";
+
 /** Human-readable formatters for the training units the UI shows. Pure. */
 
 /** Round to the nearest half and drop a trailing `.0`. */
@@ -6,7 +8,11 @@ const tidy = (value: number): string => {
   return Number.isInteger(rounded) ? `${rounded}` : rounded.toFixed(1);
 };
 
-export const formatWeight = (lb: number): string => `${tidy(lb)} lb`;
+/** A load with its unit — `225 lb`, `130 kg`. Barbell loads are kilograms,
+ *  everything else pounds; the unit travels with the number (defaulting to lb
+ *  for imperial callers). */
+export const formatWeight = (weight: number, unit: LoadUnit = "lb"): string =>
+  `${tidy(weight)} ${unit}`;
 
 export const formatMinutes = (minutes: number): string =>
   `${Math.round(minutes)} min`;

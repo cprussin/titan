@@ -1,3 +1,4 @@
+import type { LoadUnit } from "@titan/domain/load-unit";
 import type { Prescription } from "@titan/domain/prescription";
 import { Prescription as Rx } from "@titan/domain/prescription";
 import type {
@@ -21,7 +22,8 @@ import type { AdaptationOutcome } from "./outcome";
  *
  * The band table expresses the whole schedule — larger steps at low RPE, and
  * distinct upper/lower increments — so there is no separate RPE cap. Only the
- * fixed `sets`/`reps` come from the policy; the load tracks recorded history.
+ * fixed `sets`/`reps` come from the policy; the load tracks recorded history in
+ * the exercise's unit (kg for barbell, else lb).
  */
 export const progressRpeBanded = (
   policy: RpeBandedPolicy,
@@ -33,10 +35,10 @@ export const progressRpeBanded = (
     return last === undefined
       ? {
           action: "maintain",
-          explanation: `Starting at ${base.weightLb} lb for ${policy.sets}×${policy.reps}.`,
+          explanation: `Starting at ${base.weight} ${base.unit} for ${policy.sets}×${policy.reps}.`,
           prescription: base,
         }
-      : decideFromLast(policy, last);
+      : decideFromLast(policy, base.unit, last);
   } else {
     throw new Error(
       `rpe-banded policy requires a strength base, got ${base.type}`,
@@ -46,18 +48,19 @@ export const progressRpeBanded = (
 
 const decideFromLast = (
   policy: RpeBandedPolicy,
+  unit: LoadUnit,
   last: ExerciseResult,
 ): AdaptationOutcome => {
   const lastWeight = lastStrengthWeight(last);
-  const at = (weightLb: number): Prescription =>
-    Rx.Strength({ reps: policy.reps, sets: policy.sets, weightLb });
+  const at = (weight: number): Prescription =>
+    Rx.Strength({ reps: policy.reps, sets: policy.sets, unit, weight });
   if (metRepTarget(last)) {
-    return decideFromRpe(policy, lastWeight, finalSetRpe(last), at);
+    return decideFromRpe(policy, unit, lastWeight, finalSetRpe(last), at);
   } else {
     return {
       action: "repeat",
-      details: { weightLb: lastWeight },
-      explanation: `Repeat ${lastWeight} lb: reps were missed last session.`,
+      details: { weight: lastWeight },
+      explanation: `Repeat ${lastWeight} ${unit}: reps were missed last session.`,
       prescription: at(lastWeight),
     };
   }
@@ -65,36 +68,37 @@ const decideFromLast = (
 
 const decideFromRpe = (
   policy: RpeBandedPolicy,
+  unit: LoadUnit,
   lastWeight: number,
   rpe: number | undefined,
-  at: (weightLb: number) => Prescription,
+  at: (weight: number) => Prescription,
 ): AdaptationOutcome => {
   const band = rpe === undefined ? undefined : selectBand(policy.bands, rpe);
   if (rpe === undefined) {
     return {
       action: "repeat",
-      details: { weightLb: lastWeight },
-      explanation: `Repeat ${lastWeight} lb: no final-set RPE was recorded, so the load holds until effort is known.`,
+      details: { weight: lastWeight },
+      explanation: `Repeat ${lastWeight} ${unit}: no final-set RPE was recorded, so the load holds until effort is known.`,
       prescription: at(lastWeight),
     };
   } else if (band === undefined) {
     return {
       action: "repeat",
-      details: { finalRpe: rpe, weightLb: lastWeight },
-      explanation: `Repeat ${lastWeight} lb: final-set RPE ${round1(rpe)} was above every progression band.`,
+      details: { finalRpe: rpe, weight: lastWeight },
+      explanation: `Repeat ${lastWeight} ${unit}: final-set RPE ${round1(rpe)} was above every progression band.`,
       prescription: at(lastWeight),
     };
   } else {
-    const next = lastWeight + band.incrementLb;
+    const next = lastWeight + band.increment;
     return {
       action: "increase-load",
       details: {
         finalRpe: rpe,
-        fromLb: lastWeight,
-        incrementLb: band.incrementLb,
-        toLb: next,
+        from: lastWeight,
+        increment: band.increment,
+        to: next,
       },
-      explanation: `Increase from ${lastWeight} lb to ${next} lb: final-set RPE ${round1(rpe)} was at or below ${band.maxRpe}.`,
+      explanation: `Increase from ${lastWeight} ${unit} to ${next} ${unit}: final-set RPE ${round1(rpe)} was at or below ${band.maxRpe}.`,
       prescription: at(next),
     };
   }
@@ -118,7 +122,7 @@ const selectBand = (
 
 const lastStrengthWeight = (result: ExerciseResult): number => {
   if (result.prescription.type === "strength") {
-    return result.prescription.weightLb;
+    return result.prescription.weight;
   } else {
     throw new Error(
       `rpe-banded history expects strength prescriptions, got ${result.prescription.type}`,

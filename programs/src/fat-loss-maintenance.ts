@@ -31,12 +31,12 @@ const fullBodyStrength: SessionTemplate = {
   name: "Full Body Strength",
   slots: [
     {
-      base: Prescription.Strength({ reps: 8, sets: 3, weightLb: 185 }),
+      base: Prescription.Strength({ reps: 8, sets: 3, unit: "kg", weight: 85 }),
       exerciseId: "back-squat",
       generateWarmup: true,
       id: "fatloss-full-body-strength-back-squat",
       progression: ProgressionPolicy.Double({
-        incrementLb: 5,
+        increment: 2.5,
         maxReps: 10,
         minReps: 8,
         rpeCap: 8,
@@ -45,12 +45,12 @@ const fullBodyStrength: SessionTemplate = {
       role: "primary",
     },
     {
-      base: Prescription.Strength({ reps: 8, sets: 3, weightLb: 135 }),
+      base: Prescription.Strength({ reps: 8, sets: 3, unit: "kg", weight: 60 }),
       exerciseId: "bench-press",
       generateWarmup: true,
       id: "fatloss-full-body-strength-bench-press",
       progression: ProgressionPolicy.Double({
-        incrementLb: 5,
+        increment: 2.5,
         maxReps: 10,
         minReps: 8,
         rpeCap: 8,
@@ -59,12 +59,17 @@ const fullBodyStrength: SessionTemplate = {
       role: "secondary",
     },
     {
-      base: Prescription.Strength({ reps: 8, sets: 3, weightLb: 115 }),
+      base: Prescription.Strength({
+        reps: 8,
+        sets: 3,
+        unit: "kg",
+        weight: 52.5,
+      }),
       exerciseId: "barbell-row",
       generateWarmup: true,
       id: "fatloss-full-body-strength-barbell-row",
       progression: ProgressionPolicy.Double({
-        incrementLb: 5,
+        increment: 2.5,
         maxReps: 10,
         minReps: 8,
         rpeCap: 8,
@@ -144,12 +149,17 @@ const upperStrength: SessionTemplate = {
   name: "Upper Strength",
   slots: [
     {
-      base: Prescription.Strength({ reps: 8, sets: 3, weightLb: 85 }),
+      base: Prescription.Strength({
+        reps: 8,
+        sets: 3,
+        unit: "kg",
+        weight: 37.5,
+      }),
       exerciseId: "overhead-press",
       generateWarmup: true,
       id: "fatloss-upper-strength-overhead-press",
       progression: ProgressionPolicy.Double({
-        incrementLb: 5,
+        increment: 2.5,
         maxReps: 10,
         minReps: 8,
         rpeCap: 8,
@@ -163,7 +173,7 @@ const upperStrength: SessionTemplate = {
       generateWarmup: false,
       id: "fatloss-upper-strength-weighted-pullup",
       progression: ProgressionPolicy.Double({
-        incrementLb: 5,
+        increment: 5,
         maxReps: 10,
         minReps: 8,
         rpeCap: 8,
@@ -177,7 +187,7 @@ const upperStrength: SessionTemplate = {
       generateWarmup: false,
       id: "fatloss-upper-strength-dips",
       progression: ProgressionPolicy.Double({
-        incrementLb: 5,
+        increment: 5,
         maxReps: 15,
         minReps: 10,
         rpeCap: 8,

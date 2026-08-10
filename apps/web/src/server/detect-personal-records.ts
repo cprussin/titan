@@ -1,3 +1,4 @@
+import type { LoadUnit } from "@titan/domain/load-unit";
 import { estimateOneRepMax } from "@titan/domain/one-rep-max";
 import type { PersonalRecord } from "@titan/domain/personal-record";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
@@ -30,7 +31,7 @@ export const detectPersonalRecords = (
             exerciseId: result.exerciseId,
             id: input.newId(),
             kind: "estimated-1rm" as const,
-            unit: "lb",
+            unit: resultUnit(result),
             userId: input.session.userId,
             value: Math.round(best * 10) / 10,
             workoutSessionId: input.session.id,
@@ -39,18 +40,23 @@ export const detectPersonalRecords = (
       : [];
   });
 
+/** The unit a result's loads were logged in — its snapshot prescription carries
+ *  it for strength work; everything else is pounds. */
+const resultUnit = (result: ExerciseResult): LoadUnit =>
+  result.prescription.type === "strength" ? result.prescription.unit : "lb";
+
 /** The best estimated 1RM across a result's completed weighted sets, or
  *  `undefined` for a set with no load (cardio, unweighted). */
 const bestEstimatedOneRepMax = (result: ExerciseResult): number | undefined => {
   const estimates = result.sets
     .filter(
-      (set): set is SetResult & { reps: number; weightLb: number } =>
+      (set): set is SetResult & { reps: number; weight: number } =>
         set.completed &&
         set.reps !== undefined &&
         set.reps > 0 &&
-        set.weightLb !== undefined &&
-        set.weightLb > 0,
+        set.weight !== undefined &&
+        set.weight > 0,
     )
-    .map((set) => estimateOneRepMax(set.weightLb, set.reps));
+    .map((set) => estimateOneRepMax(set.weight, set.reps));
   return estimates.length === 0 ? undefined : Math.max(...estimates);
 };

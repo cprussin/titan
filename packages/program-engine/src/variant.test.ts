@@ -5,7 +5,7 @@ import { ProgressionPolicy } from "@titan/domain/progression-policy";
 import { selectVariant } from "./variant";
 
 const slot = (id: string) => ({
-  base: Prescription.Strength({ reps: 5, sets: 5, weightLb: 100 }),
+  base: Prescription.Strength({ reps: 5, sets: 5, weight: 100 }),
   exerciseId: `ex-${id}`,
   generateWarmup: true,
   id,

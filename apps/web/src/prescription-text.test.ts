@@ -6,9 +6,17 @@ describe("describePrescription", () => {
   it("describes a strength target", () => {
     expect(
       describePrescription(
-        Prescription.Strength({ reps: 5, sets: 5, weightLb: 230 }),
+        Prescription.Strength({ reps: 5, sets: 5, weight: 230 }),
       ),
     ).toBe("5×5 @ 230 lb");
+  });
+
+  it("describes a metric (barbell) strength target in kilograms", () => {
+    expect(
+      describePrescription(
+        Prescription.Strength({ reps: 5, sets: 5, unit: "kg", weight: 100 }),
+      ),
+    ).toBe("5×5 @ 100 kg");
   });
 
   it("describes weighted bodyweight", () => {

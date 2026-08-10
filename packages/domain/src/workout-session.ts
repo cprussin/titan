@@ -12,10 +12,11 @@ import { exerciseResultSchema } from "./result";
  * program later changes.
  */
 
-/** A single warm-up set the engine generated ahead of a working set. */
+/** A single warm-up set the engine generated ahead of a working set. Its load
+ *  is in the working set's unit (kg for barbell, else lb). */
 export const warmupSetSchema = z.object({
   reps: z.number().int().positive(),
-  weightLb: z.number().nonnegative(),
+  weight: z.number().nonnegative(),
 });
 
 export type WarmupSet = z.infer<typeof warmupSetSchema>;

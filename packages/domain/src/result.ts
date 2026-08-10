@@ -19,7 +19,9 @@ export const setResultSchema = z.object({
   /** Rate of perceived exertion, 1–10. */
   rpe: z.number().positive().max(10).optional(),
   setIndex: z.number().int().nonnegative(),
-  weightLb: z.number().nonnegative().optional(),
+  /** The load lifted, in the enclosing exercise's unit (kg for barbell, else
+   *  lb) — resolved from the {@link ExerciseResult}'s prescription snapshot. */
+  weight: z.number().nonnegative().optional(),
 });
 
 export type SetResult = z.infer<typeof setResultSchema>;

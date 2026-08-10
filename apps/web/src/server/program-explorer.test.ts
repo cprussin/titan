@@ -21,7 +21,7 @@ import {
 } from "./program-explorer";
 
 const slot = (id: string): ExerciseSlot => ({
-  base: Prescription.Strength({ reps: 5, sets: 3, weightLb: 100 }),
+  base: Prescription.Strength({ reps: 5, sets: 3, weight: 100 }),
   exerciseId: `${id}-exercise`,
   generateWarmup: false,
   id,

@@ -55,7 +55,7 @@ describe("matchWorkout", () => {
       session(
         "strength",
         "2024-01-15",
-        Rx.Strength({ reps: 5, sets: 5, weightLb: 200 }),
+        Rx.Strength({ reps: 5, sets: 5, weight: 200 }),
       ),
       session(
         "other-day",
