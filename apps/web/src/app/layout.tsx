@@ -38,13 +38,21 @@ export const metadata: Metadata = {
   },
   description:
     "An adaptive personal fitness coach that runs your training program.",
+  icons: {
+    apple: { sizes: "180x180", url: "/apple-touch-icon.png" },
+    icon: [
+      { type: "image/svg+xml", url: "/favicon.svg" },
+      { sizes: "any", url: "/favicon.ico" },
+    ],
+    shortcut: "/favicon.ico",
+  },
   manifest: "/manifest.webmanifest",
   title: "Titan",
 };
 
 export const viewport: Viewport = {
   initialScale: 1,
-  themeColor: "#0a0a0a",
+  themeColor: "#0A0A0B",
   viewportFit: "cover",
   width: "device-width",
 };
