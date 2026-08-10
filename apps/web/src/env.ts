@@ -21,6 +21,11 @@ const envSchema = z.object({
   CONCEPT2_CLIENT_ID: z.string().optional(),
   CONCEPT2_CLIENT_SECRET: z.string().optional(),
   CONCEPT2_REDIRECT_URI: z.string().optional(),
+  // Shared secret guarding the Concept2 result webhook. Register the webhook in
+  // the Concept2 developer portal as `.../api/concept2/webhook?secret=<value>`;
+  // the endpoint accepts a call only when its `secret` matches this. Leave unset
+  // to disable the webhook.
+  CONCEPT2_WEBHOOK_SECRET: z.string().optional(),
   DATABASE_URL: z.string().min(1),
   GOOGLE_ALLOWED_EMAILS: z.string().min(1),
   GOOGLE_CLIENT_ID: z.string().min(1),
