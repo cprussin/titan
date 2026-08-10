@@ -1,10 +1,13 @@
 import { listAdaptationDecisionsBySession } from "@titan/db/adaptation-decisions";
+import { getConnection } from "@titan/db/external-connections";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
 import type { AdaptationDecision } from "@titan/domain/adaptation-decision";
 import { notFound, redirect } from "next/navigation";
 import { WorkoutExecution } from "../../../../components/WorkoutExecution";
 import { db } from "../../../../db";
+import { exerciseModalities } from "../../../../server/exercise-modalities";
 import { exerciseNames } from "../../../../server/exercise-names";
+import { USER_ID } from "../../../../user";
 
 const WorkoutPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
@@ -14,12 +17,16 @@ const WorkoutPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   } else if (session.status === "completed") {
     redirect(`/workout/${id}/complete`);
   } else {
-    const [names, decisions] = await Promise.all([
+    const [names, modalities, decisions, connection] = await Promise.all([
       exerciseNames(db),
+      exerciseModalities(db),
       listAdaptationDecisionsBySession(db, id),
+      getConnection(db, USER_ID, "concept2"),
     ]);
     return (
       <WorkoutExecution
+        concept2Connected={connection !== undefined}
+        exerciseModalities={Object.fromEntries(modalities)}
         exerciseNames={Object.fromEntries(names)}
         explanations={explanationsByExercise(decisions)}
         prescribedExercises={session.prescribedExercises}

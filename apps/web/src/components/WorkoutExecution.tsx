@@ -3,8 +3,10 @@
 import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
 import { MinusIcon } from "@phosphor-icons/react/dist/ssr/Minus";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
+import type { NormalizedWorkout } from "@titan/domain/external";
 import type { LoadUnit } from "@titan/domain/load-unit";
 import { loadStep } from "@titan/domain/load-unit";
+import type { Modality } from "@titan/domain/movement";
 import type { Prescription } from "@titan/domain/prescription";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
@@ -12,16 +14,25 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { css } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
+import { buildImportResult } from "../build-import-result";
+import { checkConcept2Match } from "../check-concept2-match";
 import { formatDuration, formatWeight, parseDuration } from "../format";
 import { describePrescription } from "../prescription-text";
 import { roleTone } from "../role-tone";
 import { Badge, Button, Input } from "../ui";
 import { CancelWorkoutButton } from "./CancelWorkoutButton";
+import { Concept2Check } from "./Concept2Check";
 import { PrescriptionTarget } from "./PrescriptionTarget";
 import { RestTimer } from "./RestTimer";
 import { TopBar } from "./TopBar";
 
 type Props = {
+  /** Whether the athlete's Concept2 Logbook is connected, gating the rowing
+   *  hand-off (no point offering it when there's nothing to sync). */
+  concept2Connected: boolean;
+  /** Modality per exercise id, so a rowing piece (the `rower` modality) can
+   *  offer the Concept2 check while other cardio does not. */
+  exerciseModalities: Record<string, Modality>;
   exerciseNames: Record<string, string>;
   /** The adaptation explanation for each exercise, keyed by exercise id — why
    *  today's target is what it is. Surfaced as a quiet aside during execution.
@@ -57,6 +68,8 @@ const isStrengthLike = (
  * the session on the last exercise.
  */
 export const WorkoutExecution = ({
+  concept2Connected,
+  exerciseModalities,
   exerciseNames,
   explanations,
   prescribedExercises,
@@ -145,7 +158,9 @@ export const WorkoutExecution = ({
             ) : (
               <ExerciseLogger
                 busy={busy}
+                concept2Connected={concept2Connected}
                 logged={logged}
+                modality={exerciseModalities[current.exerciseId]}
                 onComplete={advance}
                 onLogSet={(set) => {
                   const nowLogged = [...logged, set];
@@ -155,6 +170,7 @@ export const WorkoutExecution = ({
                   }
                 }}
                 prescribed={current}
+                sessionId={sessionId}
               />
             )}
 
@@ -245,13 +261,24 @@ type LoggerProps = {
   prescribed: PrescribedExercise;
 };
 
+/** Cardio pieces additionally need the Concept2 wiring; strength pieces ignore
+ *  it, so it lives here rather than on the shared {@link LoggerProps}. */
+type ExerciseLoggerProps = LoggerProps & {
+  concept2Connected: boolean;
+  modality: Modality | undefined;
+  sessionId: string;
+};
+
 const ExerciseLogger = ({
   busy,
+  concept2Connected,
   logged,
+  modality,
   onComplete,
   onLogSet,
   prescribed,
-}: LoggerProps) => {
+  sessionId,
+}: ExerciseLoggerProps) => {
   const { prescription } = prescribed;
   return isStrengthLike(prescription) ? (
     <StrengthLogger
@@ -263,7 +290,14 @@ const ExerciseLogger = ({
       prescription={prescription}
     />
   ) : (
-    <CardioLogger busy={busy} onComplete={onComplete} prescribed={prescribed} />
+    <CardioLogger
+      busy={busy}
+      concept2Connected={concept2Connected}
+      modality={modality}
+      onComplete={onComplete}
+      prescribed={prescribed}
+      sessionId={sessionId}
+    />
   );
 };
 
@@ -365,14 +399,35 @@ const StrengthLogger = ({
 
 type CardioLoggerProps = {
   busy: boolean;
+  concept2Connected: boolean;
+  modality: Modality | undefined;
   onComplete: (result: ExerciseResult) => void;
   prescribed: PrescribedExercise;
+  sessionId: string;
 };
 
-const CardioLogger = ({ busy, onComplete, prescribed }: CardioLoggerProps) => {
+const CardioLogger = ({
+  busy,
+  concept2Connected,
+  modality,
+  onComplete,
+  prescribed,
+  sessionId,
+}: CardioLoggerProps) => {
   const [distanceM, setDistanceM] = useState("");
   const [duration, setDuration] = useState("");
   const [avgHr, setAvgHr] = useState("");
+
+  const checkConcept2 = useCallback(
+    () => checkConcept2Match(sessionId),
+    [sessionId],
+  );
+  const logImport = useCallback(
+    (normalized: NormalizedWorkout) => {
+      onComplete(buildImportResult(prescribed, normalized));
+    },
+    [onComplete, prescribed],
+  );
 
   const complete = () => {
     const distanceMeters = Number(distanceM) || 0;
@@ -397,6 +452,9 @@ const CardioLogger = ({ busy, onComplete, prescribed }: CardioLoggerProps) => {
 
   return (
     <div className={vstack({ alignItems: "stretch", gap: 3 })}>
+      {modality === "rower" && concept2Connected && (
+        <Concept2Check check={checkConcept2} onFound={logImport} />
+      )}
       <NumberField
         label="Distance (m)"
         onChange={setDistanceM}
