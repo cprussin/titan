@@ -111,6 +111,11 @@ const scrimStyles = css({
 const navStyles = css({
   "&[data-open='true']": { mdToLg: { transform: "translateX(0)" } },
   alignItems: "center",
+  // The phone tab bar floats over scrolling page content on a translucent
+  // fill; frost the backdrop so that content reads as a blur behind the bar
+  // rather than bleeding through it legibly. From `md` up the bar is a solid
+  // sidebar, so the blur is switched off there.
+  backdropFilter: "blur({spacing.2})",
   backgroundColor: "color-mix(in oklab, {colors.background} 80%, transparent)",
   borderBlockStart: "1px solid {colors.border}",
   display: "flex",
@@ -125,6 +130,7 @@ const navStyles = css({
   // which offsets the content by its width.
   md: {
     alignItems: "stretch",
+    backdropFilter: "none",
     backgroundColor: "background",
     borderBlockStart: "none",
     borderInlineEnd: "1px solid {colors.border}",
