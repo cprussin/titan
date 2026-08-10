@@ -67,6 +67,22 @@ describe("exchangeCode", () => {
     expect(String(calls[0]?.[1]?.body)).toContain("code=the-code");
   });
 
+  it("parses a token response that omits the optional scope", async () => {
+    const { scope: _scope, ...withoutScope } = token;
+    const { fetch } = recording(jsonResponse(withoutScope));
+    const result = await exchangeCode(
+      {
+        clientId: "client-1",
+        clientSecret: "secret",
+        code: "the-code",
+        redirectUri: "https://app.example/callback",
+      },
+      fetch,
+    );
+    expect(result.scope).toBeUndefined();
+    expect(result.access_token).toBe("access-123");
+  });
+
   it("throws when the token endpoint responds non-OK", () => {
     const { fetch } = recording(new Response("nope", { status: 401 }));
     expect(
