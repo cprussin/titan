@@ -13,6 +13,7 @@ import type { WorkoutAction } from "../server/workout-action";
 import { Avatar } from "../ui";
 import { LogOutButton } from "./LogOutButton";
 import { useNavDrawer } from "./NavDrawer";
+import { TitanLockup } from "./TitanLockup";
 import { WorkoutActionButton } from "./WorkoutActionButton";
 
 const LINKS = [
@@ -56,7 +57,9 @@ export const AppNav = ({ user, workoutAction }: Props) => {
         className={navStyles}
         data-open={open ? "true" : undefined}
       >
-        <span className={brandStyles}>Titan</span>
+        <span className={brandStyles}>
+          <TitanLockup />
+        </span>
         {workoutAction !== undefined && (
           <WorkoutActionButton action={workoutAction} variant="sidebar" />
         )}
@@ -150,22 +153,15 @@ const navStyles = css({
   zIndex: 10,
 });
 
-// The wordmark heads the sidebar — hidden in the phone tab bar, where every
-// pixel of the row goes to the tab targets.
+// The brand lockup heads the sidebar — hidden in the phone tab bar, where every
+// pixel of the row goes to the tab targets. Typography and the mark live in
+// `TitanLockup`; this wrapper only handles the show/hide and its seat.
 const brandStyles = css({
   display: "none",
   md: {
-    display: "block",
-    fontFamily: "condensed",
-    fontSize: "xl",
-    fontWeight: "bold",
-    // A hair of positive tracking for the uppercase condensed wordmark; the
-    // app's established uppercase tracking token (`wide`) stands in for the
-    // spec's 0.01em, since em literals aren't permitted in styles.
-    letterSpacing: "wide",
+    display: "flex",
     paddingBlockEnd: 4,
     paddingInline: 2,
-    textTransform: "uppercase",
   },
 });
 

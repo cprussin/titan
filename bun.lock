@@ -30,6 +30,8 @@
         "@cprussin/tsconfig": "catalog:",
         "@pandacss/dev": "catalog:",
         "@pandacss/preset-panda": "catalog:",
+        "@testing-library/react": "catalog:",
+        "@titan/test-support": "workspace:*",
         "@types/node": "catalog:",
         "@types/react": "catalog:",
         "@types/react-dom": "catalog:",

@@ -2,6 +2,7 @@ import { GoogleLogoIcon } from "@phosphor-icons/react/dist/ssr/GoogleLogo";
 import { css } from "../../styled-system/css";
 import { vstack } from "../../styled-system/patterns";
 import { Button } from "../ui";
+import { TitanLockup } from "./TitanLockup";
 
 type Props = {
   /** The `error` query param carried back from a failed callback, if any. */
@@ -13,7 +14,9 @@ type Props = {
  *  route, which redirects on to Google. */
 export const SignInPanel = ({ error }: Props) => (
   <div className={panelStyles}>
-    <h1 className={titleStyles}>Titan</h1>
+    <h1 className={titleStyles}>
+      <TitanLockup orientation="stacked" />
+    </h1>
     <p className={subtitleStyles}>Sign in to your training.</p>
     <Button
       beforeIcon={<GoogleLogoIcon size={20} weight="bold" />}
@@ -44,14 +47,9 @@ const panelStyles = vstack({
   maxInlineSize: "24rem",
 });
 
-const titleStyles = css({
-  fontFamily: "condensed",
-  fontSize: "4xl",
-  fontWeight: "bold",
-  letterSpacing: "tight",
-  lineHeight: "condensed",
-  textTransform: "uppercase",
-});
+// The heading is the brand lockup itself; the typography lives in `TitanLockup`,
+// so this only resets the heading box that seats it.
+const titleStyles = css({ display: "flex" });
 
 const subtitleStyles = css({ color: "muted" });
 
