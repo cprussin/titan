@@ -4,6 +4,7 @@ import type { AthleteState } from "@titan/db/athlete-state";
 import { getAthleteState } from "@titan/db/athlete-state";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { css } from "../../../../styled-system/css";
 import { vstack, wrap } from "../../../../styled-system/patterns";
@@ -19,6 +20,11 @@ import { USER_ID } from "../../../user";
 // Goals cycle through tones so a program's tag row reads as a splash of color
 // rather than a monochrome run of accent pills.
 const GOAL_TONES = ["accent", "success", "warning"] as const;
+
+export const metadata: Metadata = {
+  description: "Browse training programs and choose your active block.",
+  title: "Programs",
+};
 
 const ProgramsPage = async () => {
   const [programs, versions, state] = await Promise.all([

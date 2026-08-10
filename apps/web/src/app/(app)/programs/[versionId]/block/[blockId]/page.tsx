@@ -5,6 +5,7 @@ import { getAthleteState } from "@titan/db/athlete-state";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { Program, ProgramVersion } from "@titan/domain/program";
 import type { SelectedVariant } from "@titan/program-engine/variant";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { css } from "../../../../../../../styled-system/css";
@@ -46,6 +47,11 @@ const DAY_NAMES = [
   "Saturday",
   "Sunday",
 ] as const;
+
+export const metadata: Metadata = {
+  description: "The prescription for this training block, week by week.",
+  title: "Program block",
+};
 
 const BlockPage = async ({
   params,

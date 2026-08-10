@@ -1,6 +1,7 @@
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr/CheckCircle";
 import { listPersonalRecords } from "@titan/db/personal-records";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { css } from "../../../../../../styled-system/css";
 import { grid, vstack } from "../../../../../../styled-system/patterns";
@@ -12,6 +13,11 @@ import { exerciseNames } from "../../../../../server/exercise-names";
 import { nextSessionAdaptations } from "../../../../../server/next-adaptations";
 import { Badge, Button } from "../../../../../ui";
 import { USER_ID } from "../../../../../user";
+
+export const metadata: Metadata = {
+  description: "Your session summary and what changes next time.",
+  title: "Workout complete",
+};
 
 const CompletePage = async ({
   params,

@@ -1,10 +1,16 @@
 import { listAdaptationDecisionsBySession } from "@titan/db/adaptation-decisions";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
 import type { AdaptationDecision } from "@titan/domain/adaptation-decision";
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { WorkoutExecution } from "../../../../components/WorkoutExecution";
 import { db } from "../../../../db";
 import { exerciseNames } from "../../../../server/exercise-names";
+
+export const metadata: Metadata = {
+  description: "Log today's session set by set.",
+  title: "Workout",
+};
 
 const WorkoutPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;

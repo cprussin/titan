@@ -1,6 +1,7 @@
 import { GearIcon } from "@phosphor-icons/react/dist/ssr/Gear";
 import { getConnection } from "@titan/db/external-connections";
 import { listExternalWorkouts } from "@titan/db/external-workouts";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { css } from "../../../../styled-system/css";
 import { vstack } from "../../../../styled-system/patterns";
@@ -12,6 +13,11 @@ import { TopBar } from "../../../components/TopBar";
 import { db } from "../../../db";
 import { ThemeSwitch } from "../../../ui";
 import { USER_ID } from "../../../user";
+
+export const metadata: Metadata = {
+  description: "Manage your account, appearance, integrations, and data.",
+  title: "Settings",
+};
 
 const SettingsPage = async () => {
   const [user, connection, externals] = await Promise.all([

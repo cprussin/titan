@@ -3,6 +3,7 @@ import { listBodyMetrics } from "@titan/db/body-metrics";
 import { listExternalWorkouts } from "@titan/db/external-workouts";
 import { listPrograms } from "@titan/db/program-versions";
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
+import type { Metadata } from "next";
 import { vstack } from "../../../styled-system/patterns";
 import { TodaySummary } from "../../components/TodaySummary";
 import { TopBar } from "../../components/TopBar";
@@ -14,6 +15,11 @@ import { resolveToday } from "../../server/today";
 import { trendsSummary } from "../../server/trends-summary";
 import { resolveWorkoutAction } from "../../server/workout-action";
 import { USER_ID } from "../../user";
+
+export const metadata: Metadata = {
+  description: "Today's plan and your recent training trends at a glance.",
+  title: "Dashboard",
+};
 
 const DashboardPage = async () => {
   const date = dateIso();
