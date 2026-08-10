@@ -2,13 +2,17 @@
   "$schema": "https://turbo.build/schema.json",
   "globalEnv": ["NODE_ENV"],
   "globalPassThroughEnv": [
-    "AUTH_PASSWORD",
+    "AUTH_PREVIEW_HOST_SUFFIX",
+    "AUTH_PROXY_URL",
     "AUTH_SESSION_SECRET",
     "CONCEPT2_CLIENT_ID",
     "CONCEPT2_CLIENT_SECRET",
     "CONCEPT2_REDIRECT_URI",
     "DATABASE_URL",
     "FORCE_COLOR",
+    "GOOGLE_ALLOWED_EMAILS",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
     "VERCEL",
     "VERCEL_URL"
   ],

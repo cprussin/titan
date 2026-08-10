@@ -1,17 +1,25 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { z } from "zod";
+import { signPayload, verifyPayload } from "./signed-payload";
 
-/** The signed payload backing a session. Single-user auth: possession of a valid
- *  HMAC over this constant (keyed by the server secret) proves the password was
- *  entered. Bump the suffix to invalidate all sessions. */
-const SESSION_MESSAGE = "titan-authenticated:v1";
+/** The identity carried in a session cookie: who is signed in. Minted only
+ *  after a successful Google sign-in, so the app trusts these fields for
+ *  display without re-fetching Google. */
+export const sessionUserSchema = z.object({
+  email: z.string(),
+  name: z.string(),
+  picture: z.string().optional(),
+});
 
-/** Mint the session token for a server secret. */
-export const signToken = (secret: string): string =>
-  createHmac("sha256", secret).update(SESSION_MESSAGE).digest("hex");
+export type SessionUser = z.infer<typeof sessionUserSchema>;
 
-/** Constant-time check that `token` is the valid session token for `secret`. */
-export const verifyToken = (secret: string, token: string): boolean => {
-  const expected = Buffer.from(signToken(secret));
-  const actual = Buffer.from(token);
-  return expected.length === actual.length && timingSafeEqual(expected, actual);
-};
+/** Mint a signed session token carrying the identity. */
+export const signSession = (secret: string, user: SessionUser): string =>
+  signPayload(secret, user);
+
+/** The identity a session token carries, or `undefined` when the token is
+ *  missing, malformed, or its signature doesn't match — i.e. the request is
+ *  unauthenticated. */
+export const verifySession = (
+  secret: string,
+  token: string,
+): SessionUser | undefined => verifyPayload(secret, token, sessionUserSchema);

@@ -8,7 +8,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { css, cx } from "../../styled-system/css";
 import { isActiveNavSection } from "../active-nav-section";
+import type { SessionUser } from "../auth/token";
 import type { WorkoutAction } from "../server/workout-action";
+import { Avatar } from "../ui";
+import { LogOutButton } from "./LogOutButton";
 import { useNavDrawer } from "./NavDrawer";
 import { WorkoutActionButton } from "./WorkoutActionButton";
 
@@ -20,6 +23,9 @@ const LINKS = [
 ] as const;
 
 type Props = {
+  /** The signed-in athlete, shown with a sign-out control in the sidebar
+   *  footer. */
+  user: SessionUser;
   /** The primary workout action to dock in the wide-screen rail, or `undefined`
    *  when there's nothing to launch (a rest day, or no program placed). */
   workoutAction?: WorkoutAction | undefined;
@@ -32,7 +38,7 @@ type Props = {
  * button, dismissed by the scrim behind it or by picking a destination.
  * Highlights the active section.
  */
-export const AppNav = ({ workoutAction }: Props) => {
+export const AppNav = ({ user, workoutAction }: Props) => {
   const pathname = usePathname();
   const { close, open } = useNavDrawer();
   return (
@@ -72,6 +78,16 @@ export const AppNav = ({ workoutAction }: Props) => {
             );
           })}
         </ul>
+        <div className={footerStyles}>
+          <div className={userStyles}>
+            <Avatar name={user.name} size="sm" src={user.picture} />
+            <span className={userTextStyles}>
+              <span className={userNameStyles}>{user.name}</span>
+              <span className={userEmailStyles}>{user.email}</span>
+            </span>
+          </div>
+          <LogOutButton />
+        </div>
       </nav>
     </>
   );
@@ -227,4 +243,50 @@ const labelStyles = css({
   fontSize: "xs",
   fontWeight: "medium",
   md: { fontSize: "sm" },
+});
+
+// The signed-in athlete and sign-out control, anchored to the foot of the
+// sidebar. Like the wordmark, it's meaningless in the phone tab bar (a single
+// tight row of destinations) — logout lives on the settings screen there — so
+// it only appears from `md` up, and `marginBlockStart: auto` pushes it to the
+// bottom of the rail.
+const footerStyles = css({
+  display: "none",
+  md: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 3,
+    marginBlockStart: "auto",
+    paddingBlockStart: 4,
+    paddingInline: 2,
+  },
+});
+
+const userStyles = css({
+  alignItems: "center",
+  display: "flex",
+  gap: 2.5,
+  minInlineSize: 0,
+});
+
+const userTextStyles = css({
+  display: "flex",
+  flexDirection: "column",
+  minInlineSize: 0,
+});
+
+const userNameStyles = css({
+  fontSize: "sm",
+  fontWeight: "medium",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+});
+
+const userEmailStyles = css({
+  color: "muted",
+  fontSize: "xs",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
 });

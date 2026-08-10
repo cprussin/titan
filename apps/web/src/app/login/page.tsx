@@ -1,17 +1,22 @@
 import { redirect } from "next/navigation";
 import { css } from "../../../styled-system/css";
-import { isAuthenticated } from "../../auth/session";
-import { LoginForm } from "../../components/LoginForm";
+import { getSession } from "../../auth/session";
+import { SignInPanel } from "../../components/SignInPanel";
 
-const LoginPage = async () => {
-  if (await isAuthenticated()) {
-    redirect("/");
-  } else {
+const LoginPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) => {
+  if ((await getSession()) === undefined) {
+    const { error } = await searchParams;
     return (
       <main className={mainStyles}>
-        <LoginForm />
+        <SignInPanel error={error} />
       </main>
     );
+  } else {
+    redirect("/");
   }
 };
 
