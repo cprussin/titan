@@ -1,7 +1,7 @@
 import type { BodyMetric } from "@titan/domain/body-metric";
 import { css } from "../../styled-system/css";
 import { grid, hstack, vstack } from "../../styled-system/patterns";
-import { formatDistance, formatWeight } from "../format";
+import { formatBodyWeight, formatDistance, formatWeight } from "../format";
 import type { TrendsSummary } from "../server/trends-summary";
 import { Card } from "../ui";
 import { LogWeightButton } from "./LogWeightButton";
@@ -31,7 +31,7 @@ export const TrendsSection = ({ metrics, names, summary }: Props) => (
         value={
           summary.latestWeightLb === undefined
             ? "—"
-            : formatWeight(summary.latestWeightLb)
+            : formatBodyWeight(summary.latestWeightLb)
         }
       />
     </div>
@@ -88,7 +88,7 @@ const latestStrength = (summary: TrendsSummary): string | undefined => {
 const weightChangeHint = (changeLb: number | undefined): string | undefined =>
   changeLb === undefined || changeLb === 0
     ? undefined
-    : `${changeLb > 0 ? "▲" : "▼"} ${formatWeight(Math.abs(changeLb))}`;
+    : `${changeLb > 0 ? "▲" : "▼"} ${formatBodyWeight(Math.abs(changeLb))}`;
 
 const statGridStyles = grid({ columns: 3, gap: 4, lg: { gap: 8 } });
 

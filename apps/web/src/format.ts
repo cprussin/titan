@@ -15,6 +15,15 @@ const tidy = (value: number): string => {
 export const formatWeight = (weight: number, unit: LoadUnit = "lb"): string =>
   `${tidy(weight)} ${unit}`;
 
+/** A logged body weight, kept to the tenth of a pound a scale reads and
+ *  dropping a trailing `.0`. Unlike {@link formatWeight}, it isn't snapped to
+ *  the nearest half — body weight isn't a barbell load. */
+export const formatBodyWeight = (weightLb: number): string => {
+  const rounded = Math.round(weightLb * 10) / 10;
+  const text = Number.isInteger(rounded) ? `${rounded}` : rounded.toFixed(1);
+  return `${text} lb`;
+};
+
 export const formatMinutes = (minutes: number): string =>
   `${Math.round(minutes)} min`;
 

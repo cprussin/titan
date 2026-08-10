@@ -51,6 +51,7 @@ export const BodyWeightForm = ({ onLogged }: Props) => {
           setWeight(event.currentTarget.value)
         }
         placeholder="Bodyweight (lb)"
+        step="any"
         type="number"
         value={weight}
       />

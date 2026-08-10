@@ -4,7 +4,7 @@ import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ClockC
 import type { BodyMetric } from "@titan/domain/body-metric";
 import { css } from "../../styled-system/css";
 import { hstack } from "../../styled-system/patterns";
-import { formatWeight } from "../format";
+import { formatBodyWeight } from "../format";
 import { Button, ModalDialog } from "../ui";
 import { DeleteEntryButton } from "./DeleteEntryButton";
 
@@ -34,7 +34,7 @@ export const WeighInHistoryButton = ({ metrics }: Props) => (
           <li className={rowStyles} key={metric.id}>
             <span className={dateStyles}>{metric.date}</span>
             <span className={weightStyles}>
-              {formatWeight(metric.weightLb)}
+              {formatBodyWeight(metric.weightLb)}
             </span>
             <DeleteEntryButton
               endpoint={`/api/history/body-metrics/${metric.id}`}
