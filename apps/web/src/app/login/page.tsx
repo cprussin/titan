@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { css } from "../../../styled-system/css";
 import { getSession } from "../../auth/session";
 import { SignInPanel } from "../../components/SignInPanel";
+
+export const metadata: Metadata = {
+  description: "Sign in to Titan to pick up your training program.",
+  title: "Sign in",
+};
 
 const LoginPage = async ({
   searchParams,

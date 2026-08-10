@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { css } from "../../../styled-system/css";
 import { requireAuth } from "../../auth/session";
@@ -17,6 +18,13 @@ import { USER_ID } from "../../user";
  * screens). The login screen lives outside this route group, so it renders no
  * nav.
  */
+// Everything in this route group is per-user and behind auth, so it carries no
+// public, indexable content — keep it out of search results wholesale. Pages
+// still set their own titles; only the robots directive is inherited.
+export const metadata: Metadata = {
+  robots: { follow: false, index: false },
+};
+
 const AppLayout = async ({ children }: { children: ReactNode }) => {
   const user = await requireAuth();
   const workoutAction = await currentWorkoutAction(db, USER_ID, dateIso());

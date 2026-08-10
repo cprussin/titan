@@ -1,5 +1,6 @@
 import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ClockCounterClockwise";
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { css } from "../../../../styled-system/css";
 import { hstack, vstack } from "../../../../styled-system/patterns";
@@ -8,6 +9,11 @@ import { db } from "../../../db";
 import { templateNames } from "../../../server/template-names";
 import { Badge } from "../../../ui";
 import { USER_ID } from "../../../user";
+
+export const metadata: Metadata = {
+  description: "Every training session you've logged, most recent first.",
+  title: "History",
+};
 
 const HistoryPage = async () => {
   const [sessions, names] = await Promise.all([

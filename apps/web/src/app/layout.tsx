@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { css } from "../../styled-system/css";
 import { AppProviders } from "../components/AppProviders";
 import { RegisterServiceWorker } from "../components/RegisterServiceWorker";
+import { env } from "../env";
 
 // Self-hosted via next/font so the faces are inlined at build time and no
 // font request sits on the critical path. The CSS variables feed the Panda
@@ -30,14 +31,16 @@ const mono = IBM_Plex_Mono({
   weight: ["400", "500", "600"],
 });
 
+const DESCRIPTION =
+  "An adaptive personal fitness coach that runs your training program.";
+
 export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "Titan",
   },
-  description:
-    "An adaptive personal fitness coach that runs your training program.",
+  description: DESCRIPTION,
   icons: {
     apple: { sizes: "180x180", url: "/apple-touch-icon.png" },
     icon: [
@@ -47,7 +50,26 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
   },
   manifest: "/manifest.webmanifest",
-  title: "Titan",
+  // Resolves relative OG/Twitter image and canonical URLs to absolute ones. The
+  // production origin is reused across every deployment (see `env.ts`), so
+  // preview builds still emit valid absolute social-image URLs.
+  metadataBase: new URL(env.AUTH_PROXY_URL),
+  openGraph: {
+    description: DESCRIPTION,
+    siteName: "Titan",
+    title: "Titan — Adaptive Fitness Coach",
+    type: "website",
+    url: "/",
+  },
+  title: {
+    default: "Titan — Adaptive Fitness Coach",
+    template: "%s · Titan",
+  },
+  twitter: {
+    card: "summary_large_image",
+    description: DESCRIPTION,
+    title: "Titan — Adaptive Fitness Coach",
+  },
 };
 
 export const viewport: Viewport = {
