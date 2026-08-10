@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { css } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
-import { formatWeight } from "../format";
+import { formatDuration, formatWeight, parseDuration } from "../format";
 import { describePrescription } from "../prescription-text";
 import { roleTone } from "../role-tone";
 import { Badge, Button, Input } from "../ui";
@@ -371,12 +371,12 @@ type CardioLoggerProps = {
 
 const CardioLogger = ({ busy, onComplete, prescribed }: CardioLoggerProps) => {
   const [distanceM, setDistanceM] = useState("");
-  const [durationMin, setDurationMin] = useState("");
+  const [duration, setDuration] = useState("");
   const [avgHr, setAvgHr] = useState("");
 
   const complete = () => {
     const distanceMeters = Number(distanceM) || 0;
-    const durationSec = (Number(durationMin) || 0) * 60;
+    const durationSec = parseDuration(duration) ?? 0;
     const heart = Number(avgHr) || 0;
     onComplete({
       cardio: {
@@ -402,10 +402,10 @@ const CardioLogger = ({ busy, onComplete, prescribed }: CardioLoggerProps) => {
         onChange={setDistanceM}
         value={distanceM}
       />
-      <NumberField
-        label="Duration (min)"
-        onChange={setDurationMin}
-        value={durationMin}
+      <DurationField
+        label="Duration (m:ss)"
+        onChange={setDuration}
+        value={duration}
       />
       <NumberField
         label="Avg HR (optional)"
@@ -494,6 +494,35 @@ const NumberField = ({ label, onChange, value }: NumberFieldProps) => (
     />
   </div>
 );
+
+type DurationFieldProps = {
+  label: string;
+  onChange: (value: string) => void;
+  value: string;
+};
+
+// A free-text clock entry (`m:ss`, `m:ss.s`, or bare seconds) rather than a
+// numeric field, so a rowing piece is logged at its true precision. The parsed
+// value is echoed back normalized so the athlete sees exactly what will be
+// stored.
+const DurationField = ({ label, onChange, value }: DurationFieldProps) => {
+  const parsed = parseDuration(value);
+  return (
+    <div className={vstack({ alignItems: "stretch", gap: 1 })}>
+      <span className={fieldLabelStyles}>{label}</span>
+      <Input
+        aria-label={label}
+        inputMode="text"
+        onChange={(event) => onChange(event.currentTarget.value)}
+        placeholder="m:ss"
+        value={value}
+      />
+      {parsed !== undefined && (
+        <span className={durationEchoStyles}>{formatDuration(parsed)}</span>
+      )}
+    </div>
+  );
+};
 
 const PreviousPerformance = ({
   previous,
@@ -687,6 +716,8 @@ const setCountStyles = css({
 });
 
 const fieldLabelStyles = css({ color: "muted", fontSize: "sm" });
+
+const durationEchoStyles = css({ color: "textTertiary", fontSize: "xs" });
 
 // The one glowing element in the product: the number under your thumb mid-set,
 // read at arm's length. `shadows.glow` appears here and nowhere else.
