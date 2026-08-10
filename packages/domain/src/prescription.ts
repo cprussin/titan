@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { idSchema } from "./ids";
+import type { LoadUnit } from "./load-unit";
+import { loadUnitSchema } from "./load-unit";
 
 /**
  * A **prescription**: the concrete target for one exercise in one session —
@@ -19,7 +21,11 @@ const strengthSchema = z.object({
   rpeTarget: z.number().positive().max(10).optional(),
   sets: z.number().int().positive(),
   type: z.literal("strength"),
-  weightLb: z.number().nonnegative(),
+  /** The unit `weight` is in — barbell work is kg, everything else lb. Defaults
+   *  to pounds so pre-unit data and imperial callers stay valid. */
+  unit: loadUnitSchema.default("lb"),
+  /** The target load, expressed in {@link unit}. */
+  weight: z.number().nonnegative(),
 });
 
 export type StrengthPrescription = z.infer<typeof strengthSchema>;
@@ -120,10 +126,11 @@ export const Prescription = {
     args: Omit<IntervalsPrescription, "type">,
   ): IntervalsPrescription => ({ ...args, type: "intervals" }),
   Strength: (
-    args: Omit<StrengthPrescription, "type">,
+    args: Omit<StrengthPrescription, "type" | "unit"> & { unit?: LoadUnit },
   ): StrengthPrescription => ({
     ...args,
     type: "strength",
+    unit: args.unit ?? "lb",
   }),
   TimedCardio: (
     args: Omit<TimedCardioPrescription, "type">,

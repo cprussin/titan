@@ -12,6 +12,12 @@ describe("formatters", () => {
     expect(formatWeight(202.5)).toBe("202.5 lb");
   });
 
+  it("formats a weight in its given unit", () => {
+    expect(formatWeight(100, "kg")).toBe("100 kg");
+    expect(formatWeight(92.5, "kg")).toBe("92.5 kg");
+    expect(formatWeight(230, "lb")).toBe("230 lb");
+  });
+
   it("formats a rest clock as m:ss", () => {
     expect(formatClock(90)).toBe("1:30");
     expect(formatClock(5)).toBe("0:05");

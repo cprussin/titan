@@ -3,7 +3,7 @@ import { Prescription } from "@titan/domain/prescription";
 import type { WorkoutSession } from "@titan/domain/workout-session";
 import { detectPersonalRecords } from "./detect-personal-records";
 
-const sessionWith = (weightLb: number, reps: number): WorkoutSession => ({
+const sessionWith = (weight: number, reps: number): WorkoutSession => ({
   blockId: "b",
   dayOfWeek: 1,
   estimatedDurationMin: 60,
@@ -14,8 +14,13 @@ const sessionWith = (weightLb: number, reps: number): WorkoutSession => ({
     {
       exerciseId: "back-squat",
       id: "res-1",
-      prescription: Prescription.Strength({ reps, sets: 1, weightLb }),
-      sets: [{ completed: true, reps, setIndex: 0, weightLb }],
+      prescription: Prescription.Strength({
+        reps,
+        sets: 1,
+        unit: "kg",
+        weight,
+      }),
+      sets: [{ completed: true, reps, setIndex: 0, weight }],
       slotId: "squat",
     },
   ],
@@ -46,6 +51,8 @@ describe("detectPersonalRecords", () => {
     expect(prs[0]).toMatchObject({
       exerciseId: "back-squat",
       kind: "estimated-1rm",
+      // The record carries the lift's own unit — back-squat is a barbell (kg).
+      unit: "kg",
     });
   });
 

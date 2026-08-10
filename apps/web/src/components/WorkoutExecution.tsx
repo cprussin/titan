@@ -3,6 +3,8 @@
 import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
 import { MinusIcon } from "@phosphor-icons/react/dist/ssr/Minus";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
+import type { LoadUnit } from "@titan/domain/load-unit";
+import { loadStep } from "@titan/domain/load-unit";
 import type { Prescription } from "@titan/domain/prescription";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
@@ -293,9 +295,7 @@ const StrengthLogger = ({
     onLogSet({
       completed: true,
       setIndex: done,
-      ...(prescription.type === "timed-hold"
-        ? { holdSec }
-        : { reps, weightLb: weight }),
+      ...(prescription.type === "timed-hold" ? { holdSec } : { reps, weight }),
       ...(rpe === undefined ? {} : { rpe }),
     });
     setRpe(undefined);
@@ -329,9 +329,9 @@ const StrengthLogger = ({
             <>
               {prescription.type === "strength" && (
                 <Stepper
-                  label="Weight (lb)"
+                  label={`Weight (${prescription.unit})`}
                   onChange={setWeight}
-                  step={5}
+                  step={loadStep(prescription.unit)}
                   value={weight}
                 />
               )}
@@ -504,10 +504,17 @@ const PreviousPerformance = ({
   return best === undefined ? undefined : (
     <p className={previousStyles}>
       Last time: {best.reps === undefined ? "" : `${best.reps} × `}
-      {best.weightLb === undefined ? "" : formatWeight(best.weightLb)}
+      {best.weight === undefined
+        ? ""
+        : formatWeight(best.weight, resultUnit(previous))}
     </p>
   );
 };
+
+/** The load unit a recorded exercise was logged in — its snapshot prescription
+ *  carries it for strength work; everything else is pounds. */
+const resultUnit = (result: ExerciseResult | undefined): LoadUnit =>
+  result?.prescription.type === "strength" ? result.prescription.unit : "lb";
 
 // The engine's reason for today's target, one step dimmer than "Last time":
 // a hairline `border` rule (not accent) and tertiary text, so it reads as a
@@ -561,9 +568,7 @@ const persist = async (
 const topSet = (result: ExerciseResult): SetResult | undefined =>
   result.sets.reduce<SetResult | undefined>(
     (best, set) =>
-      best === undefined || (set.weightLb ?? 0) > (best.weightLb ?? 0)
-        ? set
-        : best,
+      best === undefined || (set.weight ?? 0) > (best.weight ?? 0) ? set : best,
     undefined,
   );
 
@@ -571,7 +576,7 @@ const restSeconds = (prescribed: PrescribedExercise): number =>
   prescribed.role === "primary" ? 150 : 90;
 
 const defaultWeight = (prescription: Prescription): number =>
-  prescription.type === "strength" ? prescription.weightLb : 0;
+  prescription.type === "strength" ? prescription.weight : 0;
 
 const defaultReps = (prescription: Prescription): number =>
   prescription.type === "strength" || prescription.type === "bodyweight"

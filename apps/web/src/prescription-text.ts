@@ -26,7 +26,7 @@ export const prescriptionParts = (
   switch (prescription.type) {
     case "strength": {
       return {
-        primary: `${prescription.sets}×${prescription.reps} @ ${formatWeight(prescription.weightLb)}`,
+        primary: `${prescription.sets}×${prescription.reps} @ ${formatWeight(prescription.weight, prescription.unit)}`,
         recovery: undefined,
       };
     }

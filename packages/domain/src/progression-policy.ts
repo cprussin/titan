@@ -15,8 +15,9 @@ import { z } from "zod";
  */
 
 const linearSchema = z.object({
-  /** Pounds added after a fully-completed session under the RPE cap. */
-  incrementLb: z.number().positive(),
+  /** Load added after a fully-completed session under the RPE cap, in the
+   *  exercise's unit (kg for barbell, else lb). */
+  increment: z.number().positive(),
   kind: z.literal("linear"),
   /** Consecutive missed sessions that trigger a deload. */
   missesBeforeDeload: z.number().int().positive(),
@@ -31,7 +32,9 @@ const linearSchema = z.object({
 export type LinearPolicy = z.infer<typeof linearSchema>;
 
 const doubleSchema = z.object({
-  incrementLb: z.number().positive(),
+  /** Load added when the top of the rep range is cleared, in the exercise's
+   *  unit (kg for barbell, else lb). */
+  increment: z.number().positive(),
   kind: z.literal("double"),
   maxReps: z.number().int().positive(),
   minReps: z.number().int().positive(),
@@ -81,10 +84,10 @@ const zone2Schema = z.object({
 
 export type Zone2Policy = z.infer<typeof zone2Schema>;
 
-/** One load step of an {@link RpeBandedPolicy}: add `incrementLb` when the
- *  final working set's RPE is at or below `maxRpe`. */
+/** One load step of an {@link RpeBandedPolicy}: add `increment` (in the
+ *  exercise's unit) when the final working set's RPE is at or below `maxRpe`. */
 const rpeBandSchema = z.object({
-  incrementLb: z.number().positive(),
+  increment: z.number().positive(),
   maxRpe: z.number().positive().max(10),
 });
 

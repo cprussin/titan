@@ -17,7 +17,8 @@ type LoadedPrescription = Extract<
  * of the range is completed under the RPE cap, add weight and reset to the
  * bottom of the range. Works for both loaded (RDL) and bodyweight (weighted
  * pull-up) movements — the base prescription's type decides which dimension the
- * added load lives on.
+ * added load lives on. Loaded work stays in the base's unit (kg for barbell,
+ * else lb); bodyweight added load is always lb.
  */
 export const progressDouble = (
   policy: DoublePolicy,
@@ -57,10 +58,10 @@ const decide = (
       prescription: build(base, policy.sets, current.reps, current.load),
     };
   } else if (current.reps >= policy.maxReps && !overCap) {
-    const load = current.load + policy.incrementLb;
+    const load = current.load + policy.increment;
     return {
       action: "increase-load",
-      details: { fromLb: current.load, reps: policy.minReps, toLb: load },
+      details: { from: current.load, reps: policy.minReps, to: load },
       explanation: `Add weight to ${describeLoadValues(base, { load, reps: policy.minReps })} and reset to ${policy.minReps} reps after completing ${policy.sets}×${policy.maxReps}.`,
       prescription: build(base, policy.sets, policy.minReps, load),
     };
@@ -88,7 +89,7 @@ const readLoad = (result: ExerciseResult): Load => {
   const { prescription } = result;
   switch (prescription.type) {
     case "strength": {
-      return { load: prescription.weightLb, reps: prescription.reps };
+      return { load: prescription.weight, reps: prescription.reps };
     }
     case "bodyweight": {
       return { load: prescription.addedWeightLb ?? 0, reps: prescription.reps };
@@ -108,7 +109,13 @@ const build = (
   load: number,
 ): Prescription =>
   base.type === "strength"
-    ? Rx.Strength({ reps, rpeTarget: base.rpeTarget, sets, weightLb: load })
+    ? Rx.Strength({
+        reps,
+        rpeTarget: base.rpeTarget,
+        sets,
+        unit: base.unit,
+        weight: load,
+      })
     : Rx.Bodyweight({
         ...(load > 0 ? { addedWeightLb: load } : {}),
         reps,
@@ -117,11 +124,13 @@ const build = (
 
 const describeLoad = (base: LoadedPrescription): string =>
   base.type === "strength"
-    ? `${base.weightLb} lb`
+    ? `${base.weight} ${base.unit}`
     : describeBodyweight(base.addedWeightLb ?? 0);
 
 const describeLoadValues = (base: LoadedPrescription, load: Load): string =>
-  base.type === "strength" ? `${load.load} lb` : describeBodyweight(load.load);
+  base.type === "strength"
+    ? `${load.load} ${base.unit}`
+    : describeBodyweight(load.load);
 
 const describeBodyweight = (addedLb: number): string =>
   addedLb === 0 ? "bodyweight" : `bodyweight +${addedLb} lb`;

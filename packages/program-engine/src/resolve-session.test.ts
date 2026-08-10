@@ -10,13 +10,13 @@ const squatSlot: ExerciseSlot = {
     reps: 5,
     rpeTarget: 8.5,
     sets: 5,
-    weightLb: 225,
+    weight: 225,
   }),
   exerciseId: "back-squat",
   generateWarmup: true,
   id: "squat",
   progression: ProgressionPolicy.Linear({
-    incrementLb: 5,
+    increment: 5,
     missesBeforeDeload: 2,
     reps: 5,
     retainOnDeload: 0.9,
@@ -35,10 +35,10 @@ const template: SessionTemplate = {
   targetDurationMin: 60,
 };
 
-const metSession = (weightLb: number): ExerciseResult => ({
+const metSession = (weight: number): ExerciseResult => ({
   exerciseId: "back-squat",
-  id: `r-${weightLb}`,
-  prescription: Prescription.Strength({ reps: 5, sets: 5, weightLb }),
+  id: `r-${weight}`,
+  prescription: Prescription.Strength({ reps: 5, sets: 5, weight }),
   sets: Array.from({ length: 5 }, (_, setIndex) => ({
     completed: true,
     reps: 5,
@@ -59,7 +59,7 @@ describe("resolveSession", () => {
       weekInBlock: 1,
     });
     const [exercise] = resolved.prescribedExercises;
-    expect(exercise?.prescription).toMatchObject({ weightLb: 225 });
+    expect(exercise?.prescription).toMatchObject({ weight: 225 });
     expect(exercise?.warmup?.length).toBeGreaterThan(0);
     expect(resolved.estimatedDurationMin).toBeGreaterThan(0);
     expect(resolved.variantLabel).toBeUndefined();
@@ -73,7 +73,7 @@ describe("resolveSession", () => {
       weekInBlock: 2,
     });
     expect(resolved.prescribedExercises[0]?.prescription).toMatchObject({
-      weightLb: 230,
+      weight: 230,
     });
     expect(resolved.decisions[0]).toMatchObject({
       action: "increase-load",
@@ -90,7 +90,7 @@ describe("resolveSession", () => {
     });
     expect(resolved.prescribedExercises[0]?.prescription).toMatchObject({
       sets: 3,
-      weightLb: 225,
+      weight: 225,
     });
     expect(resolved.decisions[0]?.action).toBe("deload");
   });

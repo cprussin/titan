@@ -11,7 +11,7 @@ const slot = (
   sets: number,
 ): PrescribedExercise => ({
   exerciseId,
-  prescription: Prescription.Strength({ reps: 5, sets, weightLb: 100 }),
+  prescription: Prescription.Strength({ reps: 5, sets, weight: 100 }),
   progression: ProgressionPolicy.None(),
   role,
   slotId: `slot-${exerciseId}`,

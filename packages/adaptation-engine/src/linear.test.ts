@@ -5,7 +5,7 @@ import type { ExerciseResult } from "@titan/domain/result";
 import { progressLinear } from "./linear";
 
 const policy = ProgressionPolicy.Linear({
-  incrementLb: 5,
+  increment: 5,
   missesBeforeDeload: 2,
   reps: 5,
   retainOnDeload: 0.9,
@@ -17,16 +17,16 @@ const base = Prescription.Strength({
   reps: 5,
   rpeTarget: 8.5,
   sets: 5,
-  weightLb: 225,
+  weight: 225,
 });
 
 const session = (
-  weightLb: number,
+  weight: number,
   opts: { reps?: number; rpe?: number },
 ): ExerciseResult => ({
   exerciseId: "back-squat",
-  id: `r-${weightLb}-${opts.reps ?? 5}`,
-  prescription: Prescription.Strength({ reps: 5, sets: 5, weightLb }),
+  id: `r-${weight}-${opts.reps ?? 5}`,
+  prescription: Prescription.Strength({ reps: 5, sets: 5, weight }),
   sets: Array.from({ length: 5 }, (_, setIndex) => ({
     completed: (opts.reps ?? 5) >= 5,
     reps: opts.reps ?? 5,
@@ -48,7 +48,7 @@ describe("progressLinear", () => {
     expect(outcome.action).toBe("increase-load");
     expect(outcome.prescription).toMatchObject({
       type: "strength",
-      weightLb: 230,
+      weight: 230,
     });
     expect(outcome.explanation).toContain("225 lb to 230 lb");
     expect(outcome.explanation).toContain("7.8");
@@ -57,19 +57,19 @@ describe("progressLinear", () => {
   it("increases when reps are completed and no RPE was logged", () => {
     const outcome = progressLinear(policy, base, [session(225, {})]);
     expect(outcome.action).toBe("increase-load");
-    expect(outcome.prescription).toMatchObject({ weightLb: 230 });
+    expect(outcome.prescription).toMatchObject({ weight: 230 });
   });
 
   it("repeats when reps are completed but RPE exceeds the cap", () => {
     const outcome = progressLinear(policy, base, [session(225, { rpe: 9 })]);
     expect(outcome.action).toBe("repeat");
-    expect(outcome.prescription).toMatchObject({ weightLb: 225 });
+    expect(outcome.prescription).toMatchObject({ weight: 225 });
   });
 
   it("repeats after a single missed session", () => {
     const outcome = progressLinear(policy, base, [session(225, { reps: 3 })]);
     expect(outcome.action).toBe("repeat");
-    expect(outcome.prescription).toMatchObject({ weightLb: 225 });
+    expect(outcome.prescription).toMatchObject({ weight: 225 });
   });
 
   it("deloads after consecutive missed sessions", () => {
@@ -79,7 +79,46 @@ describe("progressLinear", () => {
     ]);
     expect(outcome.action).toBe("deload");
     // 225 × 0.9 = 202.5 → nearest 5 lb = 205
-    expect(outcome.prescription).toMatchObject({ weightLb: 205 });
+    expect(outcome.prescription).toMatchObject({ weight: 205 });
     expect(outcome.explanation).toContain("Deload");
+  });
+
+  it("keeps a metric barbell in kilograms through progression", () => {
+    const kgPolicy = ProgressionPolicy.Linear({
+      increment: 2.5,
+      missesBeforeDeload: 2,
+      reps: 5,
+      retainOnDeload: 0.9,
+      rpeCap: 8.5,
+      sets: 5,
+    });
+    const kgBase = Prescription.Strength({
+      reps: 5,
+      rpeTarget: 8.5,
+      sets: 5,
+      unit: "kg",
+      weight: 100,
+    });
+    const kgSession: ExerciseResult = {
+      exerciseId: "back-squat",
+      id: "r-kg",
+      prescription: Prescription.Strength({
+        reps: 5,
+        sets: 5,
+        unit: "kg",
+        weight: 100,
+      }),
+      sets: Array.from({ length: 5 }, (_, setIndex) => ({
+        completed: true,
+        reps: 5,
+        rpe: 7.5,
+        setIndex,
+      })),
+      slotId: "slot-squat",
+    };
+    const outcome = progressLinear(kgPolicy, kgBase, [kgSession]);
+    expect(outcome.action).toBe("increase-load");
+    expect(outcome.prescription).toMatchObject({ unit: "kg", weight: 102.5 });
+    expect(outcome.explanation).toContain("100 kg to 102.5 kg");
   });
 });

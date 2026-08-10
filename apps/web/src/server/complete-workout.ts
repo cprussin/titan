@@ -81,10 +81,10 @@ const priorOneRepMaxByExercise = async (
         set.completed &&
         set.reps !== undefined &&
         set.reps > 0 &&
-        set.weightLb !== undefined &&
-        set.weightLb > 0
+        set.weight !== undefined &&
+        set.weight > 0
       ) {
-        const estimate = estimateOneRepMax(set.weightLb, set.reps);
+        const estimate = estimateOneRepMax(set.weight, set.reps);
         if (estimate > (best.get(result.exerciseId) ?? 0)) {
           best.set(result.exerciseId, estimate);
         }

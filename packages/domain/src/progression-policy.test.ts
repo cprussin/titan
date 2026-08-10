@@ -26,7 +26,7 @@ describe("ProgressionPolicy constructors", () => {
 describe("progressionPolicySchema", () => {
   it("parses a linear 5×5 policy", () => {
     const value = ProgressionPolicy.Linear({
-      incrementLb: 5,
+      increment: 5,
       missesBeforeDeload: 2,
       reps: 5,
       retainOnDeload: 0.9,
@@ -48,8 +48,8 @@ describe("progressionPolicySchema", () => {
   it("parses an rpe-banded policy", () => {
     const value = ProgressionPolicy.RpeBanded({
       bands: [
-        { incrementLb: 10, maxRpe: 6 },
-        { incrementLb: 5, maxRpe: 8 },
+        { increment: 10, maxRpe: 6 },
+        { increment: 5, maxRpe: 8 },
       ],
       reps: 5,
       sets: 3,
@@ -71,7 +71,7 @@ describe("progressionPolicySchema", () => {
   it("rejects a linear policy with retainOnDeload above 1", () => {
     expect(
       progressionPolicySchema.safeParse({
-        incrementLb: 5,
+        increment: 5,
         kind: "linear",
         missesBeforeDeload: 2,
         reps: 5,

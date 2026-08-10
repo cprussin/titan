@@ -22,7 +22,7 @@ describe("Prescription constructors", () => {
 
 describe("prescriptionSchema", () => {
   it("parses a strength prescription", () => {
-    const value = Prescription.Strength({ reps: 5, sets: 5, weightLb: 225 });
+    const value = Prescription.Strength({ reps: 5, sets: 5, weight: 225 });
     expect(prescriptionSchema.parse(value)).toEqual(value);
   });
 
@@ -54,7 +54,7 @@ describe("prescriptionSchema", () => {
         reps: 5,
         sets: 0,
         type: "strength",
-        weightLb: 100,
+        weight: 100,
       }).success,
     ).toBe(false);
   });

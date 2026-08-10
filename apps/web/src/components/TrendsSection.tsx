@@ -74,11 +74,13 @@ const strengthTitle = (
     ? "Strength · est. 1RM"
     : `Strength · est. 1RM · ${names.get(summary.strength.exerciseId) ?? summary.strength.exerciseId}`;
 
-/** The latest estimated 1RM, formatted, or `undefined` before any weighted work
- *  is logged. */
+/** The latest estimated 1RM, formatted in the lift's own unit, or `undefined`
+ *  before any weighted work is logged. */
 const latestStrength = (summary: TrendsSummary): string | undefined => {
   const latest = summary.strength?.values.at(-1);
-  return latest === undefined ? undefined : formatWeight(latest);
+  return latest === undefined
+    ? undefined
+    : formatWeight(latest, summary.strength?.unit);
 };
 
 /** The change-since-last-weigh-in caption for the body-weight stat, or
