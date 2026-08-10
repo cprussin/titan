@@ -1,5 +1,4 @@
 import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr/CheckCircle";
-import { listAdaptationDecisionsBySession } from "@titan/db/adaptation-decisions";
 import { listPersonalRecords } from "@titan/db/personal-records";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
 import { notFound } from "next/navigation";
@@ -10,6 +9,7 @@ import { StatTile } from "../../../../../components/StatTile";
 import { TopBar } from "../../../../../components/TopBar";
 import { db } from "../../../../../db";
 import { exerciseNames } from "../../../../../server/exercise-names";
+import { nextSessionAdaptations } from "../../../../../server/next-adaptations";
 import { Badge, Button } from "../../../../../ui";
 import { USER_ID } from "../../../../../user";
 
@@ -23,8 +23,8 @@ const CompletePage = async ({
   if (session === undefined) {
     notFound();
   } else {
-    const [decisions, records, names] = await Promise.all([
-      listAdaptationDecisionsBySession(db, id),
+    const [adaptations, records, names] = await Promise.all([
+      nextSessionAdaptations(db, session),
       listPersonalRecords(db, USER_ID),
       exerciseNames(db),
     ]);
@@ -46,21 +46,6 @@ const CompletePage = async ({
             ),
           )
         : session.estimatedDurationMin;
-    // One row per exercise the engine adapted, tagged Progressed when the
-    // explanation opens with an "Increase"/"Extend" (the product's forward
-    // moves) and Held otherwise. Non-exercise decisions carry no exercise id.
-    const exerciseAdaptations = decisions.flatMap((decision) =>
-      decision.exerciseId === undefined
-        ? []
-        : [
-            {
-              explanation: decision.explanation,
-              id: decision.id,
-              name: names.get(decision.exerciseId) ?? decision.exerciseId,
-              progressed: isProgression(decision.explanation),
-            },
-          ],
-    );
 
     return (
       <div
@@ -107,20 +92,19 @@ const CompletePage = async ({
           )}
 
           <section className={sectionStyles}>
-            <h2 className={sectionTitleStyles}>
-              Why today looked the way it did
-            </h2>
-            {exerciseAdaptations.length === 0 ? (
+            <h2 className={sectionTitleStyles}>Next session</h2>
+            {adaptations.length === 0 ? (
               <p className={mutedStyles}>
-                Steady week — prescriptions held from your program.
+                Steady week — prescriptions hold from your program.
               </p>
             ) : (
               <ul className={adaptationListStyles}>
-                {exerciseAdaptations.map((adaptation) => (
-                  <li className={adaptationRowStyles} key={adaptation.id}>
+                {adaptations.map((adaptation) => (
+                  <li className={adaptationRowStyles} key={adaptation.slotId}>
                     <span className={adaptationTextStyles}>
                       <span className={adaptationNameStyles}>
-                        {adaptation.name}
+                        {names.get(adaptation.exerciseId) ??
+                          adaptation.exerciseId}
                       </span>
                       <span className={explanationStyles}>
                         {adaptation.explanation}
@@ -147,12 +131,6 @@ const CompletePage = async ({
 };
 
 export default CompletePage;
-
-/** Whether an adaptation explanation reports a forward move — the engine opens
- *  these with "Increase" (load/reps) or "Extend" (duration/range). Anything
- *  else (a repeat, a deload, a hold) reads as held. */
-const isProgression = (explanation: string): boolean =>
-  explanation.startsWith("Increase") || explanation.startsWith("Extend");
 
 const statGridStyles = grid({ columns: 3, gap: 4, lg: { gap: 8 } });
 

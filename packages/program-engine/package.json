@@ -9,6 +9,7 @@
     "typescript": "catalog:"
   },
   "exports": {
+    "./next-adaptations": "./src/next-adaptations.ts",
     "./resolve-session": "./src/resolve-session.ts",
     "./schedule": "./src/schedule.ts",
     "./variant": "./src/variant.ts",
