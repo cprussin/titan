@@ -23,9 +23,10 @@ deterministic and unit-testable.
   split is derived via `@titan/domain/pace`, and heart-rate / stroke-rate carry
   through only when present.
 - **`match`** — `matchWorkout(normalized, candidateSessions)` picks the planned
-  rowing/cardio session on the same calendar day, breaking ties by closest
-  target distance. The "no planned session" case is returned as a `MatchResult`
-  variant, not thrown.
+  rowing/cardio session nearest the workout's day (within one calendar day, to
+  absorb the timezone skew between Concept2's local date and the app's UTC
+  scheduling), breaking equal-day ties by closest target distance. The "no
+  planned session" case is returned as a `MatchResult` variant, not thrown.
 
 ## Dependencies
 

@@ -50,7 +50,7 @@ describe("matchWorkout", () => {
     });
   });
 
-  it("is unmatched when no cardio session falls on the workout's day", () => {
+  it("is unmatched when no cardio session falls near the workout's day", () => {
     const result = matchWorkout(rowing(2000), [
       session(
         "strength",
@@ -59,9 +59,53 @@ describe("matchWorkout", () => {
       ),
       session(
         "other-day",
+        "2024-01-20",
+        Rx.DistanceCardio({ distanceMeters: 2000 }),
+      ),
+    ]);
+    expect(result).toEqual({ kind: MatchKind.Unmatched });
+  });
+
+  it("matches a cardio session one calendar day off", () => {
+    // The athlete rows in the evening in a negative-offset timezone, so the
+    // logbook's local day (2024-01-15) is a day behind the UTC day the app
+    // scheduled the session on (2024-01-16). Strict same-day equality would
+    // drop this match even though it is the session the row belongs to.
+    const result = matchWorkout(rowing(2000), [
+      session(
+        "next-day",
         "2024-01-16",
         Rx.DistanceCardio({ distanceMeters: 2000 }),
       ),
+    ]);
+    expect(result).toEqual({
+      kind: MatchKind.Matched,
+      workoutSessionId: "next-day",
+    });
+  });
+
+  it("prefers a same-day session over an adjacent-day one", () => {
+    const result = matchWorkout(rowing(2000), [
+      session(
+        "adjacent",
+        "2024-01-16",
+        Rx.DistanceCardio({ distanceMeters: 2000 }),
+      ),
+      session(
+        "same-day",
+        "2024-01-15",
+        Rx.DistanceCardio({ distanceMeters: 5000 }),
+      ),
+    ]);
+    expect(result).toEqual({
+      kind: MatchKind.Matched,
+      workoutSessionId: "same-day",
+    });
+  });
+
+  it("is unmatched when the nearest cardio session is more than a day off", () => {
+    const result = matchWorkout(rowing(2000), [
+      session("far", "2024-01-17", Rx.DistanceCardio({ distanceMeters: 2000 })),
     ]);
     expect(result).toEqual({ kind: MatchKind.Unmatched });
   });
