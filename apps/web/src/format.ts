@@ -34,6 +34,13 @@ export const formatClock = (totalSeconds: number): string => {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 };
 
+/** Signed `m:ss` clock for a timer that runs past zero — negative values (rest
+ *  overtime) carry a leading minus, e.g. `-0:05`. */
+export const formatSignedClock = (totalSeconds: number): string =>
+  totalSeconds < 0
+    ? `-${formatClock(-totalSeconds)}`
+    : formatClock(totalSeconds);
+
 /** Rowing split as `m:ss.s /500m`. */
 export const formatSplit = (secondsPer500: number): string => {
   const minutes = Math.floor(secondsPer500 / 60);

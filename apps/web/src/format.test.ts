@@ -4,6 +4,7 @@ import {
   formatClock,
   formatDistance,
   formatDuration,
+  formatSignedClock,
   formatSplit,
   formatWeight,
   parseDuration,
@@ -31,6 +32,13 @@ describe("formatters", () => {
   it("formats a rest clock as m:ss", () => {
     expect(formatClock(90)).toBe("1:30");
     expect(formatClock(5)).toBe("0:05");
+  });
+
+  it("formats a signed clock, marking overtime past zero with a minus", () => {
+    expect(formatSignedClock(90)).toBe("1:30");
+    expect(formatSignedClock(0)).toBe("0:00");
+    expect(formatSignedClock(-5)).toBe("-0:05");
+    expect(formatSignedClock(-95)).toBe("-1:35");
   });
 
   it("formats a rowing split", () => {
