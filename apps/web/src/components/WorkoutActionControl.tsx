@@ -12,6 +12,9 @@ type Props = {
   /** The control height. `xl` for the prominent mobile FAB; `lg` (default)
    *  everywhere the control docks inline. */
   size?: "lg" | "xl" | undefined;
+  /** Render the control as an icon-only circle for the mobile FAB stack, its
+   *  name carried by `aria-label` with the visible label sitting beside it. */
+  iconOnly?: boolean | undefined;
 };
 
 /**
@@ -25,17 +28,30 @@ export const WorkoutActionControl = ({
   action,
   rounded = false,
   size = "lg",
+  iconOnly = false,
 }: Props) =>
   action.kind === "continue" ? (
-    <Button
-      beforeIcon={<ArrowRightIcon size={20} weight="bold" />}
-      href={`/workout/${action.sessionId}`}
-      rounded={rounded}
-      size={size}
-      variant={rounded ? "accent" : "solid"}
-    >
-      Continue workout
-    </Button>
+    iconOnly ? (
+      <Button
+        href={`/workout/${action.sessionId}`}
+        label="Continue workout"
+        rounded={rounded}
+        size={size}
+        variant={rounded ? "accent" : "solid"}
+      >
+        <ArrowRightIcon size={20} weight="bold" />
+      </Button>
+    ) : (
+      <Button
+        beforeIcon={<ArrowRightIcon size={20} weight="bold" />}
+        href={`/workout/${action.sessionId}`}
+        rounded={rounded}
+        size={size}
+        variant={rounded ? "accent" : "solid"}
+      >
+        Continue workout
+      </Button>
+    )
   ) : (
-    <StartWorkout rounded={rounded} size={size} />
+    <StartWorkout iconOnly={iconOnly} rounded={rounded} size={size} />
   );

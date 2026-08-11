@@ -27,7 +27,7 @@ const renderWithRouter = (ui: ReactElement) =>
 
 describe(WorkoutActionButton, () => {
   describe("fab", () => {
-    it("floats the primary workout action with a secondary weigh-in beside it", () => {
+    it("stacks the primary workout action above a secondary weigh-in, each icon-only with an accessible name", () => {
       renderWithRouter(<WorkoutActionButton action={start} variant="fab" />);
       expect(
         screen.getByRole("button", { name: "Start workout" }),
