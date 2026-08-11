@@ -45,3 +45,17 @@ export const WithPlainCrumb: StoryObj<typeof BreadcrumbsComponent> = {
     crumbs: [{ href: "/programs", label: "Programs" }, { label: "Strength" }],
   },
 };
+
+// A deeper trail shows the responsive behavior: below `md` the inline trail is
+// replaced by an overflow button (`…`) that opens the ancestors in a popover
+// menu. Narrow the viewport and click the button to see it.
+export const DeepTrail: StoryObj<typeof BreadcrumbsComponent> = {
+  args: {
+    crumbs: [
+      { href: "/programs", label: "Programs" },
+      { href: "/programs/strength", label: "Strength" },
+      { href: "/programs/strength/hypertrophy", label: "Hypertrophy" },
+      { href: "/programs/strength/hypertrophy/week-3", label: "Week 3" },
+    ],
+  },
+};
