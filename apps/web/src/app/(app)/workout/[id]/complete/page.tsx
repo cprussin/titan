@@ -11,7 +11,7 @@ import { TopBar } from "../../../../../components/TopBar";
 import { db } from "../../../../../db";
 import { exerciseNames } from "../../../../../server/exercise-names";
 import { nextSessionAdaptations } from "../../../../../server/next-adaptations";
-import { Badge, Button } from "../../../../../ui";
+import { Badge } from "../../../../../ui";
 import { USER_ID } from "../../../../../user";
 
 export const metadata: Metadata = {
@@ -125,12 +125,6 @@ const CompletePage = async ({
             )}
           </section>
         </div>
-
-        <div className={backStyles}>
-          <Button href="/" size="lg" variant="accent">
-            Back to dashboard
-          </Button>
-        </div>
       </div>
     );
   }
@@ -204,5 +198,3 @@ const adaptationNameStyles = css({ fontWeight: "medium" });
 const explanationStyles = css({ color: "muted", fontSize: "sm" });
 
 const mutedStyles = css({ color: "muted" });
-
-const backStyles = css({ marginBlockStart: 2 });
