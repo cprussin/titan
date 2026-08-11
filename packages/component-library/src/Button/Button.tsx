@@ -191,6 +191,10 @@ const tinted = (color: ColorToken) => ({
   },
   borderColor: "transparent",
   color: "background",
+  // `background`-on-`color` label sits on a saturated mid-luminance fill,
+  // where a normal-weight stroke reads muddy even at AA-passing contrast.
+  // A heavier stroke thickens the glyphs so the label stays crisp.
+  fontWeight: "semibold",
 });
 
 const ghost = {
