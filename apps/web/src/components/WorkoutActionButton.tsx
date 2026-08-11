@@ -4,7 +4,6 @@ import { ScalesIcon } from "@phosphor-icons/react/dist/ssr/Scales";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { css } from "../../styled-system/css";
-import { hstack } from "../../styled-system/patterns";
 import type { WorkoutAction } from "../server/workout-action";
 import { Button } from "../ui";
 import { WeighInDialog } from "./WeighInDialog";
@@ -23,8 +22,8 @@ type Props = {
  * session, `start` opens the readiness check-in and creates today's session.
  *
  * On phones the `fab` floats that action above the bottom bar as an Android-
- * style stack: icon-only circles aligned to the trailing edge with their text
- * labels sitting to their left. It pairs the primary with a smaller, neutral
+ * style stack: icon-only circles centered on a shared vertical axis with their
+ * text labels sitting to their left. It pairs the primary with a smaller, neutral
  * secondary weigh-in button so logging bodyweight is one tap away without
  * competing with the accent primary. The `sidebar` docks the primary action
  * alone in the wide-screen rail.
@@ -85,16 +84,18 @@ type FabActionProps = {
 };
 
 /** One row of the FAB stack: a floating text label sitting to the left of its
- *  icon-only button, both aligned to the trailing edge (Android FAB-stack
- *  style). The button carries its own accessible name via `aria-label`; the
- *  visible label is decorative and `aria-hidden`. */
+ *  icon-only button. The label and button are direct children of the stack's
+ *  grid — the label right-aligns in the leading column, the button centers in
+ *  the trailing column so every button shares one vertical axis (Android
+ *  FAB-stack style). The button carries its own accessible name via
+ *  `aria-label`; the visible label is decorative and `aria-hidden`. */
 const FabAction = ({ label, children }: FabActionProps) => (
-  <div className={rowStyles}>
+  <>
     <span aria-hidden className={labelStyles}>
       {label}
     </span>
     <span className={liftedStyles}>{children}</span>
-  </div>
+  </>
 );
 
 /** Whether `pathname` is the workout screen for `sessionId` (the session's page
@@ -106,31 +107,31 @@ const isOnSessionScreen = (pathname: string, sessionId: string): boolean => {
 };
 
 // The floating action area: pinned to the bottom-end corner, lifted clear of
-// the phone tab bar (and the OS safe-area inset below it). The primary workout
-// action stacks on top with the secondary weigh-in below it — closest to the
-// thumb — and every button's icon-only circle aligns to the trailing edge with
-// its text label to the left. Shown only at the phone size, where that bottom
-// bar is the nav; from `md` up — where the nav becomes a sidebar (a drawer
-// through `mdToLg`, permanent at `lg`) — the sidebar button takes over.
+// the phone tab bar (and the OS safe-area inset below it). A two-column grid —
+// labels in the leading column, buttons in the trailing one — so the primary
+// workout action stacks on top with the secondary weigh-in below it (closest to
+// the thumb) and every button's icon-only circle centers on one shared vertical
+// axis while its text label sits to the left. Shown only at the phone size,
+// where that bottom bar is the nav; from `md` up — where the nav becomes a
+// sidebar (a drawer through `mdToLg`, permanent at `lg`) — the sidebar button
+// takes over.
 const fabStyles = css({
-  alignItems: "flex-end",
-  display: "flex",
-  flexDirection: "column",
-  gap: 3,
+  alignItems: "center",
+  columnGap: 3,
+  display: "grid",
+  gridTemplateColumns: "auto auto",
   insetBlockEnd: "calc(env(safe-area-inset-bottom) + {spacing.20})",
   insetInlineEnd: 4,
   md: { display: "none" },
   position: "fixed",
+  rowGap: 3,
   zIndex: 8,
 });
 
-// One stack row: the label and its button aligned on the vertical center, the
-// button trailing so every button aligns on the stack's trailing edge while the
-// labels extend leftward.
-const rowStyles = hstack({ gap: 3 });
-
 // The floating text label beside each button, on its own lifted surface so it
-// reads as hovering with the button rather than sitting on the page.
+// reads as hovering with the button rather than sitting on the page. It fills
+// the grid's leading column, right-aligned so every label's trailing edge lines
+// up just to the left of the button axis.
 const labelStyles = css({
   backgroundColor: "card",
   borderRadius: "full",
@@ -138,6 +139,7 @@ const labelStyles = css({
   color: "foreground",
   fontSize: "sm",
   fontWeight: "medium",
+  justifySelf: "end",
   paddingBlock: 1.5,
   paddingInline: 3,
   whiteSpace: "nowrap",
@@ -145,11 +147,13 @@ const labelStyles = css({
 
 // Each floating button carries its own lifted shadow so it reads as hovering
 // above the page; the full radius shapes that shadow to the rounded control it
-// wraps.
+// wraps. It centers in the grid's trailing column so buttons of different sizes
+// (the `xl` primary and the smaller `lg` weigh-in) share one vertical axis.
 const liftedStyles = css({
   borderRadius: "full",
   boxShadow: "lifted",
   display: "flex",
+  justifySelf: "center",
 });
 
 // The sidebar counterpart: a full-width button docked at the head of the nav
