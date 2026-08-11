@@ -39,6 +39,7 @@
     "./Provider": "./src/Provider/Provider.tsx",
     "./pandacss-preset": "./src/pandacss-preset.ts",
     "./Select": "./src/Select/Select.tsx",
+    "./Slider": "./src/Slider/Slider.tsx",
     "./spacing": "./src/spacing.ts",
     "./TabRail": "./src/TabRail/TabRail.tsx",
     "./Tabs": "./src/Tabs/Tabs.tsx",

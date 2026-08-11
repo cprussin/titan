@@ -20,6 +20,7 @@ consume it — don't fork. See [/docs/guidelines/STYLING.md](../../docs/guidelin
 | `@titan/component-library/Textarea` | Auto-sizing textarea with a resize handle. |
 | `@titan/component-library/Field` | Label + control + validation-message wrapper (base-ui Field). |
 | `@titan/component-library/Select` | Select / listbox (base-ui Select). |
+| `@titan/component-library/Slider` | Single-thumb range slider (base-ui Slider) with a `number` value API. |
 | `@titan/component-library/Tabs` | Tabbed container (base-ui Tabs): config-driven `tabs` array, a sliding active underline, `size` variants, inset focus ring. |
 | `@titan/component-library/ModalDialog` | Modal dialog with flattened `title` / `footer` / `trigger` API. |
 | `@titan/component-library/Avatar` | Avatar with initials / gradient fallback. |
