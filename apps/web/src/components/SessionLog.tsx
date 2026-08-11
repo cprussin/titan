@@ -1,6 +1,6 @@
 import type { ExerciseResult } from "@titan/domain/result";
 import { css } from "../../styled-system/css";
-import { vstack } from "../../styled-system/patterns";
+import { grid, vstack } from "../../styled-system/patterns";
 import { loggedExerciseLines } from "../result-text";
 
 type Props = {
@@ -53,7 +53,15 @@ const titleStyles = css({
   paddingBlockEnd: 2,
 });
 
-const listStyles = vstack({ alignItems: "stretch", gap: 4 });
+// On a phone this is a single stacked column; once there's room the logged
+// exercises tile into as many columns as fit instead of one full-width strip
+// stranding horizontal space. Mirrors the recap panels' grid on this page.
+const listStyles = grid({
+  alignItems: "start",
+  gap: 4,
+  gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 20rem), 1fr))",
+  lg: { gap: 6 },
+});
 
 const exerciseStyles = vstack({ alignItems: "stretch", gap: 1.5 });
 
