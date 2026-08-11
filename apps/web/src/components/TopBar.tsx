@@ -3,6 +3,7 @@ import { css } from "../../styled-system/css";
 import type { Crumb } from "../ui";
 import { Breadcrumbs } from "../ui";
 import { NavMenuButton } from "./NavMenuButton";
+import { TitanLockup } from "./TitanLockup";
 
 export type { Crumb };
 
@@ -17,9 +18,10 @@ type Props = {
 /**
  * The static header bar every page opens with, modeled on Linear's: a slim row
  * pinned to the top of the viewport with (in the drawer window) a nav menu
- * button, a section icon, a breadcrumb-and-title path at a small, chrome-sized
- * weight, and a page-wide actions slot ("Cancel workout" and the like) on the
- * end. The description floats muted in the centre. It bleeds to the content
+ * button, the brand lockup at the sizes where the sidebar's own is out of view,
+ * a section icon, a breadcrumb-and-title path at a small, chrome-sized weight,
+ * and a page-wide actions slot ("Cancel workout" and the like) on the end. The
+ * description floats muted in the centre. It bleeds to the content
  * edges so its rule runs the full width, and must be a direct child of the
  * page's scroll column so `position: sticky` holds across the whole page.
  */
@@ -33,6 +35,9 @@ export const TopBar = ({
   <div className={barStyles}>
     <div className={pathStyles}>
       <NavMenuButton />
+      <span className={brandStyles}>
+        <TitanLockup />
+      </span>
       {icon !== undefined && <span className={iconStyles}>{icon}</span>}
       {breadcrumbs !== undefined && <Breadcrumbs crumbs={breadcrumbs} />}
       <h1 className={titleStyles}>{title}</h1>
@@ -71,6 +76,19 @@ const pathStyles = css({
   display: "flex",
   gap: 1.5,
   minInlineSize: 0,
+});
+
+// The brand lockup heads the bar at the sizes where the sidebar's own lockup
+// isn't in view — the phone tab bar and the `mdToLg` window where the sidebar
+// is an off-canvas drawer. From `lg` up the permanent sidebar carries the
+// brand, so it's dropped here to avoid showing it twice. A small trailing gap
+// sets it off from the page path that follows.
+const brandStyles = css({
+  alignItems: "center",
+  display: "flex",
+  flexShrink: 0,
+  lg: { display: "none" },
+  marginInlineEnd: 1.5,
 });
 
 const iconStyles = css({
