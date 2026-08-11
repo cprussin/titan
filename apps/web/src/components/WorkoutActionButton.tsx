@@ -1,8 +1,11 @@
 "use client";
 
+import { ScalesIcon } from "@phosphor-icons/react/dist/ssr/Scales";
 import { usePathname } from "next/navigation";
 import { css } from "../../styled-system/css";
 import type { WorkoutAction } from "../server/workout-action";
+import { Button } from "../ui";
+import { WeighInDialog } from "./WeighInDialog";
 import { WorkoutActionControl } from "./WorkoutActionControl";
 
 type Props = {
@@ -16,6 +19,11 @@ type Props = {
 /**
  * The app-wide primary workout action: `continue` links into the in-progress
  * session, `start` opens the readiness check-in and creates today's session.
+ *
+ * On phones the `fab` floats that action above the bottom bar, pairing it with
+ * a smaller, neutral secondary weigh-in button so logging bodyweight is one tap
+ * away without competing with the accent primary. The `sidebar` docks the
+ * primary action alone in the wide-screen rail.
  *
  * While the athlete is *on* their in-progress session's screen the action would
  * only duplicate that screen's own controls, so the FAB hides and the sidebar
@@ -31,7 +39,23 @@ export const WorkoutActionButton = ({ action, variant }: Props) => {
   if (variant === "fab") {
     return onActiveSession ? undefined : (
       <div className={fabStyles}>
-        <WorkoutActionControl action={action} rounded size="xl" />
+        <span className={liftedStyles}>
+          <WeighInDialog
+            trigger={
+              <Button
+                beforeIcon={<ScalesIcon size={18} />}
+                rounded
+                size="lg"
+                variant="solid"
+              >
+                Weigh in
+              </Button>
+            }
+          />
+        </span>
+        <span className={liftedStyles}>
+          <WorkoutActionControl action={action} rounded size="xl" />
+        </span>
       </div>
     );
   } else {
@@ -58,20 +82,31 @@ const isOnSessionScreen = (pathname: string, sessionId: string): boolean => {
   return pathname === base || pathname.startsWith(`${base}/`);
 };
 
-// The floating action button: pinned to the bottom-end corner, lifted clear of
-// the phone tab bar (and the OS safe-area inset below it). Shown only at the
-// phone size, where that bottom bar is the nav; from `md` up — where the nav
-// becomes a sidebar (a drawer through `mdToLg`, permanent at `lg`) — the sidebar
-// button takes over. The pill's lifted shadow reads as floating.
+// The floating action area: pinned to the bottom-end corner, lifted clear of
+// the phone tab bar (and the OS safe-area inset below it). The primary workout
+// action sits closest to the thumb with the secondary weigh-in stacked above
+// it, both aligned to the trailing edge. Shown only at the phone size, where
+// that bottom bar is the nav; from `md` up — where the nav becomes a sidebar (a
+// drawer through `mdToLg`, permanent at `lg`) — the sidebar button takes over.
 const fabStyles = css({
-  borderRadius: "full",
-  boxShadow: "lifted",
+  alignItems: "flex-end",
   display: "flex",
+  flexDirection: "column",
+  gap: 3,
   insetBlockEnd: "calc(env(safe-area-inset-bottom) + {spacing.20})",
   insetInlineEnd: 4,
   md: { display: "none" },
   position: "fixed",
   zIndex: 8,
+});
+
+// Each floating pill carries its own lifted shadow so it reads as hovering
+// above the page; the full radius shapes that shadow to the rounded control it
+// wraps.
+const liftedStyles = css({
+  borderRadius: "full",
+  boxShadow: "lifted",
+  display: "flex",
 });
 
 // The sidebar counterpart: a full-width button docked at the head of the nav
