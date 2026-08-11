@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import {
+  formatBodyWeight,
   formatClock,
   formatDistance,
   formatDuration,
@@ -12,6 +13,13 @@ describe("formatters", () => {
   it("formats weight, dropping trailing zeros", () => {
     expect(formatWeight(230)).toBe("230 lb");
     expect(formatWeight(202.5)).toBe("202.5 lb");
+  });
+
+  it("formats a body weight to the tenth a scale reads", () => {
+    expect(formatBodyWeight(172)).toBe("172 lb");
+    expect(formatBodyWeight(172.4)).toBe("172.4 lb");
+    expect(formatBodyWeight(150.2)).toBe("150.2 lb");
+    expect(formatBodyWeight(150.25)).toBe("150.3 lb");
   });
 
   it("formats a weight in its given unit", () => {
