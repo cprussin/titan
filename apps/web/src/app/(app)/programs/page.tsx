@@ -184,14 +184,18 @@ const descriptionStyles = css({ color: "muted", fontSize: "sm" });
 
 const goalsStyles = wrap({ gap: 1.5, paddingBlockEnd: 0.5 });
 
-// The blocks read as a hairline-ruled ledger under the header.
+// The blocks stack as an unruled list under the header, set off from it by a
+// single hairline on the first row.
 const blockListStyles = vstack({ alignItems: "stretch", gap: 0 });
 
-// The first item's rule doubles as the header/list divider, so it gets extra
-// top padding to sit the first row off the line rather than flush against it.
+// Only the first item carries a rule — the header/list divider — with extra top
+// padding to sit the first row off the line rather than flush against it. The
+// blocks themselves run together with no dividers between them.
 const blockItemStyles = css({
-  _first: { paddingBlockStart: 2 },
-  borderBlockStart: "1px solid {colors.border}",
+  _first: {
+    borderBlockStart: "1px solid {colors.border}",
+    paddingBlockStart: 2,
+  },
 });
 
 // The whole row reads as one block "button": it's the positioning context for
