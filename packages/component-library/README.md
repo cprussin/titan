@@ -24,6 +24,7 @@ consume it — don't fork. See [/docs/guidelines/STYLING.md](../../docs/guidelin
 | `@titan/component-library/Tabs` | Tabbed container (base-ui Tabs): config-driven `tabs` array, a sliding active underline, `size` variants, inset focus ring. |
 | `@titan/component-library/ModalDialog` | Modal dialog with flattened `title` / `footer` / `trigger` API. |
 | `@titan/component-library/Avatar` | Avatar with initials / gradient fallback. |
+| `@titan/component-library/Skeleton` | Pulsing placeholder block for loading states, sized per instance. |
 | `@titan/component-library/Kbd` | Keyboard-shortcut key cap. |
 | `@titan/component-library/pandacss-preset` | The `titanPreset` every package's `panda.config.ts` extends. |
 

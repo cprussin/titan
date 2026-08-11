@@ -19,6 +19,7 @@ export { Input } from "@titan/component-library/Input";
 export { ModalDialog } from "@titan/component-library/ModalDialog";
 export { Provider } from "@titan/component-library/Provider";
 export { Select } from "@titan/component-library/Select";
+export { Skeleton } from "@titan/component-library/Skeleton";
 export { Slider } from "@titan/component-library/Slider";
 export { Textarea } from "@titan/component-library/Textarea";
 export { ThemeSwitch } from "@titan/component-library/ThemeSwitch";

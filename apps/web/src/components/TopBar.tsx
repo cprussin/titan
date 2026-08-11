@@ -11,7 +11,7 @@ type Props = {
   breadcrumbs?: readonly Crumb[] | undefined;
   description?: string | undefined;
   icon?: ReactNode | undefined;
-  title: string;
+  title: ReactNode;
 };
 
 /**
