@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { css } from "../../../../../../styled-system/css";
 import { grid, vstack } from "../../../../../../styled-system/patterns";
 import { DeleteWorkoutButton } from "../../../../../components/DeleteWorkoutButton";
+import { SessionLog } from "../../../../../components/SessionLog";
 import { StatTile } from "../../../../../components/StatTile";
 import { TopBar } from "../../../../../components/TopBar";
 import { db } from "../../../../../db";
@@ -77,6 +78,10 @@ const CompletePage = async ({
             value={`${sessionRecords.length}`}
           />
         </div>
+
+        {session.results.length > 0 && (
+          <SessionLog exerciseNames={names} results={session.results} />
+        )}
 
         <div className={sectionsStyles}>
           {sessionRecords.length > 0 && (
