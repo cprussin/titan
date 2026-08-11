@@ -11,6 +11,7 @@ import { css } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
 import { Button } from "../ui";
 import { nextSetReps, nextSetWeight } from "./next-set-defaults";
+import { RpePicker } from "./RpePicker";
 
 /** The strength/bodyweight/timed-hold prescription shapes this logger drives. */
 type StrengthLikePrescription = Extract<
@@ -303,31 +304,6 @@ const MiniStepper = ({
     >
       <PlusIcon size={14} />
     </Button>
-  </div>
-);
-
-const RPE_OPTIONS = [7, 8, 9, 10] as const;
-
-type RpePickerProps = {
-  onChange: (value: number | undefined) => void;
-  value: number | undefined;
-};
-
-const RpePicker = ({ onChange, value }: RpePickerProps) => (
-  <div className={vstack({ alignItems: "stretch", gap: 1 })}>
-    <span className={fieldLabelStyles}>RPE (optional)</span>
-    <div className={hstack({ gap: 2 })}>
-      {RPE_OPTIONS.map((option) => (
-        <Button
-          key={option}
-          onClick={() => onChange(option === value ? undefined : option)}
-          size="md"
-          variant={option === value ? "accent" : "outline"}
-        >
-          {`${option}`}
-        </Button>
-      ))}
-    </div>
   </div>
 );
 
