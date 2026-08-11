@@ -120,7 +120,7 @@ const fabStyles = css({
   columnGap: 3,
   display: "grid",
   gridTemplateColumns: "auto auto",
-  insetBlockEnd: "calc(env(safe-area-inset-bottom) + {spacing.20})",
+  insetBlockEnd: "calc(env(safe-area-inset-bottom) + {spacing.24})",
   insetInlineEnd: 4,
   md: { display: "none" },
   position: "fixed",
