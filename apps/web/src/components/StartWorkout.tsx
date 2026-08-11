@@ -18,6 +18,9 @@ type Props = {
   rounded: boolean;
   /** Trigger height — `xl` for the prominent mobile FAB, `lg` inline. */
   size?: "lg" | "xl" | undefined;
+  /** Render the trigger as an icon-only circle for the mobile FAB stack, its
+   *  name carried by `aria-label` with the visible label sitting beside it. */
+  iconOnly?: boolean | undefined;
 };
 
 /**
@@ -26,7 +29,11 @@ type Props = {
  * skipping starts straight away. Either path creates the session server-side
  * and navigates into it.
  */
-export const StartWorkout = ({ rounded, size = "lg" }: Props) => {
+export const StartWorkout = ({
+  rounded,
+  size = "lg",
+  iconOnly = false,
+}: Props) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [energy, setEnergy] = useState(3);
@@ -92,14 +99,25 @@ export const StartWorkout = ({ rounded, size = "lg" }: Props) => {
       open={open}
       title="Ready to train?"
       trigger={
-        <Button
-          beforeIcon={<PlayIcon size={20} />}
-          rounded={rounded}
-          size={size}
-          variant="accent"
-        >
-          Start workout
-        </Button>
+        iconOnly ? (
+          <Button
+            label="Start workout"
+            rounded={rounded}
+            size={size}
+            variant="accent"
+          >
+            <PlayIcon size={20} />
+          </Button>
+        ) : (
+          <Button
+            beforeIcon={<PlayIcon size={20} />}
+            rounded={rounded}
+            size={size}
+            variant="accent"
+          >
+            Start workout
+          </Button>
+        )
       }
     >
       <div className={fieldsStyles}>
