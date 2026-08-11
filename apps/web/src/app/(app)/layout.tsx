@@ -54,7 +54,14 @@ const mainStyles = css({
   // the bottom bar, so the tall bottom padding it needed goes away.
   lg: { paddingBlock: 8, paddingInline: 8 },
   md: { paddingBlock: 6, paddingInline: 6 },
-  paddingBlockEnd: 24,
+  // On phones the workout FAB stack floats over the page, so the block-end
+  // padding has to clear its whole height — otherwise the last of the content
+  // scrolls under it. The stack (see `fabStyles` in WorkoutActionButton) sits
+  // `env(safe-area-inset-bottom) + {spacing.24}` off the bottom and rises the
+  // height of its two buttons above that: `xl` (12) + row gap (3) + `lg` (10).
+  // Match that origin and add a little breathing room above the top button:
+  // 24 + 12 + 3 + 10 + 4 = 53.
+  paddingBlockEnd: "calc(env(safe-area-inset-bottom) + {spacing.53})",
   paddingBlockStart: 4,
   paddingInline: 4,
 });
