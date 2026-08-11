@@ -1,6 +1,6 @@
 import { css } from "../../styled-system/css";
-import { hstack, vstack } from "../../styled-system/patterns";
-import { Slider } from "../ui";
+import { hstack } from "../../styled-system/patterns";
+import { Field, Slider } from "../ui";
 
 const RPE_MIN = 1;
 const RPE_MAX = 10;
@@ -15,24 +15,32 @@ type Props = {
  * 1–10 slider with a live numeric readout. The value stays unset — shown as an
  * em dash — until the athlete moves the slider, so an untouched set records no
  * RPE; the slider rests at its minimum while unset.
+ *
+ * The readout rides on the field's label row (as an `aria-hidden` adornment so
+ * it never pollutes the slider's accessible name — the value is already carried
+ * by the slider's `aria-valuenow`).
  */
 export const RpePicker = ({ onChange, value }: Props) => (
-  <div className={vstack({ alignItems: "stretch", gap: 1 })}>
-    <div className={hstack({ gap: 2, justifyContent: "space-between" })}>
-      <span className={labelStyles}>RPE (optional)</span>
-      <span className={valueStyles}>{value ?? "—"}</span>
-    </div>
+  <Field
+    label={
+      <span className={labelRowStyles}>
+        <span>RPE (optional)</span>
+        <span aria-hidden className={valueStyles}>
+          {value ?? "—"}
+        </span>
+      </span>
+    }
+  >
     <Slider
-      aria-label="RPE"
       max={RPE_MAX}
       min={RPE_MIN}
       onValueChange={onChange}
       value={value ?? RPE_MIN}
     />
-  </div>
+  </Field>
 );
 
-const labelStyles = css({ color: "muted", fontSize: "sm" });
+const labelRowStyles = hstack({ gap: 2, justifyContent: "space-between" });
 
 const valueStyles = css({
   color: "accent",
