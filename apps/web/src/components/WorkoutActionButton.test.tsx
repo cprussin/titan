@@ -27,14 +27,20 @@ const renderWithRouter = (ui: ReactElement) =>
 
 describe(WorkoutActionButton, () => {
   describe("fab", () => {
-    it("stacks the primary workout action above a secondary weigh-in, each icon-only with an accessible name", () => {
+    it("stacks a secondary weigh-in above the primary workout action, each icon-only with an accessible name", () => {
       renderWithRouter(<WorkoutActionButton action={start} variant="fab" />);
+      const weighIn = screen.getByRole("button", { name: /weigh in/i });
+      const startWorkout = screen.getByRole("button", {
+        name: "Start workout",
+      });
+      expect(weighIn).toBeInTheDocument();
+      expect(startWorkout).toBeInTheDocument();
+      // The weigh-in sits on top, the primary action below it (closest to the
+      // thumb) — assert the DOM order the stack renders them in.
       expect(
-        screen.getByRole("button", { name: "Start workout" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: /weigh in/i }),
-      ).toBeInTheDocument();
+        weighIn.compareDocumentPosition(startWorkout) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
     });
   });
 

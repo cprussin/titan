@@ -25,7 +25,8 @@ type Props = {
  * style stack: icon-only circles centered on a shared vertical axis with their
  * text labels sitting to their left. It pairs the primary with a smaller, neutral
  * secondary weigh-in button so logging bodyweight is one tap away without
- * competing with the accent primary. The `sidebar` docks the primary action
+ * competing with the accent primary; the weigh-in sits on top with the primary
+ * action below it, closest to the thumb. The `sidebar` docks the primary action
  * alone in the wide-screen rail.
  *
  * While the athlete is *on* their in-progress session's screen the action would
@@ -42,13 +43,6 @@ export const WorkoutActionButton = ({ action, variant }: Props) => {
   if (variant === "fab") {
     return onActiveSession ? undefined : (
       <div className={fabStyles}>
-        <FabAction
-          label={
-            action.kind === "continue" ? "Continue workout" : "Start workout"
-          }
-        >
-          <WorkoutActionControl action={action} iconOnly rounded size="xl" />
-        </FabAction>
         <FabAction label="Weigh in">
           <WeighInDialog
             trigger={
@@ -57,6 +51,13 @@ export const WorkoutActionButton = ({ action, variant }: Props) => {
               </Button>
             }
           />
+        </FabAction>
+        <FabAction
+          label={
+            action.kind === "continue" ? "Continue workout" : "Start workout"
+          }
+        >
+          <WorkoutActionControl action={action} iconOnly rounded size="xl" />
         </FabAction>
       </div>
     );
@@ -108,8 +109,8 @@ const isOnSessionScreen = (pathname: string, sessionId: string): boolean => {
 
 // The floating action area: pinned to the bottom-end corner, lifted clear of
 // the phone tab bar (and the OS safe-area inset below it). A two-column grid —
-// labels in the leading column, buttons in the trailing one — so the primary
-// workout action stacks on top with the secondary weigh-in below it (closest to
+// labels in the leading column, buttons in the trailing one — so the secondary
+// weigh-in stacks on top with the primary workout action below it (closest to
 // the thumb) and every button's icon-only circle centers on one shared vertical
 // axis while its text label sits to the left. Shown only at the phone size,
 // where that bottom bar is the nav; from `md` up — where the nav becomes a
