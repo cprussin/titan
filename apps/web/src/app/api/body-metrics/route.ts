@@ -3,8 +3,8 @@ import { insertBodyMetric } from "@titan/db/body-metrics";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiAuthGuard } from "../../../auth/session";
-import { dateIso } from "../../../date";
 import { db } from "../../../db";
+import { todayIso } from "../../../server/local-date";
 import { USER_ID } from "../../../user";
 
 const bodySchema = z.object({ weightLb: z.number().positive() });
@@ -15,7 +15,7 @@ export const POST = async (request: Request): Promise<Response> => {
     const { weightLb } = bodySchema.parse(await request.json());
     const id = randomUUID();
     await insertBodyMetric(db, {
-      date: dateIso(),
+      date: await todayIso(),
       id,
       userId: USER_ID,
       weightLb,

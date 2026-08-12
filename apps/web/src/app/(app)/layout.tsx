@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { css } from "../../../styled-system/css";
 import { requireAuth } from "../../auth/session";
 import { AppNav } from "../../components/AppNav";
 import { NavDrawerProvider } from "../../components/NavDrawer";
+import { TimezoneSync } from "../../components/TimezoneSync";
 import { WorkoutActionButton } from "../../components/WorkoutActionButton";
-import { dateIso } from "../../date";
 import { db } from "../../db";
 import { currentWorkoutAction } from "../../server/current-workout-action";
+import { todayIso } from "../../server/local-date";
+import { TIMEZONE_COOKIE } from "../../timezone";
 import { USER_ID } from "../../user";
 
 /**
@@ -27,9 +30,15 @@ export const metadata: Metadata = {
 
 const AppLayout = async ({ children }: { children: ReactNode }) => {
   const user = await requireAuth();
-  const workoutAction = await currentWorkoutAction(db, USER_ID, dateIso());
+  const workoutAction = await currentWorkoutAction(
+    db,
+    USER_ID,
+    await todayIso(),
+  );
+  const timeZone = (await cookies()).get(TIMEZONE_COOKIE)?.value;
   return (
     <NavDrawerProvider>
+      <TimezoneSync current={timeZone} />
       <div className={contentStyles}>
         <main className={mainStyles}>{children}</main>
       </div>

@@ -8,9 +8,9 @@ import { vstack } from "../../../styled-system/patterns";
 import { TodaySummary } from "../../components/TodaySummary";
 import { TopBar } from "../../components/TopBar";
 import { TrendsSection } from "../../components/TrendsSection";
-import { dateIso } from "../../date";
 import { db } from "../../db";
 import { exerciseNames } from "../../server/exercise-names";
+import { todayIso } from "../../server/local-date";
 import { resolveToday } from "../../server/today";
 import { trendsSummary } from "../../server/trends-summary";
 import { resolveWorkoutAction } from "../../server/workout-action";
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 };
 
 const DashboardPage = async () => {
-  const date = dateIso();
+  const date = await todayIso();
   const today = await resolveToday(db, USER_ID, date);
   const [names, programs, metrics, sessions, externals] = await Promise.all([
     exerciseNames(db),
