@@ -3,6 +3,7 @@ import { externalWorkoutSchema } from "@titan/domain/external";
 import type { Db } from "./client";
 import { jsonb } from "./jsonb";
 import { parseDataRows } from "./parse-rows";
+import { repairLegacyHeartRate } from "./repair-legacy-heart-rate";
 
 /** Insert an imported workout, ignoring a duplicate `(provider, external_id)` so
  *  re-syncs are idempotent. Returns whether a new row was inserted. */
@@ -50,5 +51,8 @@ export const listExternalWorkouts = async (
     ORDER BY external_id DESC
     LIMIT ${limit}
   `;
-  return parseDataRows(externalWorkoutSchema, rows);
+  return parseDataRows(
+    externalWorkoutSchema,
+    rows.map((row) => ({ data: repairLegacyHeartRate(row.data) })),
+  );
 };
