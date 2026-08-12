@@ -2,8 +2,9 @@ import { describe, expect, it } from "bun:test";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import type { ReactElement } from "react";
+import type { ReactNode } from "react";
 import { BodyWeightTrendCard } from "./BodyWeightTrendCard";
+import { useWeighIn, WeighInProvider } from "./WeighInContext";
 
 const stubRouter = (refresh: () => void): AppRouterInstance => ({
   back: () => undefined,
@@ -14,58 +15,55 @@ const stubRouter = (refresh: () => void): AppRouterInstance => ({
   replace: () => undefined,
 });
 
-const renderWithRouter = (
-  ui: ReactElement,
-  refresh: () => void = () => undefined,
-) =>
+/** A trigger so tests can open the shared weigh-in state the headline owns. */
+const Opener = () => {
+  const { open } = useWeighIn();
+  return (
+    <button onClick={open} type="button">
+      open weigh-in
+    </button>
+  );
+};
+
+const renderCard = (ui: ReactNode, refresh: () => void = () => undefined) =>
   render(
     <AppRouterContext.Provider value={stubRouter(refresh)}>
-      {ui}
+      <WeighInProvider>
+        <Opener />
+        {ui}
+      </WeighInProvider>
     </AppRouterContext.Provider>,
   );
 
-const noopSave = async () => undefined;
+const noopSave = () => Promise.resolve();
+
+const openEditor = () =>
+  fireEvent.click(screen.getByRole("button", { name: "open weigh-in" }));
 
 describe(BodyWeightTrendCard, () => {
-  it("shows the latest weight and a weigh-in button in display mode", () => {
-    renderWithRouter(
+  it("shows the latest weight in display mode with no editor", () => {
+    renderCard(
       <BodyWeightTrendCard
-        lastWeighInLabel="Yesterday"
         latestWeightLb={184}
         save={noopSave}
         series={[182, 184]}
-        weighedInToday={false}
       />,
     );
     expect(screen.getByText("184 lb")).toBeDefined();
-    expect(screen.getByRole("button", { name: "Weigh in" })).toBeDefined();
-    expect(screen.getByText(/Last weigh-in/i)).toBeDefined();
+    expect(
+      screen.queryByRole("spinbutton", { name: "Body weight in pounds" }),
+    ).toBeNull();
   });
 
-  it("hides the weigh-in button once weighed in today", () => {
-    renderWithRouter(
+  it("swaps into an input prefilled with the last weight when opened", () => {
+    renderCard(
       <BodyWeightTrendCard
-        lastWeighInLabel="Today"
         latestWeightLb={184}
         save={noopSave}
         series={[182, 184]}
-        weighedInToday={true}
       />,
     );
-    expect(screen.queryByRole("button", { name: "Weigh in" })).toBeNull();
-  });
-
-  it("reveals an input prefilled with the last weight when weighing in", () => {
-    renderWithRouter(
-      <BodyWeightTrendCard
-        lastWeighInLabel="Yesterday"
-        latestWeightLb={184}
-        save={noopSave}
-        series={[182, 184]}
-        weighedInToday={false}
-      />,
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Weigh in" }));
+    openEditor();
     const input = screen.getByRole("spinbutton", {
       name: "Body weight in pounds",
     });
@@ -75,21 +73,19 @@ describe(BodyWeightTrendCard, () => {
   it("saves the entered weight and refreshes", async () => {
     const saved: number[] = [];
     const refreshed = new Promise<void>((resolve) => {
-      renderWithRouter(
+      renderCard(
         <BodyWeightTrendCard
-          lastWeighInLabel="Yesterday"
           latestWeightLb={184}
           save={(weightLb) => {
             saved.push(weightLb);
             return Promise.resolve();
           }}
           series={[182, 184]}
-          weighedInToday={false}
         />,
         resolve,
       );
     });
-    fireEvent.click(screen.getByRole("button", { name: "Weigh in" }));
+    openEditor();
     fireEvent.change(
       screen.getByRole("spinbutton", { name: "Body weight in pounds" }),
       { target: { value: "183.5" } },
@@ -102,16 +98,14 @@ describe(BodyWeightTrendCard, () => {
   });
 
   it("returns to display mode on cancel", () => {
-    renderWithRouter(
+    renderCard(
       <BodyWeightTrendCard
-        lastWeighInLabel="Yesterday"
         latestWeightLb={184}
         save={noopSave}
         series={[182, 184]}
-        weighedInToday={false}
       />,
     );
-    fireEvent.click(screen.getByRole("button", { name: "Weigh in" }));
+    openEditor();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(
       screen.queryByRole("spinbutton", { name: "Body weight in pounds" }),

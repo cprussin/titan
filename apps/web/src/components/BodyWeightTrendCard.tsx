@@ -2,12 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import type { KeyboardEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { css, cva } from "../../styled-system/css";
 import { hstack } from "../../styled-system/patterns";
 import { formatBodyWeight } from "../format";
 import { Button } from "../ui";
 import { Sparkline } from "./Sparkline";
+import { useWeighIn } from "./WeighInContext";
 
 /** Persist a weigh-in. Throws on a failed save so the caller surfaces it rather
  *  than silently dropping the entry. */
@@ -24,41 +25,31 @@ export const saveBodyWeight = async (weightLb: number): Promise<void> => {
 
 type Props = {
   latestWeightLb: number | undefined;
-  /** When the most recent weigh-in was, for the display-mode micro-label. */
-  lastWeighInLabel: string | undefined;
   /** Injected for tests; defaults to the real POST. */
   save?: typeof saveBodyWeight;
   series: readonly number[];
-  /** Whether today's weigh-in is already logged — hides the entry button. */
-  weighedInToday: boolean;
 };
 
-/** The trends band's body-weight column, and its weigh-in entry point. In
- *  display mode it reads like the other trend cards, with the value in accent as
- *  the page's one highlighted number. Tapping "Weigh in" swaps only this card
- *  into an inline editor — the numeral becomes the input — so the eye stays in
- *  place; Enter saves, Esc cancels. */
+/** The trends band's body-weight column — its value the page's one accent
+ *  number. It doubles as the weigh-in editor: when the shared weigh-in state is
+ *  open (from the headline's "Weigh in" button), the numeral becomes an input,
+ *  so the eye stays in place; Enter saves, Esc cancels. */
 export const BodyWeightTrendCard = ({
   latestWeightLb,
-  lastWeighInLabel,
   save = saveBodyWeight,
   series,
-  weighedInToday,
 }: Props) => {
   const router = useRouter();
-  const [editing, setEditing] = useState(false);
+  const { close, weighingIn } = useWeighIn();
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const startEditing = () => {
-    setDraft(latestWeightLb === undefined ? "" : `${latestWeightLb}`);
-    setEditing(true);
-  };
-
-  const cancel = () => {
-    setEditing(false);
-    setBusy(false);
-  };
+  // Seed the input with the last weight each time entry opens.
+  useEffect(() => {
+    if (weighingIn) {
+      setDraft(latestWeightLb === undefined ? "" : `${latestWeightLb}`);
+    }
+  }, [weighingIn, latestWeightLb]);
 
   const commit = () => {
     const weightLb = Number(draft);
@@ -67,7 +58,7 @@ export const BodyWeightTrendCard = ({
       save(weightLb)
         .then(() => {
           setBusy(false);
-          setEditing(false);
+          close();
           router.refresh();
         })
         .catch((error: unknown) => {
@@ -83,24 +74,17 @@ export const BodyWeightTrendCard = ({
       event.preventDefault();
       commit();
     } else if (event.key === "Escape") {
-      cancel();
+      close();
     }
   };
 
   return (
-    <div className={cardStyles({ editing })}>
-      <div className={headerStyles}>
-        <span className={labelStyles}>
-          {editing ? "Body weight · today" : "Body weight"}
-        </span>
-        {!editing && !weighedInToday && (
-          <Button onClick={startEditing} size="sm" variant="ghost">
-            Weigh in
-          </Button>
-        )}
-      </div>
+    <div className={cardStyles({ editing: weighingIn })}>
+      <span className={labelStyles}>
+        {weighingIn ? "Body weight · today" : "Body weight"}
+      </span>
 
-      {editing ? (
+      {weighingIn ? (
         <div className={inputRowStyles}>
           <input
             aria-label="Body weight in pounds"
@@ -124,19 +108,15 @@ export const BodyWeightTrendCard = ({
 
       <Sparkline label="Body weight trend" values={series} />
 
-      {editing ? (
+      {weighingIn && (
         <div className={actionsStyles}>
           <Button loading={busy} onClick={commit} size="sm" variant="accent">
             Save
           </Button>
-          <Button onClick={cancel} size="sm" variant="ghost">
+          <Button onClick={close} size="sm" variant="ghost">
             Cancel
           </Button>
         </div>
-      ) : (
-        lastWeighInLabel !== undefined && (
-          <span className={metaStyles}>Last weigh-in · {lastWeighInLabel}</span>
-        )
       )}
     </div>
   );
@@ -163,12 +143,6 @@ const cardStyles = cva({
       },
     },
   },
-});
-
-const headerStyles = hstack({
-  gap: 2,
-  justifyContent: "space-between",
-  minBlockSize: 8,
 });
 
 const labelStyles = css({ color: "muted", fontSize: "sm", minInlineSize: 0 });
@@ -204,10 +178,3 @@ const inputStyles = css({
 const unitStyles = css({ color: "muted", fontFamily: "mono", fontSize: "sm" });
 
 const actionsStyles = hstack({ gap: 2 });
-
-const metaStyles = css({
-  color: "textTertiary",
-  fontSize: "xs",
-  letterSpacing: "wide",
-  textTransform: "uppercase",
-});

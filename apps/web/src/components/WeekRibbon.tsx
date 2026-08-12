@@ -1,46 +1,84 @@
+import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr/CaretLeft";
+import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr/CaretRight";
 import Link from "next/link";
 import { css, cva } from "../../styled-system/css";
 import type { WeekDay } from "../server/week-schedule";
 
 type Props = {
   days: readonly WeekDay[];
-  /** The day the page below is showing — its cell expands and reads
-   *  "· SELECTED" (or "· TODAY" when it is today). */
+  /** The day the page below is showing — its cell reads "· SELECTED" (or "·
+   *  TODAY" when it is today) and takes the accent border. */
   selectedDate: string;
+  /** Which week is shown: 0 is the current week, ±1 the adjacent ones. Drives
+   *  the caret links and is carried on each day link. */
+  weekOffset: number;
 };
 
-/** The dashboard's spine: a row of seven day cells. The selected day's cell
- *  widens to carry its summary; the others stay compact, a planned day showing
- *  its primary-movement signature and a logged day its tick. Each cell links the
- *  page to that day (today links back to the un-parameterized dashboard). */
-export const WeekRibbon = ({ days, selectedDate }: Props) => (
-  <nav aria-label="Training week" className={ribbonStyles}>
-    {days.map((day) => (
-      <WeekCell day={day} key={day.date} selected={day.date === selectedDate} />
-    ))}
+/** The dashboard's week picker: caret buttons step whole weeks, and seven
+ *  equal-width day cells sit between them (they never change width on
+ *  selection). Each cell links the page to that day; today links back to the
+ *  un-parameterized dashboard. Below `md` the carets give way to a scrollable
+ *  strip. */
+export const WeekRibbon = ({ days, selectedDate, weekOffset }: Props) => (
+  <nav aria-label="Training week" className={pickerStyles}>
+    <Link
+      aria-label="Previous week"
+      className={caretStyles}
+      href={weekHref(weekOffset - 1)}
+    >
+      <CaretLeftIcon />
+    </Link>
+    <div className={cellsStyles}>
+      {days.map((day) => (
+        <WeekCell
+          day={day}
+          key={day.date}
+          selected={day.date === selectedDate}
+          weekOffset={weekOffset}
+        />
+      ))}
+    </div>
+    <Link
+      aria-label="Next week"
+      className={caretStyles}
+      href={weekHref(weekOffset + 1)}
+    >
+      <CaretRightIcon />
+    </Link>
   </nav>
 );
 
-const WeekCell = ({ day, selected }: { day: WeekDay; selected: boolean }) => {
-  const detail = cellDetail(day, selected);
-  return (
-    <Link
-      className={cellStyles({
-        dimmed: day.isPast && !selected,
-        state: selected ? "expanded" : "collapsed",
-      })}
-      href={day.isToday ? "/" : `/?date=${day.date}`}
-    >
-      <span className={labelStyles({ accent: day.isToday || selected })}>
-        {cellLabel(day, selected)}
-      </span>
-      <span className={nameStyles({ expanded: selected, tone: nameTone(day) })}>
-        {cellName(day)}
-      </span>
-      {detail !== undefined && <span className={detailStyles}>{detail}</span>}
-    </Link>
-  );
-};
+const WeekCell = ({
+  day,
+  selected,
+  weekOffset,
+}: {
+  day: WeekDay;
+  selected: boolean;
+  weekOffset: number;
+}) => (
+  <Link
+    className={cellStyles({
+      dimmed: day.isPast && !selected,
+      selected,
+    })}
+    href={day.isToday ? "/" : dayHref(day.date, weekOffset)}
+  >
+    <span className={labelStyles({ accent: day.isToday || selected })}>
+      {cellLabel(day, selected)}
+    </span>
+    <span className={nameStyles({ tone: nameTone(day) })}>{cellName(day)}</span>
+  </Link>
+);
+
+/** The link to a week: the bare dashboard for the current week, else `?week`. */
+const weekHref = (offset: number): string =>
+  offset === 0 ? "/" : `/?week=${offset}`;
+
+/** The link to a specific day, carrying the week offset when it is not the
+ *  current week. */
+const dayHref = (date: string, weekOffset: number): string =>
+  weekOffset === 0 ? `/?date=${date}` : `/?week=${weekOffset}&date=${date}`;
 
 /** The micro-label, suffixed with the day's standing — today wins over a plain
  *  selection so today always reads "· TODAY". */
@@ -55,8 +93,8 @@ const labelSuffix = (day: WeekDay, selected: boolean): string => {
   }
 };
 
-/** The session name, ticked once logged and standing in with "Rest" on an
- *  empty day. */
+/** The session name, ticked once logged and standing in with "Rest" on an empty
+ *  day. */
 const cellName = (day: WeekDay): string => {
   switch (day.kind) {
     case "rest": {
@@ -87,35 +125,41 @@ const nameTone = (day: WeekDay): "default" | "muted" | "success" => {
   }
 };
 
-/** The detail line: the expanded cell always shows its summary; a collapsed
- *  planned cell shows its signature; everything else shows nothing. */
-const cellDetail = (day: WeekDay, selected: boolean): string | undefined => {
-  switch (day.kind) {
-    case "rest": {
-      return undefined;
-    }
-    case "planned": {
-      return selected ? day.summary : day.signature;
-    }
-    case "logged": {
-      return selected ? day.summary : undefined;
-    }
-  }
-};
-
-// Seven cells share a row. The selected cell grows to twice the others (see
-// `cellStyles`), so the row reads as one week with today (or the selection) as
-// its focus. Below `md` the row scrolls rather than crushing every cell.
-const ribbonStyles = css({
+// The carets flank the cells and stretch to their height. Below `md` they are
+// hidden and the cells scroll instead.
+const pickerStyles = css({
+  alignItems: "stretch",
   display: "flex",
   gap: 2,
-  md: { overflowX: "visible" },
+});
+
+const caretStyles = css({
+  _hoverEnabled: { borderColor: "muted", color: "foreground" },
+  alignItems: "center",
+  border: "1px solid {colors.border}",
+  borderRadius: "md",
+  color: "muted",
+  display: { base: "none", md: "flex" },
+  flexShrink: 0,
+  inlineSize: 8,
+  justifyContent: "center",
+  transition:
+    "color {durations.fast} {easings.out}, border-color {durations.fast} {easings.out}",
+});
+
+// Seven equal columns from `md` up; a scrollable strip below it.
+const cellsStyles = css({
+  display: "flex",
+  flex: 1,
+  gap: 2,
+  md: {
+    display: "grid",
+    gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+    overflowX: "visible",
+  },
   overflowX: "auto",
 });
 
-// A cell is a link: a compact ledger of one day. Selected cells take an accent
-// border and badge fill and grow to `2fr`; the rest sit on the hairline border.
-// Past, unselected days recede.
 const cellStyles = cva({
   base: {
     _focusVisible: {
@@ -127,11 +171,12 @@ const cellStyles = cva({
     },
     borderRadius: "md",
     display: "flex",
-    flexBasis: 0,
+    flex: { base: "0 0 auto", md: "1" },
     flexDirection: "column",
     gap: 1,
     md: { minInlineSize: 0 },
-    minInlineSize: "9rem",
+    minInlineSize: "8.5rem",
+    padding: 3,
     transition:
       "background {durations.fast} {easings.out}, border-color {durations.fast} {easings.out}, opacity {durations.fast} {easings.out}",
   },
@@ -140,19 +185,12 @@ const cellStyles = cva({
       false: {},
       true: { opacity: 0.65 },
     },
-    state: {
-      collapsed: {
-        border: "1px solid {colors.border}",
-        flexGrow: 1,
-        padding: 3,
-      },
-      expanded: {
+    selected: {
+      false: { border: "1px solid {colors.border}" },
+      true: {
         backgroundColor:
           "color-mix(in oklab, {colors.accent} 15%, transparent)",
         border: "1px solid {colors.accent}",
-        flexGrow: 2,
-        paddingBlock: 3,
-        paddingInline: 4,
       },
     },
   },
@@ -177,25 +215,16 @@ const labelStyles = cva({
 const nameStyles = cva({
   base: {
     fontFamily: "condensed",
+    fontSize: "sm",
+    fontWeight: "semibold",
     lineHeight: "condensed",
     minInlineSize: 0,
   },
   variants: {
-    expanded: {
-      false: { fontSize: "sm", fontWeight: "semibold" },
-      true: { fontSize: "lg", fontWeight: "bold" },
-    },
     tone: {
       default: { color: "foreground" },
       muted: { color: "muted" },
       success: { color: "success" },
     },
   },
-});
-
-const detailStyles = css({
-  color: "muted",
-  fontFamily: "mono",
-  fontSize: "xs",
-  fontWeight: "medium",
 });

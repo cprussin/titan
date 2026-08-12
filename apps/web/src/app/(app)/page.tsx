@@ -8,28 +8,33 @@ import {
   getWorkoutSessionByDate,
   listWorkoutSessions,
 } from "@titan/db/workout-sessions";
-import type { ProgramVersion } from "@titan/domain/program";
 import type { WorkoutSession } from "@titan/domain/workout-session";
 import type { Metadata } from "next";
 import { z } from "zod";
-import { css } from "../../../styled-system/css";
+import { css, cx } from "../../../styled-system/css";
 import { vstack } from "../../../styled-system/patterns";
 import { DashboardHeader } from "../../components/DashboardHeader";
 import { LogGrid } from "../../components/LogGrid";
 import { NoteAside } from "../../components/NoteAside";
 import { PrescriptionGrid } from "../../components/PrescriptionGrid";
+import { SessionHeader } from "../../components/SessionHeader";
 import { TopBar } from "../../components/TopBar";
 import { TrendsBand } from "../../components/TrendsBand";
 import { WeekRibbon } from "../../components/WeekRibbon";
+import { WeighInProvider } from "../../components/WeighInContext";
 import { db } from "../../db";
 import { programName } from "../../program-name";
-import type { DashboardBody } from "../../server/dashboard-view";
+import type {
+  DashboardBody,
+  DashboardSession,
+} from "../../server/dashboard-view";
 import { dashboardView } from "../../server/dashboard-view";
 import { exerciseNames } from "../../server/exercise-names";
 import { todayIso } from "../../server/local-date";
 import { loggedSessionView } from "../../server/logged-session-view";
 import { buildSlotHistory, historyLookup } from "../../server/slot-history";
-import { resolveToday } from "../../server/today";
+import type { Today } from "../../server/today";
+import { resolveScheduledDay } from "../../server/today";
 import { trendsSummary } from "../../server/trends-summary";
 import { dayLabel, weekDates } from "../../server/week-dates";
 import { weekSchedule } from "../../server/week-schedule";
@@ -41,8 +46,9 @@ export const metadata: Metadata = {
   title: "Dashboard",
 };
 
-/** The `?date` param, when present, selects a day of the current week. */
+/** `?date` selects a day; `?week` pages the picker off the current week. */
 const dateParamSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const weekParamSchema = z.coerce.number().int();
 
 const DashboardPage = async ({
   searchParams,
@@ -50,7 +56,9 @@ const DashboardPage = async ({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) => {
   const today = await todayIso();
-  const selectedDate = selectDate((await searchParams).date, today);
+  const params = await searchParams;
+  const weekOffset = selectWeek(params.week);
+  const selectedDate = selectDate(params.date, today);
 
   const [state, names, programs, sessions, metrics, externals, historyMap] =
     await Promise.all([
@@ -67,8 +75,14 @@ const DashboardPage = async ({
     state === undefined
       ? undefined
       : await getProgramVersion(db, state.programVersionId);
+  const absoluteWeek = (state?.absoluteWeek ?? 1) + weekOffset;
 
-  const selected = await resolveToday(db, USER_ID, selectedDate);
+  const selected = await resolveScheduledDay(
+    db,
+    USER_ID,
+    absoluteWeek,
+    selectedDate,
+  );
   const loggedSession = await getWorkoutSessionByDate(
     db,
     USER_ID,
@@ -86,13 +100,13 @@ const DashboardPage = async ({
         );
 
   const week = weekSchedule({
-    absoluteWeek: state?.absoluteWeek ?? 1,
+    absoluteWeek,
     historyBySlot: historyLookup(historyMap),
     loggedByDate: completedByDate(sessions),
     names,
     programVersion,
     today,
-    weekDates: weekDates(today),
+    weekDates: weekDates(today, weekOffset),
   });
 
   const view = dashboardView({
@@ -100,58 +114,66 @@ const DashboardPage = async ({
     isFuture: selectedDate > today,
     isToday: selectedDate === today,
     logged,
-    nextLabel: nextTrainingLabel(week, today),
-    programContext: programContext(selected, programs, programVersion),
+    programName: programLabel(selected, programs),
     selected,
+    weekCount: weekCount(selected),
     weekLabel: dayLabel(selectedDate),
   });
 
   const summary = trendsSummary(metrics, sessions, externals);
-  const latestMetric = metrics.at(0);
+  const weighedInToday = metrics.at(0)?.date === today;
 
   return (
     <div className={pageStyles}>
       <TopBar icon={<GaugeIcon size={18} />} title="Dashboard" />
-      <div className={contentStyles}>
-        <DashboardHeader
-          eyebrow={view.eyebrow}
-          eyebrowTone={view.eyebrowTone}
-          subtitle={view.subtitle}
-          title={view.title}
-          trailing={view.trailing}
-        />
-        <WeekRibbon days={week} selectedDate={selectedDate} />
-        <Body body={view.body} names={names} />
-        <div className={trendsStyles}>
+      <WeighInProvider>
+        <div className={contentStyles}>
           <TrendsBand
             bodyWeight={{
-              lastWeighInLabel:
-                latestMetric === undefined
-                  ? undefined
-                  : relativeDayLabel(latestMetric.date, today),
               latestWeightLb: summary.latestWeightLb,
               series: summary.weightSeries,
-              weighedInToday: latestMetric?.date === today,
             }}
             names={names}
             rowPace={summary.rowPace}
             strengthSeries={summary.strengthSeries}
           />
+          <div className={sectionStyles}>
+            <WeekRibbon
+              days={week}
+              selectedDate={selectedDate}
+              weekOffset={weekOffset}
+            />
+          </div>
+          <div className={sectionStyles}>
+            <DashboardHeader
+              eyebrow={view.eyebrow}
+              primary={view.primary}
+              title={view.title}
+              weighedInToday={weighedInToday}
+            />
+          </div>
+          <SessionBlock body={view.body} names={names} session={view.session} />
         </div>
-      </div>
+      </WeighInProvider>
     </div>
   );
 };
 
 export default DashboardPage;
 
-/** The day the page shows: a valid `?date` within the week, else today. */
+/** The selected day: a valid `?date`, else today. */
 const selectDate = (
   param: string | string[] | undefined,
   today: string,
 ): string => {
   const parsed = dateParamSchema.safeParse(param);
   return parsed.success ? parsed.data : today;
+};
+
+/** The shown week offset: a valid integer `?week`, else the current week. */
+const selectWeek = (param: string | string[] | undefined): number => {
+  const parsed = weekParamSchema.safeParse(param);
+  return parsed.success ? parsed.data : 0;
 };
 
 /** Completed sessions keyed by their scheduled date, for the ribbon. */
@@ -167,89 +189,65 @@ const completedByDate = (
   return byDate;
 };
 
-/** "{Program} · Week X of Y" for the selected day, when a program is placed. */
-const programContext = (
-  selected: Awaited<ReturnType<typeof resolveToday>>,
+/** The active program's name for the selected day, when a program is placed. */
+const programLabel = (
+  selected: Today,
   programs: Parameters<typeof programName>[0],
-  programVersion: ProgramVersion | undefined,
-): string | undefined => {
-  if (selected.kind !== "workout" || programVersion === undefined) {
-    return undefined;
-  } else {
-    const { block, weekInBlock } = selected.position;
-    return `${programName(programs, selected.programVersion.programId)} · Week ${weekInBlock} of ${block.durationWeeks}`;
-  }
-};
+): string | undefined =>
+  selected.kind === "workout"
+    ? programName(programs, selected.programVersion.programId)
+    : undefined;
 
-/** The next training day after today in the visible week, as "Row Intervals ·
- *  Thu 13", or `undefined` when the rest of the week is clear. */
-const nextTrainingLabel = (
-  week: ReturnType<typeof weekSchedule>,
-  today: string,
-): string | undefined => {
-  const next = week.find((day) => day.date > today && day.kind === "planned");
-  return next === undefined || next.kind !== "planned"
-    ? undefined
-    : `${next.name} · ${titleCaseLabel(next.label)}`;
-};
+/** "W3 / 8" — the selected day's week within its block. */
+const weekCount = (selected: Today): string | undefined =>
+  selected.kind === "workout"
+    ? `W${selected.position.weekInBlock} / ${selected.position.block.durationWeeks}`
+    : undefined;
 
-/** A weigh-in's recency for the body-weight card: Today, Yesterday, or the
- *  day's ribbon label. */
-const relativeDayLabel = (date: string, today: string): string => {
-  if (date === today) {
-    return "Today";
-  } else {
-    return date === previousDay(today) ? "Yesterday" : dayLabel(date);
-  }
-};
-
-/** The `YYYY-MM-DD` calendar day before `date`. */
-const previousDay = (date: string): string => {
-  const shifted = new Date(`${date}T00:00:00.000Z`);
-  shifted.setUTCDate(shifted.getUTCDate() - 1);
-  return shifted.toISOString().slice(0, 10);
-};
-
-/** A ribbon label ("THU 13") title-cased for prose ("Thu 13"). */
-const titleCaseLabel = (label: string): string =>
-  label.replace(
-    /^(\w)(\w+)/,
-    (_match, head: string, tail: string) => `${head}${tail.toLowerCase()}`,
-  );
-
-/** The body below the ribbon: the prescription ledger, the log, or a rest
- *  message. Projection notes sit above the prescription; adaptation notes below
- *  the log. */
-const Body = ({
+/** The session block: the session header over the day's grid, or a rest
+ *  message. Adaptation notes follow a logged grid; a projection's caveat is
+ *  already in the session summary, so a prescription needs no aside. */
+const SessionBlock = ({
   body,
   names,
+  session,
 }: {
   body: DashboardBody;
   names: ReadonlyMap<string, string>;
+  session: DashboardSession | undefined;
 }) => {
   switch (body.kind) {
+    case "rest": {
+      return (
+        <section className={sectionStyles}>
+          <p className={copyStyles}>{body.copy}</p>
+        </section>
+      );
+    }
     case "prescription": {
       return (
-        <div className={bodyStyles}>
-          {body.note !== undefined && <NoteAside notes={[body.note]} />}
+        <section className={cx(sectionStyles, blockStyles)}>
+          {session !== undefined && (
+            <SessionHeader label={session.label} summary={session.summary} />
+          )}
           <PrescriptionGrid
             exercises={body.exercises}
             loadHeader={body.loadHeader}
             names={names}
           />
-        </div>
+        </section>
       );
     }
     case "log": {
       return (
-        <div className={bodyStyles}>
+        <section className={cx(sectionStyles, blockStyles)}>
+          {session !== undefined && (
+            <SessionHeader label={session.label} summary={session.summary} />
+          )}
           <LogGrid exercises={body.view.exercises} />
           <NoteAside notes={body.view.notes} />
-        </div>
+        </section>
       );
-    }
-    case "rest": {
-      return <p className={copyStyles}>{body.copy}</p>;
     }
   }
 };
@@ -257,7 +255,7 @@ const Body = ({
 const pageStyles = vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } });
 
 // The redesigned dashboard flows as one column, capped at a readable measure and
-// centered, its sections separated by generous space.
+// centered. Trends open it; each later section is set off by a hairline rule.
 const contentStyles = vstack({
   alignItems: "stretch",
   gap: 6,
@@ -266,12 +264,16 @@ const contentStyles = vstack({
   width: "100%",
 });
 
-const bodyStyles = vstack({ alignItems: "stretch", gap: 6 });
-
-// A hairline rule sets the trends band off from the plan above it.
-const trendsStyles = css({
+const sectionStyles = css({
   borderBlockStart: "1px solid {colors.border}",
   paddingBlockStart: 6,
+});
+
+const blockStyles = css({
+  alignItems: "stretch",
+  display: "flex",
+  flexDirection: "column",
+  gap: 6,
 });
 
 const copyStyles = css({

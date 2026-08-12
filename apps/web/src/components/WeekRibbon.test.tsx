@@ -47,31 +47,36 @@ const days: readonly WeekDay[] = [
 ];
 
 describe(WeekRibbon, () => {
+  it("pages weeks with caret buttons", () => {
+    render(<WeekRibbon days={days} selectedDate="2026-08-11" weekOffset={0} />);
+    expect(
+      screen.getByRole("link", { name: "Previous week" }).getAttribute("href"),
+    ).toBe("/?week=-1");
+    expect(
+      screen.getByRole("link", { name: "Next week" }).getAttribute("href"),
+    ).toBe("/?week=1");
+  });
+
   it("marks today and links it back to the dashboard root", () => {
-    render(<WeekRibbon days={days} selectedDate="2026-08-11" />);
+    render(<WeekRibbon days={days} selectedDate="2026-08-11" weekOffset={0} />);
     const today = screen.getByRole("link", { name: /TUE 11 · TODAY/ });
     expect(today.getAttribute("href")).toBe("/");
   });
 
-  it("shows a collapsed planned day's signature and links it by date", () => {
-    render(<WeekRibbon days={days} selectedDate="2026-08-11" />);
+  it("links a day by date, carrying the week offset", () => {
+    render(<WeekRibbon days={days} selectedDate="2026-08-11" weekOffset={2} />);
     const friday = screen.getByRole("link", { name: /Heavy Upper/ });
-    expect(friday.getAttribute("href")).toBe("/?date=2026-08-14");
-    expect(friday).toHaveTextContent("Bench Press 5×5");
-    // Collapsed: the expanded count/duration summary is not shown.
+    expect(friday.getAttribute("href")).toBe("/?week=2&date=2026-08-14");
+    // Simplified cells: no per-day detail line.
+    expect(friday).not.toHaveTextContent("Bench Press");
     expect(friday).not.toHaveTextContent("5 exercises");
   });
 
-  it("expands the selected day to its summary and labels it selected", () => {
-    render(<WeekRibbon days={days} selectedDate="2026-08-14" />);
-    const friday = screen.getByRole("link", { name: /FRI 14 · SELECTED/ });
-    expect(friday).toHaveTextContent("5 exercises · ~55 min");
-    // Today keeps its own label even when another day is selected.
-    expect(screen.getByRole("link", { name: /TUE 11 · TODAY/ })).toBeDefined();
-  });
-
-  it("ticks a logged day and renders a rest day", () => {
-    render(<WeekRibbon days={days} selectedDate="2026-08-11" />);
+  it("marks the selected day and ticks a logged day; renders a rest day", () => {
+    render(<WeekRibbon days={days} selectedDate="2026-08-10" weekOffset={0} />);
+    expect(
+      screen.getByRole("link", { name: /MON 10 · SELECTED/ }),
+    ).toBeDefined();
     expect(screen.getByRole("link", { name: /Volume Upper ✓/ })).toBeDefined();
     expect(screen.getByRole("link", { name: /Rest/ })).toBeDefined();
   });

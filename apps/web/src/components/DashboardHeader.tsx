@@ -1,70 +1,81 @@
+import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr/ArrowLeft";
 import { css, cva } from "../../styled-system/css";
-import { vstack } from "../../styled-system/patterns";
-import type { DashboardTrailing } from "../server/dashboard-view";
+import { hstack, vstack } from "../../styled-system/patterns";
+import type {
+  DashboardEyebrow,
+  DashboardPrimary,
+} from "../server/dashboard-view";
 import { Button } from "../ui";
+import { WeighInButton } from "./WeighInButton";
 import { WorkoutActionControl } from "./WorkoutActionControl";
 
 type Props = {
-  eyebrow: string;
-  eyebrowTone: "accent" | "success" | "tertiary";
-  subtitle: string | undefined;
+  eyebrow: DashboardEyebrow;
+  primary: DashboardPrimary;
   title: string;
-  trailing: DashboardTrailing;
+  /** Passed through to the weigh-in button, which hides once today is logged. */
+  weighedInToday: boolean;
 };
 
-/** The dashboard's top row: an eyebrow that places the day, the day's session
- *  title, an optional summary subtitle, and — on the trailing edge — the day's
- *  action, whether launching today's workout, returning to today, or the
- *  post-workout next-up notes. */
+/** The dashboard's headline, describing the selected day: an eyebrow that places
+ *  it (program, week count, and — away from today — its standing), the session
+ *  title, and the trailing actions (a weigh-in button beside the day's primary
+ *  action). */
 export const DashboardHeader = ({
   eyebrow,
-  eyebrowTone,
-  subtitle,
+  primary,
   title,
-  trailing,
+  weighedInToday,
 }: Props) => (
   <div className={headerStyles}>
     <div className={leadStyles}>
-      <span className={eyebrowStyles({ tone: eyebrowTone })}>{eyebrow}</span>
+      <div className={eyebrowStyles}>
+        {eyebrow.programName !== undefined && (
+          <span className={programStyles}>{eyebrow.programName}</span>
+        )}
+        {eyebrow.weekCount !== undefined && (
+          <span className={weekCountStyles}>{eyebrow.weekCount}</span>
+        )}
+        {eyebrow.status !== undefined && (
+          <span className={statusStyles({ tone: eyebrow.status.tone })}>
+            {eyebrow.status.text}
+          </span>
+        )}
+      </div>
       <h2 className={titleStyles}>{title}</h2>
-      {subtitle !== undefined && <p className={subtitleStyles}>{subtitle}</p>}
     </div>
-    <Trailing trailing={trailing} />
+    <div className={actionsStyles}>
+      <WeighInButton weighedInToday={weighedInToday} />
+      <PrimaryAction primary={primary} />
+    </div>
   </div>
 );
 
-const Trailing = ({ trailing }: { trailing: DashboardTrailing }) => {
-  switch (trailing.kind) {
+const PrimaryAction = ({ primary }: { primary: DashboardPrimary }) => {
+  switch (primary.kind) {
     case "none": {
       return undefined;
     }
+    case "start-workout": {
+      return <WorkoutActionControl action={primary.action} size="xl" />;
+    }
     case "back-to-today": {
       return (
-        <Button href="/" size="xl" variant="ghost">
+        <Button
+          beforeIcon={<ArrowLeftIcon size={18} />}
+          href="/"
+          size="xl"
+          variant="ghost"
+        >
           Back to today
         </Button>
-      );
-    }
-    case "start-workout": {
-      return <WorkoutActionControl action={trailing.action} size="xl" />;
-    }
-    case "completed": {
-      return (
-        <div className={completedStyles}>
-          {trailing.nextLabel !== undefined && (
-            <span className={completedLineStyles}>
-              Next: {trailing.nextLabel}
-            </span>
-          )}
-          <span className={completedLineStyles}>{trailing.recovery}</span>
-        </div>
       );
     }
   }
 };
 
-// The lead copy and the trailing action share a row on wide screens and stack
-// on phones, where the action drops below the title.
+// The lead copy and the trailing actions share a row on wide screens and stack
+// on phones, where the actions drop below the title.
 const headerStyles = css({
   alignItems: "flex-start",
   display: "flex",
@@ -84,7 +95,33 @@ const leadStyles = vstack({
   minInlineSize: 0,
 });
 
-const eyebrowStyles = cva({
+// The three eyebrow segments sit on one baseline, wrapping on a narrow screen.
+const eyebrowStyles = css({
+  alignItems: "baseline",
+  columnGap: 3,
+  display: "flex",
+  flexWrap: "wrap",
+  rowGap: 1,
+});
+
+const programStyles = css({
+  color: "accent",
+  fontSize: "xs",
+  fontWeight: "bold",
+  letterSpacing: "wide",
+  textTransform: "uppercase",
+});
+
+// Deliberately a different key from the program name: mono figures for the count.
+const weekCountStyles = css({
+  color: "muted",
+  fontFamily: "mono",
+  fontSize: "sm",
+  fontVariantNumeric: "tabular-nums",
+  fontWeight: "medium",
+});
+
+const statusStyles = cva({
   base: {
     fontSize: "xs",
     fontWeight: "bold",
@@ -93,7 +130,6 @@ const eyebrowStyles = cva({
   },
   variants: {
     tone: {
-      accent: { color: "accent" },
       success: { color: "success" },
       tertiary: { color: "textTertiary" },
     },
@@ -108,13 +144,4 @@ const titleStyles = css({
   lineHeight: "condensed",
 });
 
-const subtitleStyles = css({ color: "muted", fontSize: "sm" });
-
-const completedStyles = vstack({
-  alignItems: "flex-start",
-  flexShrink: 0,
-  gap: 1.5,
-  md: { alignItems: "flex-end" },
-});
-
-const completedLineStyles = css({ color: "muted", fontSize: "sm" });
+const actionsStyles = hstack({ flexShrink: 0, gap: 3 });

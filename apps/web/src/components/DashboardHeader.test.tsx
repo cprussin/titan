@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import type { ReactElement } from "react";
 import { DashboardHeader } from "./DashboardHeader";
+import { WeighInProvider } from "./WeighInContext";
 
 const router = {
   back: () => undefined,
@@ -13,67 +14,68 @@ const router = {
   replace: () => undefined,
 };
 
-const withRouter = (ui: ReactElement) =>
+const wrap = (ui: ReactElement) =>
   render(
-    <AppRouterContext.Provider value={router}>{ui}</AppRouterContext.Provider>,
+    <AppRouterContext.Provider value={router}>
+      <WeighInProvider>{ui}</WeighInProvider>
+    </AppRouterContext.Provider>,
   );
 
+const eyebrow = {
+  programName: "Athletic Health Foundation",
+  status: { text: "MON 10 · Logged", tone: "success" as const },
+  weekCount: "W3 / 8",
+};
+
 describe(DashboardHeader, () => {
-  it("renders the eyebrow, title, and subtitle", () => {
-    render(
+  it("renders the three eyebrow segments and the title", () => {
+    wrap(
       <DashboardHeader
-        eyebrow="MON 10 · Logged · Athletic Health Foundation · Week 3 of 8"
-        eyebrowTone="success"
-        subtitle="5 exercises · 18 sets · 52 min · avg RPE 7.2"
+        eyebrow={eyebrow}
+        primary={{ kind: "back-to-today" }}
         title="Volume Upper"
-        trailing={{ kind: "back-to-today" }}
+        weighedInToday={false}
       />,
     );
     expect(screen.getByRole("heading", { name: "Volume Upper" })).toBeDefined();
-    expect(screen.getByText(/MON 10 · Logged/)).toBeDefined();
-    expect(screen.getByText(/avg RPE 7.2/)).toBeDefined();
+    expect(screen.getByText("Athletic Health Foundation")).toBeDefined();
+    expect(screen.getByText("W3 / 8")).toBeDefined();
+    expect(screen.getByText("MON 10 · Logged")).toBeDefined();
   });
 
-  it("offers a back-to-today link", () => {
-    render(
+  it("always offers a weigh-in button until logged", () => {
+    wrap(
       <DashboardHeader
-        eyebrow="FRI 14 · Projected"
-        eyebrowTone="tertiary"
-        subtitle={undefined}
-        title="Heavy Upper"
-        trailing={{ kind: "back-to-today" }}
-      />,
-    );
-    const link = screen.getByRole("link", { name: "Back to today" });
-    expect(link.getAttribute("href")).toBe("/");
-  });
-
-  it("shows the next session and recovery note when complete", () => {
-    render(
-      <DashboardHeader
-        eyebrow="Today · Complete"
-        eyebrowTone="success"
-        subtitle="6 exercises · 22 sets · 58 min · avg RPE 7.5"
-        title="Heavy Lower done"
-        trailing={{
-          kind: "completed",
-          nextLabel: "Row Intervals · Thu 13",
-          recovery: "Recover well — walk, stretch, or take an easy row.",
-        }}
-      />,
-    );
-    expect(screen.getByText(/Next: Row Intervals · Thu 13/)).toBeDefined();
-    expect(screen.getByText(/Recover well/)).toBeDefined();
-  });
-
-  it("shows the launch control before a workout", () => {
-    withRouter(
-      <DashboardHeader
-        eyebrow="Athletic Health Foundation · Week 3 of 8"
-        eyebrowTone="accent"
-        subtitle={undefined}
+        eyebrow={eyebrow}
+        primary={{ kind: "none" }}
         title="Heavy Lower"
-        trailing={{ action: { kind: "start" }, kind: "start-workout" }}
+        weighedInToday={false}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Weigh in" })).toBeDefined();
+  });
+
+  it("offers a back-to-today link as the primary action", () => {
+    wrap(
+      <DashboardHeader
+        eyebrow={eyebrow}
+        primary={{ kind: "back-to-today" }}
+        title="Heavy Upper"
+        weighedInToday={false}
+      />,
+    );
+    expect(
+      screen.getByRole("link", { name: "Back to today" }).getAttribute("href"),
+    ).toBe("/");
+  });
+
+  it("shows the launch control before today's workout", () => {
+    wrap(
+      <DashboardHeader
+        eyebrow={{ ...eyebrow, status: undefined }}
+        primary={{ action: { kind: "start" }, kind: "start-workout" }}
+        title="Heavy Lower"
+        weighedInToday={false}
       />,
     );
     expect(screen.getByRole("button", { name: "Start workout" })).toBeDefined();
