@@ -1,3 +1,4 @@
+import { matchSlot } from "@titan/concept2/match";
 import { getConnection } from "@titan/db/external-connections";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
 import { NextResponse } from "next/server";
@@ -10,13 +11,13 @@ import { importConcept2Results } from "../../../../../server/import-concept2-res
 import { USER_ID } from "../../../../../user";
 
 /**
- * Sync Concept2 and report whether any imported workout matches the cardio slot
- * the athlete is logging, identified by the session `id` and the `slotId` in the
- * request body. The import matches every fetched result to its exact planned
- * slot (the same path the manual sync uses); this handler picks out the one
- * assigned to the slot being executed, so a row already logged — or one finished
- * mid-workout, surfaced on a later poll — can be recorded automatically without
- * a multi-piece session handing the wrong row to the wrong step.
+ * Sync Concept2 and report whether any imported row is the cardio slot the
+ * athlete is logging, identified by the session `id` and the `slotId` in the
+ * request body. The import refreshes the athlete's recent results (the same path
+ * the manual sync uses); this handler then picks the row nearest that slot's
+ * target, so the slot claims its own effort — a 10k slot takes the 10k rather
+ * than a 500 m warm-up that merely shares the day. A row already logged, or one
+ * finished mid-workout and surfaced on a later poll, is recorded automatically.
  */
 export const POST = async (
   request: Request,
@@ -40,25 +41,30 @@ export const POST = async (
       getConnection(db, USER_ID, "concept2"),
       getWorkoutSession(db, id),
     ]);
+    const slot = session?.prescribedExercises.find(
+      (exercise) => exercise.slotId === slotId,
+    );
     if (connection === undefined) {
       return NextResponse.json({ error: "not connected" }, { status: 400 });
     } else if (session === undefined) {
       return NextResponse.json({ error: "not found" }, { status: 404 });
+    } else if (slot === undefined) {
+      return NextResponse.json({ error: "unknown slot" }, { status: 400 });
     } else {
       const outcomes = await importConcept2Results(
         connection,
         env.CONCEPT2_CLIENT_ID,
         env.CONCEPT2_CLIENT_SECRET,
       );
-      const match = outcomes.find(
-        (outcome) =>
-          outcome.workout.matchedWorkoutSessionId === id &&
-          outcome.workout.matchedSlotId === slotId,
+      const match = matchSlot(
+        slot.prescription,
+        session.scheduledDate,
+        outcomes.map((outcome) => outcome.workout.normalized),
       );
       return NextResponse.json(
         match === undefined
           ? Concept2MatchResult.NotMatched()
-          : Concept2MatchResult.Matched(match.workout.normalized),
+          : Concept2MatchResult.Matched(match),
       );
     }
   }
