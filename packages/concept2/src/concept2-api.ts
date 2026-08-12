@@ -6,10 +6,12 @@ import { z } from "zod";
  * endpoint wraps a page of them in. These parse data crossing the HTTP boundary
  * (see DATA.md), so every field the normalizer reads is validated here once.
  *
- * Two Concept2 conventions are load-bearing: `time` is in *tenths of a second*
- * (not seconds), and `heart_rate` is frequently absent — a workout logged
+ * Three Concept2 conventions are load-bearing: `time` is in *tenths of a
+ * second* (not seconds); `heart_rate` is frequently absent — a workout logged
  * without a monitor has no heart-rate object at all — so it is optional here and
- * omitted downstream rather than defaulted.
+ * omitted downstream rather than defaulted; and a `workout` object carries
+ * `intervals` only for interval pieces, so that array is optional too and the
+ * normalizer treats its absence as "no intervals".
  */
 
 export const concept2HeartRateSchema = z.object({
@@ -28,7 +30,7 @@ export const concept2IntervalSchema = z.object({
 export type Concept2Interval = z.infer<typeof concept2IntervalSchema>;
 
 export const concept2WorkoutSchema = z.object({
-  intervals: z.array(concept2IntervalSchema),
+  intervals: z.array(concept2IntervalSchema).optional(),
 });
 
 export type Concept2Workout = z.infer<typeof concept2WorkoutSchema>;
