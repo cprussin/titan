@@ -7,36 +7,67 @@
 export type Alarm = {
   start: () => void;
   stop: () => void;
+  /** A subtle countdown blip, played once per second through the final ten
+   *  seconds before the alarm proper takes over at zero. */
+  tick: () => void;
 };
 
-const BEEP_HZ = 880;
-const BEEP_SEC = 0.15;
-const BEEP_INTERVAL_MS = 750;
+/** The overtime chime: a rising perfect fifth (A5 → E6), each note eased in and
+ *  out so it lands as a mellow two-note bell rather than a flat square beep. */
+const CHIME_HZ = [880, 1318.51];
+const CHIME_NOTE_SEC = 0.18;
+const CHIME_GAIN = 0.18;
+const CHIME_INTERVAL_MS = 1200;
+
+/** The last-ten-seconds countdown blip: one short, quiet tick that reads as a
+ *  metronome without competing with the chime that follows it. */
+const TICK_HZ = 660;
+const TICK_SEC = 0.06;
+const TICK_GAIN = 0.08;
+
+/** A single sine note with a short attack/release so it never clicks. `gain`
+ *  ramps from silence up to its peak and back down across the note's life. */
+const playNote = (
+  context: AudioContext,
+  frequency: number,
+  startAt: number,
+  duration: number,
+  peakGain: number,
+) => {
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.frequency.value = frequency;
+  oscillator.connect(gain);
+  gain.connect(context.destination);
+  gain.gain.setValueAtTime(0, startAt);
+  gain.gain.linearRampToValueAtTime(peakGain, startAt + duration * 0.15);
+  gain.gain.linearRampToValueAtTime(0, startAt + duration);
+  oscillator.start(startAt);
+  oscillator.stop(startAt + duration);
+};
 
 /** Builds an idempotent alarm handle. `start`/`stop` may each be called more
  *  than once (e.g. Stop pressed, then the timer unmounts) and settle to the same
- *  state either way. The `AudioContext` is created lazily on first `start`, so a
- *  rest that never reaches zero touches no audio hardware. */
+ *  state either way. `tick` plays the subtle countdown blip. The `AudioContext`
+ *  is created lazily on first sound, so a rest whose final ten seconds and zero
+ *  are never reached touches no audio hardware. */
 export const createAlarm = (): Alarm => {
   let context: AudioContext | undefined;
   let interval: ReturnType<typeof setInterval> | undefined;
 
-  const beep = () => {
+  const chime = () => {
     const active = (context ??= new AudioContext());
-    const oscillator = active.createOscillator();
-    const gain = active.createGain();
-    oscillator.frequency.value = BEEP_HZ;
-    oscillator.connect(gain);
-    gain.connect(active.destination);
-    oscillator.start();
-    oscillator.stop(active.currentTime + BEEP_SEC);
+    CHIME_HZ.forEach((frequency, index) => {
+      const startAt = active.currentTime + index * CHIME_NOTE_SEC;
+      playNote(active, frequency, startAt, CHIME_NOTE_SEC, CHIME_GAIN);
+    });
   };
 
   return {
     start: () => {
       if (interval === undefined) {
-        beep();
-        interval = setInterval(beep, BEEP_INTERVAL_MS);
+        chime();
+        interval = setInterval(chime, CHIME_INTERVAL_MS);
       }
     },
     stop: () => {
@@ -50,6 +81,10 @@ export const createAlarm = (): Alarm => {
           console.error("Failed to close alarm audio context", error);
         });
       }
+    },
+    tick: () => {
+      const active = (context ??= new AudioContext());
+      playNote(active, TICK_HZ, active.currentTime, TICK_SEC, TICK_GAIN);
     },
   };
 };
