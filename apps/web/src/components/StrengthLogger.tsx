@@ -58,6 +58,21 @@ export const StrengthLogger = ({
   const [holdSec, setHoldSec] = useState(isHold ? prescription.holdSec : 0);
   const [rpe, setRpe] = useState<number | undefined>(undefined);
 
+  // Carryover is scoped to a single exercise: within one movement the inputs
+  // hold the last set's load, but moving on to a different exercise re-seeds
+  // them to that exercise's prescribed targets rather than dragging the
+  // previous movement's weight forward. Tracking the slot id and re-seeding
+  // when it changes is React's "adjust state during render" pattern for a
+  // prop-driven reset.
+  const [slotId, setSlotId] = useState(prescribed.slotId);
+  if (slotId !== prescribed.slotId) {
+    setSlotId(prescribed.slotId);
+    setWeight(nextSetWeight(prescription, logged));
+    setReps(nextSetReps(prescription));
+    setHoldSec(isHold ? prescription.holdSec : 0);
+    setRpe(undefined);
+  }
+
   const logSet = () => {
     onLogSet({
       completed: true,

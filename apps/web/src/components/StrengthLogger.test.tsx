@@ -45,6 +45,25 @@ const loggedSet = (fields: Partial<SetResult>): SetResult => ({
   ...fields,
 });
 
+const exerciseProps = (
+  slotId: string,
+  weight: number,
+  logged: readonly SetResult[],
+  onLogSet: (set: SetResult) => void,
+) => {
+  const scoped = Prescription.Strength({ reps: 5, sets: 3, weight });
+  return {
+    busy: false,
+    logged,
+    onComplete: noop,
+    onEditSet: noop,
+    onLogSet,
+    onUndoLastSet: noop,
+    prescribed: { ...prescribed, slotId },
+    prescription: scoped,
+  };
+};
+
 describe(StrengthLogger, () => {
   it("logs the first set at the prescribed weight and reps", async () => {
     const set = await new Promise<SetResult>((resolve) => {
@@ -108,6 +127,27 @@ describe(StrengthLogger, () => {
     });
     expect(undoCalled).toBe(true);
     expect(relogged).toMatchObject({ reps: 3, weight: 120 });
+  });
+
+  it("resets the weight to the new exercise's prescribed load when the exercise changes", async () => {
+    const set = await new Promise<SetResult>((resolve) => {
+      const { rerender } = render(
+        <StrengthLogger
+          {...exerciseProps(
+            "s1",
+            100,
+            [loggedSet({ reps: 5, weight: 140 })],
+            noop,
+          )}
+        />,
+      );
+      // Switch to a different exercise (a fresh slot with nothing logged): its
+      // first set must default to its own prescribed weight, not carry the
+      // previous movement's 140 lb forward.
+      rerender(<StrengthLogger {...exerciseProps("s2", 50, [], resolve)} />);
+      fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+    });
+    expect(set).toMatchObject({ reps: 5, setIndex: 0, weight: 50 });
   });
 
   it("completes the exercise with the logged sets", async () => {
