@@ -11,9 +11,10 @@ import { WorkoutActionControl } from "./WorkoutActionControl";
 
 type Props = {
   action: WorkoutAction;
-  /** `fab` floats above the bottom bar on phones and tablets; `sidebar` docks
-   *  as a full-width button in the wide-screen rail. Each is shown only at its
-   *  own breakpoints, so the two instances never appear at once. */
+  /** `fab` floats above the page wherever the sidebar isn't permanent (phones
+   *  and the `mdToLg` collapsed-drawer window); `sidebar` docks as a full-width
+   *  button in the permanent `lg` rail. Each is shown only at its own
+   *  breakpoints, so the two instances never appear at once. */
   variant: "fab" | "sidebar";
 };
 
@@ -112,10 +113,11 @@ const isOnSessionScreen = (pathname: string, sessionId: string): boolean => {
 // labels in the leading column, buttons in the trailing one — so the secondary
 // weigh-in stacks on top with the primary workout action below it (closest to
 // the thumb) and every button's icon-only circle centers on one shared vertical
-// axis while its text label sits to the left. Shown only at the phone size,
-// where that bottom bar is the nav; from `md` up — where the nav becomes a
-// sidebar (a drawer through `mdToLg`, permanent at `lg`) — the sidebar button
-// takes over.
+// axis while its text label sits to the left. Shown wherever the sidebar isn't
+// permanently on screen: at the phone size (bottom-bar nav) and through the
+// `mdToLg` window, where the sidebar is a collapsed off-canvas drawer and so
+// carries no persistent workout action. Only from `lg` up — where the sidebar
+// is always visible — does its docked button take over and the FAB hide.
 const fabStyles = css({
   alignItems: "center",
   columnGap: 3,
@@ -123,7 +125,7 @@ const fabStyles = css({
   gridTemplateColumns: "auto auto",
   insetBlockEnd: "calc(env(safe-area-inset-bottom) + {spacing.24})",
   insetInlineEnd: 4,
-  md: { display: "none" },
+  lg: { display: "none" },
   position: "fixed",
   rowGap: 3,
   zIndex: 8,
@@ -158,16 +160,18 @@ const liftedStyles = css({
 });
 
 // The sidebar counterpart: a full-width button docked at the head of the nav
-// rail wherever the nav is a sidebar (from `md` up), so it rides inside the
-// `mdToLg` drawer and the permanent `lg` rail alike. Below `md` the FAB stands
-// in. `alignItems: stretch` fills the control (or the in-progress marker) to the
-// rail width.
+// rail, shown only from `lg` up where the sidebar is permanently on screen.
+// Below `lg` the FAB stands in — including through the `mdToLg` window, where
+// the sidebar collapses to an off-canvas drawer and would only surface this
+// button while the drawer is open. Gating it to `lg` keeps it and the FAB
+// mutually exclusive. `alignItems: stretch` fills the control (or the
+// in-progress marker) to the rail width.
 const sidebarStyles = css({
   alignItems: "stretch",
   display: "none",
   flexDirection: "column",
+  lg: { display: "flex" },
   marginBlockEnd: 2,
-  md: { display: "flex" },
 });
 
 // The "workout in progress" marker that stands in for the action while the
