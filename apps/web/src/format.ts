@@ -41,12 +41,17 @@ export const formatSignedClock = (totalSeconds: number): string =>
     ? `-${formatClock(-totalSeconds)}`
     : formatClock(totalSeconds);
 
-/** Rowing split as `m:ss.s /500m`. */
-export const formatSplit = (secondsPer500: number): string => {
+/** A rowing split as a bare `m:ss.s` clock — the pace on its own, for a place
+ *  that names the `/500m` unit elsewhere (a trend label, a column header). */
+export const formatSplitClock = (secondsPer500: number): string => {
   const minutes = Math.floor(secondsPer500 / 60);
   const seconds = (secondsPer500 - minutes * 60).toFixed(1).padStart(4, "0");
-  return `${minutes}:${seconds} /500m`;
+  return `${minutes}:${seconds}`;
 };
+
+/** Rowing split as `m:ss.s /500m`. */
+export const formatSplit = (secondsPer500: number): string =>
+  `${formatSplitClock(secondsPer500)} /500m`;
 
 /** Rowing distance is measured to the metre — a time-based piece covers an
  *  arbitrary distance whose exact value is the point, so it is never snapped to
