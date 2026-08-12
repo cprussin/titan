@@ -150,8 +150,9 @@ export const StrengthLogger = ({
           <RpePicker onChange={setRpe} value={rpe} />
         </div>
       )}
-      {/* Back, log, and finish actions stack on phones and share a row on
-          desktop, where there's width for them side by side. */}
+      {/* Back, log, and finish actions pin to the bottom of the screen so the
+          primary controls stay under the thumb while the logged sets scroll
+          above. Stacked on phones, shared evenly across a row on desktop. */}
       <div className={actionRowStyles}>
         {done > 0 && (
           <Button onClick={back} size="lg" variant="outline">
@@ -375,14 +376,23 @@ const stepperValueStyles = css({
   textShadow: "glow",
 });
 
-// Back / log / finish actions: stacked on phones, shared evenly across a row on
-// desktop where there's width for them side by side.
+// Back / log / finish actions, pinned to the bottom of the screen as a sticky
+// bar (an opaque background and a hairline top rule cover the sets scrolling
+// under it) so the primary controls stay reachable. Stacked on phones, shared
+// evenly across a row on desktop where there's width for them side by side.
 const actionRowStyles = css({
+  backgroundColor: "background",
+  borderBlockStart: "1px solid {colors.border}",
   display: "flex",
   flexDirection: "column",
   gap: 3,
+  insetBlockEnd: 0,
   lg: {
     "& > *": { flex: 1 },
     flexDirection: "row",
   },
+  paddingBlockEnd: "max({spacing.3}, env(safe-area-inset-bottom))",
+  paddingBlockStart: 3,
+  position: "sticky",
+  zIndex: 5,
 });
