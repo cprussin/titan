@@ -7,7 +7,7 @@ import type {
   PrescribedExercise,
   WorkoutSession,
 } from "@titan/domain/workout-session";
-import { MatchKind, matchWorkout } from "./match";
+import { MatchKind, matchSlot, matchWorkout } from "./match";
 
 const exercise = (
   slotId: string,
@@ -46,11 +46,17 @@ const session = (
 ): WorkoutSession =>
   sessionWith(id, scheduledDate, [exercise("slot-row", prescription)]);
 
-const rowing = (distanceMeters: number): NormalizedWorkout => ({
+const rowingFor = (
+  distanceMeters: number,
+  durationSec: number,
+): NormalizedWorkout => ({
   intervals: [],
-  summary: { distanceMeters, durationSec: 450 },
+  summary: { distanceMeters, durationSec },
   workoutAt: "2024-01-15T08:30:00",
 });
+
+const rowing = (distanceMeters: number): NormalizedWorkout =>
+  rowingFor(distanceMeters, 450);
 
 describe("matchWorkout", () => {
   it("matches the same-day cardio session", () => {
@@ -59,7 +65,6 @@ describe("matchWorkout", () => {
     ]);
     expect(result).toEqual({
       kind: MatchKind.Matched,
-      slotId: "slot-row",
       workoutSessionId: "s-1",
     });
   });
@@ -94,7 +99,6 @@ describe("matchWorkout", () => {
     ]);
     expect(result).toEqual({
       kind: MatchKind.Matched,
-      slotId: "slot-row",
       workoutSessionId: "next-day",
     });
   });
@@ -114,7 +118,6 @@ describe("matchWorkout", () => {
     ]);
     expect(result).toEqual({
       kind: MatchKind.Matched,
-      slotId: "slot-row",
       workoutSessionId: "same-day",
     });
   });
@@ -132,7 +135,7 @@ describe("matchWorkout", () => {
     });
   });
 
-  it("breaks a same-day tie by closest target distance", () => {
+  it("breaks a same-day tie by the session whose target is closest", () => {
     const result = matchWorkout(rowing(2000), [
       session("far", "2024-01-15", Rx.DistanceCardio({ distanceMeters: 5000 })),
       session(
@@ -143,29 +146,49 @@ describe("matchWorkout", () => {
     ]);
     expect(result).toEqual({
       kind: MatchKind.Matched,
-      slotId: "slot-row",
       workoutSessionId: "near",
     });
   });
+});
 
-  it("matches the cardio exercise in a session whose target is closest", () => {
-    // A single session prescribes both a 10k piece and a 500m cooldown row.
-    // The imported 10k must bind to the 10k slot, not merely to the session
-    // (whose first cardio exercise the old session-level match would have
-    // picked regardless of distance).
-    const mixed = sessionWith("mixed", "2024-01-15", [
-      exercise("slot-10k", Rx.DistanceCardio({ distanceMeters: 10_000 })),
-      exercise("slot-cooldown", Rx.DistanceCardio({ distanceMeters: 500 })),
+describe("matchSlot", () => {
+  const scheduledDate = "2024-01-15";
+  const tenK = Rx.DistanceCardio({ distanceMeters: 10_000 });
+
+  it("claims the imported piece nearest the slot's distance target", () => {
+    // The athlete rowed both a 10k and a 500m warm-up the same day; the 10k
+    // slot must take the 10k, not whichever row was imported first.
+    const tenKPiece = rowingFor(10_000, 2383);
+    const result = matchSlot(tenK, scheduledDate, [
+      rowingFor(500, 150),
+      tenKPiece,
     ]);
-    expect(matchWorkout(rowing(10_000), [mixed])).toEqual({
-      kind: MatchKind.Matched,
-      slotId: "slot-10k",
-      workoutSessionId: "mixed",
-    });
-    expect(matchWorkout(rowing(500), [mixed])).toEqual({
-      kind: MatchKind.Matched,
-      slotId: "slot-cooldown",
-      workoutSessionId: "mixed",
-    });
+    expect(result).toEqual(tenKPiece);
+  });
+
+  it("rejects a piece far outside the slot's target", () => {
+    // A lone 500m sits 95% short of a 10k slot — the slot stays unmatched
+    // rather than logging the warm-up as the piece.
+    expect(
+      matchSlot(tenK, scheduledDate, [rowingFor(500, 150)]),
+    ).toBeUndefined();
+  });
+
+  it("ranks a timed slot by duration when it prescribes no distance", () => {
+    const longRow = Rx.TimedCardio({ durationSec: 2400 });
+    const recovery = Rx.TimedCardio({ durationSec: 1200 });
+    const longPiece = rowingFor(10_000, 2383);
+    const shortPiece = rowingFor(2000, 1180);
+    const pieces = [longPiece, shortPiece];
+    expect(matchSlot(longRow, scheduledDate, pieces)).toEqual(longPiece);
+    expect(matchSlot(recovery, scheduledDate, pieces)).toEqual(shortPiece);
+  });
+
+  it("ignores a piece outside the day tolerance", () => {
+    const farPiece = {
+      ...rowingFor(10_000, 2383),
+      workoutAt: "2024-01-20T08:30:00",
+    };
+    expect(matchSlot(tenK, scheduledDate, [farPiece])).toBeUndefined();
   });
 });

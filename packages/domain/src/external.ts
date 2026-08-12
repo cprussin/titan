@@ -48,10 +48,6 @@ export const externalWorkoutSchema = z.object({
   externalId: z.string(),
   id: idSchema,
   importedAt: z.string(),
-  /** The slot within {@link matchedWorkoutSessionId} the import was matched to —
-   *  present whenever a session was matched, so a multi-piece session binds each
-   *  import to its exact cardio slot. */
-  matchedSlotId: idSchema.optional(),
   matchedWorkoutSessionId: idSchema.optional(),
   matchStatus: matchStatusSchema,
   normalized: normalizedWorkoutSchema,
