@@ -13,13 +13,15 @@ export type StrengthSeries = {
 type Accumulated = { unit: LoadUnit; values: number[] };
 
 /**
- * The estimated-1RM trend for the exercise with the most logged weighted
- * sessions — one rounded point per session that recorded it, chronological.
- * Returns `undefined` when no weighted work exists yet.
+ * The estimated-1RM trends for the exercises with the most logged weighted
+ * sessions — one rounded point per session that recorded it, chronological,
+ * ordered from most-trained lift down and capped at `limit`. Empty when no
+ * weighted work exists yet.
  */
-export const topStrengthSeries = (
+export const topStrengthSeriesList = (
   sessions: readonly WorkoutSession[],
-): StrengthSeries | undefined => {
+  limit: number,
+): readonly StrengthSeries[] => {
   const ordered = [...sessions].sort((a, b) =>
     a.scheduledDate < b.scheduledDate ? -1 : 1,
   );
@@ -37,8 +39,19 @@ export const topStrengthSeries = (
       }
     }
   }
-  return pickLongest(byExercise);
+  return [...byExercise.entries()]
+    .map(([exerciseId, { unit, values }]) => ({ exerciseId, unit, values }))
+    .sort((a, b) => b.values.length - a.values.length)
+    .slice(0, limit);
 };
+
+/**
+ * The estimated-1RM trend for the exercise with the most logged weighted
+ * sessions, or `undefined` when no weighted work exists yet.
+ */
+export const topStrengthSeries = (
+  sessions: readonly WorkoutSession[],
+): StrengthSeries | undefined => topStrengthSeriesList(sessions, 1).at(0);
 
 /** The unit a result's loads were logged in — its snapshot prescription carries
  *  it for strength work; everything else is pounds. */
@@ -58,14 +71,3 @@ const bestOneRepMax = (result: ExerciseResult): number | undefined => {
     .map((set) => estimateOneRepMax(set.weight ?? 0, set.reps ?? 1));
   return estimates.length === 0 ? undefined : Math.max(...estimates);
 };
-
-const pickLongest = (
-  byExercise: ReadonlyMap<string, Accumulated>,
-): StrengthSeries | undefined =>
-  [...byExercise.entries()].reduce<StrengthSeries | undefined>(
-    (best, [exerciseId, { unit, values }]) =>
-      best === undefined || values.length > best.values.length
-        ? { exerciseId, unit, values }
-        : best,
-    undefined,
-  );

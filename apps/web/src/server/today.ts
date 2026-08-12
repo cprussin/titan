@@ -36,6 +36,24 @@ export const resolveToday = async (
   scheduledDate: string,
 ): Promise<Today> => {
   const state = await getAthleteState(db, userId);
+  return state === undefined
+    ? { kind: "no-program" }
+    : resolveScheduledDay(db, userId, state.absoluteWeek, scheduledDate);
+};
+
+/**
+ * Resolve a day at an explicit absolute training week, rather than the athlete's
+ * current one. The week picker uses this to preview a day of another week: the
+ * same weekday in a different calendar week maps to a shifted absolute week, so
+ * its projection reflects where the program will be then.
+ */
+export const resolveScheduledDay = async (
+  db: Db,
+  userId: string,
+  absoluteWeek: number,
+  scheduledDate: string,
+): Promise<Today> => {
+  const state = await getAthleteState(db, userId);
   if (state === undefined) {
     return { kind: "no-program" };
   } else {
@@ -46,7 +64,7 @@ export const resolveToday = async (
           db,
           userId,
           programVersion,
-          state.absoluteWeek,
+          absoluteWeek,
           scheduledDate,
         );
   }

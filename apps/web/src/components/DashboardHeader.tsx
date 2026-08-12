@@ -1,0 +1,147 @@
+import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr/ArrowLeft";
+import { css, cva } from "../../styled-system/css";
+import { hstack, vstack } from "../../styled-system/patterns";
+import type {
+  DashboardEyebrow,
+  DashboardPrimary,
+} from "../server/dashboard-view";
+import { Button } from "../ui";
+import { WeighInButton } from "./WeighInButton";
+import { WorkoutActionControl } from "./WorkoutActionControl";
+
+type Props = {
+  eyebrow: DashboardEyebrow;
+  primary: DashboardPrimary;
+  title: string;
+  /** Passed through to the weigh-in button, which hides once today is logged. */
+  weighedInToday: boolean;
+};
+
+/** The dashboard's headline, describing the selected day: an eyebrow that places
+ *  it (program, week count, and — away from today — its standing), the session
+ *  title, and the trailing actions (a weigh-in button beside the day's primary
+ *  action). */
+export const DashboardHeader = ({
+  eyebrow,
+  primary,
+  title,
+  weighedInToday,
+}: Props) => (
+  <div className={headerStyles}>
+    <div className={leadStyles}>
+      <div className={eyebrowStyles}>
+        {eyebrow.programName !== undefined && (
+          <span className={programStyles}>{eyebrow.programName}</span>
+        )}
+        {eyebrow.weekCount !== undefined && (
+          <span className={weekCountStyles}>{eyebrow.weekCount}</span>
+        )}
+        {eyebrow.status !== undefined && (
+          <span className={statusStyles({ tone: eyebrow.status.tone })}>
+            {eyebrow.status.text}
+          </span>
+        )}
+      </div>
+      <h2 className={titleStyles}>{title}</h2>
+    </div>
+    <div className={actionsStyles}>
+      <WeighInButton weighedInToday={weighedInToday} />
+      <PrimaryAction primary={primary} />
+    </div>
+  </div>
+);
+
+const PrimaryAction = ({ primary }: { primary: DashboardPrimary }) => {
+  switch (primary.kind) {
+    case "none": {
+      return undefined;
+    }
+    case "start-workout": {
+      return <WorkoutActionControl action={primary.action} size="xl" />;
+    }
+    case "back-to-today": {
+      return (
+        <Button
+          beforeIcon={<ArrowLeftIcon size={18} />}
+          href="/"
+          size="xl"
+          variant="ghost"
+        >
+          Back to today
+        </Button>
+      );
+    }
+  }
+};
+
+// The lead copy and the trailing actions share a row on wide screens and stack
+// on phones, where the actions drop below the title.
+const headerStyles = css({
+  alignItems: "flex-start",
+  display: "flex",
+  flexDirection: "column",
+  gap: 4,
+  md: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "space-between",
+  },
+});
+
+const leadStyles = vstack({
+  alignItems: "flex-start",
+  gap: 1.5,
+  minInlineSize: 0,
+});
+
+// The three eyebrow segments sit on one baseline, wrapping on a narrow screen.
+const eyebrowStyles = css({
+  alignItems: "baseline",
+  columnGap: 3,
+  display: "flex",
+  flexWrap: "wrap",
+  rowGap: 1,
+});
+
+const programStyles = css({
+  color: "accent",
+  fontSize: "xs",
+  fontWeight: "bold",
+  letterSpacing: "wide",
+  textTransform: "uppercase",
+});
+
+// Deliberately a different key from the program name: mono figures for the count.
+const weekCountStyles = css({
+  color: "muted",
+  fontFamily: "mono",
+  fontSize: "sm",
+  fontVariantNumeric: "tabular-nums",
+  fontWeight: "medium",
+});
+
+const statusStyles = cva({
+  base: {
+    fontSize: "xs",
+    fontWeight: "bold",
+    letterSpacing: "wide",
+    textTransform: "uppercase",
+  },
+  variants: {
+    tone: {
+      success: { color: "success" },
+      tertiary: { color: "textTertiary" },
+    },
+  },
+});
+
+const titleStyles = css({
+  fontFamily: "condensed",
+  fontSize: { base: "4xl", lg: "2.875rem" },
+  fontWeight: "bold",
+  letterSpacing: "tight",
+  lineHeight: "condensed",
+});
+
+const actionsStyles = hstack({ flexShrink: 0, gap: 3 });

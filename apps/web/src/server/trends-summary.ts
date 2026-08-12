@@ -1,8 +1,14 @@
 import type { BodyMetric } from "@titan/domain/body-metric";
 import type { ExternalWorkout } from "@titan/domain/external";
 import type { WorkoutSession } from "@titan/domain/workout-session";
+import type { RowPaceSeries } from "./row-pace-series";
+import { rowPaceSeries } from "./row-pace-series";
 import type { StrengthSeries } from "./strength-series";
-import { topStrengthSeries } from "./strength-series";
+import { topStrengthSeries, topStrengthSeriesList } from "./strength-series";
+
+/** How many strength lifts the trends band highlights alongside row pace and
+ *  body weight. */
+const STRENGTH_TREND_COUNT = 2;
 
 /** The at-a-glance training and body trends the dashboard renders. */
 export type TrendsSummary = {
@@ -14,7 +20,12 @@ export type TrendsSummary = {
   weightSeries: readonly number[];
   totalSets: number;
   rowingMeters: number;
+  /** The single most-trained lift's est-1RM trend (legacy single-chart view). */
   strength: StrengthSeries | undefined;
+  /** The most-trained lifts' est-1RM trends, for the redesign's trends band. */
+  strengthSeries: readonly StrengthSeries[];
+  /** The rowing 500m-split trend, or `undefined` when nothing has been rowed. */
+  rowPace: RowPaceSeries | undefined;
 };
 
 /**
@@ -39,7 +50,9 @@ export const trendsSummary = (
         meters + (workout.normalized.summary.distanceMeters ?? 0),
       0,
     ),
+    rowPace: rowPaceSeries(completed, externals),
     strength: topStrengthSeries(completed),
+    strengthSeries: topStrengthSeriesList(completed, STRENGTH_TREND_COUNT),
     totalSets: completed.reduce(
       (count, session) =>
         count +

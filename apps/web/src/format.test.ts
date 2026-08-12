@@ -6,6 +6,7 @@ import {
   formatDuration,
   formatSignedClock,
   formatSplit,
+  formatSplitClock,
   formatWeight,
   parseDuration,
 } from "./format";
@@ -43,6 +44,10 @@ describe("formatters", () => {
 
   it("formats a rowing split", () => {
     expect(formatSplit(105)).toBe("1:45.0 /500m");
+  });
+
+  it("formats a bare split clock without the unit", () => {
+    expect(formatSplitClock(112)).toBe("1:52.0");
   });
 
   it("formats distance to the whole metre, grouping thousands", () => {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Prescription } from "@titan/domain/prescription";
 import type { WorkoutSession } from "@titan/domain/workout-session";
-import { topStrengthSeries } from "./strength-series";
+import { topStrengthSeries, topStrengthSeriesList } from "./strength-series";
 
 const session = (id: string, date: string, weight: number): WorkoutSession => ({
   blockId: "b",
@@ -46,5 +46,46 @@ describe("topStrengthSeries", () => {
 
   it("returns undefined without weighted work", () => {
     expect(topStrengthSeries([])).toBeUndefined();
+  });
+});
+
+const lift = (
+  exerciseId: string,
+  date: string,
+  weight: number,
+): WorkoutSession =>
+  ({
+    results: [
+      {
+        exerciseId,
+        prescription: Prescription.Strength({ reps: 5, sets: 1, weight }),
+        sets: [{ completed: true, reps: 5, weight }],
+        slotId: exerciseId,
+      },
+    ],
+    scheduledDate: date,
+    status: "completed",
+  }) as unknown as WorkoutSession;
+
+describe("topStrengthSeriesList", () => {
+  it("orders lifts by how often they were logged and caps at the limit", () => {
+    const list = topStrengthSeriesList(
+      [
+        lift("back-squat", "2026-01-05", 225),
+        lift("bench-press", "2026-01-06", 155),
+        lift("back-squat", "2026-01-12", 230),
+        lift("deadlift", "2026-01-13", 315),
+      ],
+      2,
+    );
+    expect(list.map((series) => series.exerciseId)).toEqual([
+      "back-squat",
+      "bench-press",
+    ]);
+    expect(list[0]?.values).toHaveLength(2);
+  });
+
+  it("is empty without weighted work", () => {
+    expect(topStrengthSeriesList([], 2)).toEqual([]);
   });
 });

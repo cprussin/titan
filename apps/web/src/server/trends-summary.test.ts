@@ -32,6 +32,8 @@ describe("trendsSummary", () => {
     expect(summary.totalSets).toBe(0);
     expect(summary.rowingMeters).toBe(0);
     expect(summary.strength).toBeUndefined();
+    expect(summary.strengthSeries).toEqual([]);
+    expect(summary.rowPace).toBeUndefined();
   });
 
   it("takes the latest weight from the newest-first metrics and charts them oldest-first", () => {
