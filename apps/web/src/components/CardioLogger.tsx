@@ -37,8 +37,8 @@ export const CardioLogger = ({
   const [avgHr, setAvgHr] = useState("");
 
   const checkConcept2 = useCallback(
-    () => checkConcept2Match(sessionId),
-    [sessionId],
+    () => checkConcept2Match(sessionId, prescribed.slotId),
+    [prescribed.slotId, sessionId],
   );
   const logImport = useCallback(
     (normalized: NormalizedWorkout) => {

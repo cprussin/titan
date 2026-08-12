@@ -3,27 +3,33 @@ import type { NormalizedWorkout } from "@titan/domain/external";
 import type { Prescription } from "@titan/domain/prescription";
 import { Prescription as Rx } from "@titan/domain/prescription";
 import { ProgressionPolicy } from "@titan/domain/progression-policy";
-import type { WorkoutSession } from "@titan/domain/workout-session";
+import type {
+  PrescribedExercise,
+  WorkoutSession,
+} from "@titan/domain/workout-session";
 import { MatchKind, matchWorkout } from "./match";
 
-const session = (
+const exercise = (
+  slotId: string,
+  prescription: Prescription,
+): PrescribedExercise => ({
+  exerciseId: "row",
+  prescription,
+  progression: ProgressionPolicy.None(),
+  role: "primary",
+  slotId,
+});
+
+const sessionWith = (
   id: string,
   scheduledDate: string,
-  prescription: Prescription,
+  prescribedExercises: readonly PrescribedExercise[],
 ): WorkoutSession => ({
   blockId: "block-1",
   dayOfWeek: 3,
   estimatedDurationMin: 40,
   id,
-  prescribedExercises: [
-    {
-      exerciseId: "row",
-      prescription,
-      progression: ProgressionPolicy.None(),
-      role: "primary",
-      slotId: "slot-row",
-    },
-  ],
+  prescribedExercises: [...prescribedExercises],
   programVersionId: "pv-1",
   results: [],
   scheduledDate,
@@ -32,6 +38,13 @@ const session = (
   userId: "user-1",
   weekNumber: 1,
 });
+
+const session = (
+  id: string,
+  scheduledDate: string,
+  prescription: Prescription,
+): WorkoutSession =>
+  sessionWith(id, scheduledDate, [exercise("slot-row", prescription)]);
 
 const rowing = (distanceMeters: number): NormalizedWorkout => ({
   intervals: [],
@@ -46,6 +59,7 @@ describe("matchWorkout", () => {
     ]);
     expect(result).toEqual({
       kind: MatchKind.Matched,
+      slotId: "slot-row",
       workoutSessionId: "s-1",
     });
   });
@@ -80,6 +94,7 @@ describe("matchWorkout", () => {
     ]);
     expect(result).toEqual({
       kind: MatchKind.Matched,
+      slotId: "slot-row",
       workoutSessionId: "next-day",
     });
   });
@@ -99,6 +114,7 @@ describe("matchWorkout", () => {
     ]);
     expect(result).toEqual({
       kind: MatchKind.Matched,
+      slotId: "slot-row",
       workoutSessionId: "same-day",
     });
   });
@@ -127,7 +143,29 @@ describe("matchWorkout", () => {
     ]);
     expect(result).toEqual({
       kind: MatchKind.Matched,
+      slotId: "slot-row",
       workoutSessionId: "near",
+    });
+  });
+
+  it("matches the cardio exercise in a session whose target is closest", () => {
+    // A single session prescribes both a 10k piece and a 500m cooldown row.
+    // The imported 10k must bind to the 10k slot, not merely to the session
+    // (whose first cardio exercise the old session-level match would have
+    // picked regardless of distance).
+    const mixed = sessionWith("mixed", "2024-01-15", [
+      exercise("slot-10k", Rx.DistanceCardio({ distanceMeters: 10_000 })),
+      exercise("slot-cooldown", Rx.DistanceCardio({ distanceMeters: 500 })),
+    ]);
+    expect(matchWorkout(rowing(10_000), [mixed])).toEqual({
+      kind: MatchKind.Matched,
+      slotId: "slot-10k",
+      workoutSessionId: "mixed",
+    });
+    expect(matchWorkout(rowing(500), [mixed])).toEqual({
+      kind: MatchKind.Matched,
+      slotId: "slot-cooldown",
+      workoutSessionId: "mixed",
     });
   });
 });

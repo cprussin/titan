@@ -59,7 +59,10 @@ export const importConcept2Results = async (
         raw,
         userId: USER_ID,
         ...(match.kind === MatchKind.Matched
-          ? { matchedWorkoutSessionId: match.workoutSessionId }
+          ? {
+              matchedSlotId: match.slotId,
+              matchedWorkoutSessionId: match.workoutSessionId,
+            }
           : {}),
       };
       return { inserted: await insertExternalWorkout(db, workout), workout };

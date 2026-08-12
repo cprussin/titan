@@ -1,19 +1,24 @@
 import type { NormalizedWorkout } from "@titan/domain/external";
 import type { Prescription } from "@titan/domain/prescription";
-import type { WorkoutSession } from "@titan/domain/workout-session";
+import type {
+  PrescribedExercise,
+  WorkoutSession,
+} from "@titan/domain/workout-session";
 
 /**
- * Match an imported {@link NormalizedWorkout} to the planned rowing/cardio
- * session it belongs to. A candidate qualifies when it prescribes a cardio
- * effort and is scheduled within a calendar day of when the workout was
- * performed; among those, the nearest scheduled day wins, and equal days are
- * broken by whichever target distance is closest to the workout's. The
- * one-day window absorbs the timezone skew between Concept2's local workout
- * date and the UTC day the app schedules sessions on (see `date.ts`) — an
- * offset that can never exceed a single calendar day. The "no planned session"
- * case is an ordinary outcome, not a failure, so it is modelled as a
- * {@link MatchResult} variant the caller branches on rather than a thrown error
- * (see ERRORS.md).
+ * Match an imported {@link NormalizedWorkout} to the exact planned cardio
+ * exercise it belongs to. Every cardio effort across the candidate sessions is
+ * a candidate slot; a slot qualifies when its session is scheduled within a
+ * calendar day of when the workout was performed. Among those, the nearest
+ * scheduled day wins, and equal days are broken by whichever slot's target
+ * distance is closest to the workout's — so a session that prescribes both a
+ * 10k piece and a short cooldown row binds each imported effort to the right
+ * slot rather than to whichever cardio exercise came first. The one-day window
+ * absorbs the timezone skew between Concept2's local workout date and the UTC
+ * day the app schedules sessions on (see `date.ts`) — an offset that can never
+ * exceed a single calendar day. The "no planned session" case is an ordinary
+ * outcome, not a failure, so it is modelled as a {@link MatchResult} variant
+ * the caller branches on rather than a thrown error (see ERRORS.md).
  */
 
 const CARDIO_PRESCRIPTION_TYPES = new Set<Prescription["type"]>([
@@ -35,8 +40,9 @@ export enum MatchKind {
 }
 
 export const MatchResult = {
-  Matched: (workoutSessionId: string) => ({
+  Matched: (workoutSessionId: string, slotId: string) => ({
     kind: MatchKind.Matched as const,
+    slotId,
     workoutSessionId,
   }),
   Unmatched: () => ({ kind: MatchKind.Unmatched as const }),
@@ -51,44 +57,61 @@ export const matchWorkout = (
   candidateSessions: readonly WorkoutSession[],
 ): MatchResult => {
   const day = normalized.workoutAt.slice(0, 10);
-  const nearby = candidateSessions.filter(
-    (session) =>
-      isCardioSession(session) &&
-      dayDifference(session.scheduledDate, day) <= MATCH_DAY_TOLERANCE,
+  const nearby = cardioSlots(candidateSessions).filter(
+    (slot) =>
+      dayDifference(slot.session.scheduledDate, day) <= MATCH_DAY_TOLERANCE,
   );
   const best = pickClosest(normalized, day, nearby);
   return best === undefined
     ? MatchResult.Unmatched()
-    : MatchResult.Matched(best.id);
+    : MatchResult.Matched(best.slot.session.id, best.slot.exercise.slotId);
 };
 
-type ScoredSession = {
+/** One prescribed cardio effort, kept with its owning session so a match can
+ *  name both the session and the exact slot the import belongs to. */
+type CardioSlot = {
+  session: WorkoutSession;
+  exercise: PrescribedExercise;
+};
+
+type ScoredSlot = {
   dayDelta: number;
   distanceDelta: number;
-  session: WorkoutSession;
+  slot: CardioSlot;
 };
+
+const cardioSlots = (
+  sessions: readonly WorkoutSession[],
+): readonly CardioSlot[] =>
+  sessions.flatMap((session) =>
+    session.prescribedExercises
+      .filter((exercise) =>
+        CARDIO_PRESCRIPTION_TYPES.has(exercise.prescription.type),
+      )
+      .map((exercise) => ({ exercise, session })),
+  );
 
 const pickClosest = (
   normalized: NormalizedWorkout,
   day: string,
-  sessions: readonly WorkoutSession[],
-): WorkoutSession | undefined => {
+  slots: readonly CardioSlot[],
+): ScoredSlot | undefined => {
   const workoutMeters = normalized.summary.distanceMeters ?? 0;
-  const scored: ScoredSession[] = sessions.map((session) => ({
-    dayDelta: dayDifference(session.scheduledDate, day),
-    distanceDelta: distanceScore(session, workoutMeters),
-    session,
+  const scored: ScoredSlot[] = slots.map((slot) => ({
+    dayDelta: dayDifference(slot.session.scheduledDate, day),
+    distanceDelta: distanceScore(slot.exercise, workoutMeters),
+    slot,
   }));
-  return scored.reduce<ScoredSession | undefined>(
+  return scored.reduce<ScoredSlot | undefined>(
     (best, current) =>
       best === undefined || isCloser(current, best) ? current : best,
     undefined,
-  )?.session;
+  );
 };
 
 /** Day proximity is the primary signal — an equal-day tie falls through to the
  *  closest target distance. */
-const isCloser = (current: ScoredSession, best: ScoredSession): boolean =>
+const isCloser = (current: ScoredSlot, best: ScoredSlot): boolean =>
   current.dayDelta < best.dayDelta ||
   (current.dayDelta === best.dayDelta &&
     current.distanceDelta < best.distanceDelta);
@@ -100,25 +123,13 @@ const dayDifference = (a: string, b: string): number =>
   ) / MS_PER_DAY;
 
 const distanceScore = (
-  session: WorkoutSession,
+  exercise: PrescribedExercise,
   workoutMeters: number,
 ): number => {
-  const target = sessionTargetMeters(session);
+  const target = prescriptionMeters(exercise.prescription);
   return target === undefined
     ? Number.POSITIVE_INFINITY
     : Math.abs(target - workoutMeters);
-};
-
-const isCardioSession = (session: WorkoutSession): boolean =>
-  session.prescribedExercises.some((exercise) =>
-    CARDIO_PRESCRIPTION_TYPES.has(exercise.prescription.type),
-  );
-
-const sessionTargetMeters = (session: WorkoutSession): number | undefined => {
-  const cardio = session.prescribedExercises
-    .map((exercise) => exercise.prescription)
-    .find((prescription) => CARDIO_PRESCRIPTION_TYPES.has(prescription.type));
-  return cardio === undefined ? undefined : prescriptionMeters(cardio);
 };
 
 const prescriptionMeters = (prescription: Prescription): number | undefined => {

@@ -2,6 +2,7 @@ import { getConnection } from "@titan/db/external-connections";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
 import { NextResponse } from "next/server";
 import { apiAuthGuard } from "../../../../../auth/session";
+import { concept2MatchRequestSchema } from "../../../../../concept2-match-request";
 import { Concept2MatchResult } from "../../../../../concept2-match-result";
 import { db } from "../../../../../db";
 import { env } from "../../../../../env";
@@ -9,15 +10,16 @@ import { importConcept2Results } from "../../../../../server/import-concept2-res
 import { USER_ID } from "../../../../../user";
 
 /**
- * Sync Concept2 and report whether any imported workout matches the session
- * identified by `id`. The import matches every fetched result against the
- * athlete's planned sessions (the same path the manual sync uses); this handler
- * simply picks out the one assigned to the session being executed, so a row
- * already logged — or one finished mid-workout, surfaced on a later poll — can
- * be recorded automatically.
+ * Sync Concept2 and report whether any imported workout matches the cardio slot
+ * the athlete is logging, identified by the session `id` and the `slotId` in the
+ * request body. The import matches every fetched result to its exact planned
+ * slot (the same path the manual sync uses); this handler picks out the one
+ * assigned to the slot being executed, so a row already logged — or one finished
+ * mid-workout, surfaced on a later poll — can be recorded automatically without
+ * a multi-piece session handing the wrong row to the wrong step.
  */
 export const POST = async (
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ): Promise<Response> => {
   const guard = await apiAuthGuard();
@@ -33,6 +35,7 @@ export const POST = async (
     );
   } else {
     const { id } = await context.params;
+    const { slotId } = concept2MatchRequestSchema.parse(await request.json());
     const [connection, session] = await Promise.all([
       getConnection(db, USER_ID, "concept2"),
       getWorkoutSession(db, id),
@@ -48,7 +51,9 @@ export const POST = async (
         env.CONCEPT2_CLIENT_SECRET,
       );
       const match = outcomes.find(
-        (outcome) => outcome.workout.matchedWorkoutSessionId === id,
+        (outcome) =>
+          outcome.workout.matchedWorkoutSessionId === id &&
+          outcome.workout.matchedSlotId === slotId,
       );
       return NextResponse.json(
         match === undefined

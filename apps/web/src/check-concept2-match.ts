@@ -2,15 +2,18 @@ import type { Concept2MatchResult } from "./concept2-match-result";
 import { concept2MatchResultSchema } from "./concept2-match-result";
 
 /**
- * Sync Concept2 and ask whether any imported workout matches the given session.
- * Parses the response at the boundary (see DATA.md) and throws on a non-OK
- * status so the caller surfaces the failure rather than treating it as "no
- * match".
+ * Sync Concept2 and ask whether any imported workout matches the given cardio
+ * slot in the session. Parses the response at the boundary (see DATA.md) and
+ * throws on a non-OK status so the caller surfaces the failure rather than
+ * treating it as "no match".
  */
 export const checkConcept2Match = async (
   sessionId: string,
+  slotId: string,
 ): Promise<Concept2MatchResult> => {
   const response = await fetch(`/api/workouts/${sessionId}/concept2-match`, {
+    body: JSON.stringify({ slotId }),
+    headers: { "content-type": "application/json" },
     method: "POST",
   });
   if (response.ok) {
