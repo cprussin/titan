@@ -22,8 +22,20 @@ export type WeekDay = {
   label: string;
 } & (
   | { kind: "rest" }
-  | { detail: string | undefined; kind: "planned"; name: string }
-  | { detail: string; kind: "logged"; name: string }
+  | {
+      kind: "planned";
+      name: string;
+      /** The primary-movement signature shown on a collapsed cell. */
+      signature: string | undefined;
+      /** The exercise count and duration shown on an expanded cell. */
+      summary: string;
+    }
+  | {
+      kind: "logged";
+      name: string;
+      /** The sets and actual duration shown on an expanded cell. */
+      summary: string;
+    }
 );
 
 /** Everything the pure resolver needs, gathered once by the page so the ribbon
@@ -64,9 +76,9 @@ const resolveDay = (input: WeekScheduleInput, date: string): WeekDay => {
   if (logged !== undefined && loggedTemplate !== undefined) {
     return {
       ...common,
-      detail: loggedDetail(logged),
       kind: "logged",
       name: loggedTemplate.name,
+      summary: loggedSummary(logged),
     };
   } else {
     return resolvePlanned(input, common);
@@ -100,11 +112,10 @@ const resolvePlanned = (
     });
     return {
       ...common,
-      detail: common.isToday
-        ? `${resolved.prescribedExercises.length} exercises · ~${resolved.estimatedDurationMin} min`
-        : primarySignature(resolved.prescribedExercises, input.names),
       kind: "planned",
       name: template.name,
+      signature: primarySignature(resolved.prescribedExercises, input.names),
+      summary: `${resolved.prescribedExercises.length} exercises · ~${resolved.estimatedDurationMin} min`,
     };
   }
 };
@@ -121,9 +132,9 @@ const findTemplate = (
         (template) => template.id === sessionTemplateId,
       );
 
-/** A logged day's ribbon detail: how many sets, and how long it actually took
- *  (falling back to the estimate for sessions logged without timestamps). */
-const loggedDetail = (session: WorkoutSession): string => {
+/** A logged day's expanded summary: how many sets, and how long it actually
+ *  took (falling back to the estimate for sessions logged without timestamps). */
+const loggedSummary = (session: WorkoutSession): string => {
   const sets = session.results.reduce(
     (total, result) => total + result.sets.length,
     0,

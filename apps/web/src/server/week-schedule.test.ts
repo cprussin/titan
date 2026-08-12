@@ -134,31 +134,25 @@ describe("weekSchedule", () => {
     expect(week[3]).toMatchObject({ isPast: false, isToday: false });
   });
 
-  it("summarizes today's planned session by exercise count and duration", () => {
+  it("summarizes a planned session by exercise count and duration", () => {
     const monday = weekSchedule({ ...base, loggedByDate: new Map() })[0];
     expect(monday.kind).toBe("planned");
     expect(monday).toMatchObject({ name: "Heavy Lower" });
-    expect(monday.kind === "planned" && monday.detail).toMatch(
+    expect(monday.kind === "planned" && monday.summary).toMatch(
       /^2 exercises · ~\d+ min$/,
     );
   });
 
-  it("summarizes another planned day by its primary movement signature", () => {
+  it("gives a planned day a primary-movement signature", () => {
     const tuesday = weekSchedule({ ...base, loggedByDate: new Map() })[1];
     expect(tuesday.kind).toBe("planned");
-    // A cardio primary shows just its target; a strength primary would carry
-    // its name too.
-    expect(tuesday.kind === "planned" && tuesday.detail).toBe("8 × 500 m");
-  });
-
-  it("names a strength primary in the signature", () => {
-    const week = weekSchedule({
-      ...base,
-      loggedByDate: new Map(),
-      today: "2026-08-11",
-    });
-    const monday = week[0];
-    expect(monday.kind === "planned" && monday.detail).toBe("Back Squat 5×5");
+    // A cardio primary shows just its target...
+    expect(tuesday.kind === "planned" && tuesday.signature).toBe("8 × 500 m");
+    // ...while a strength primary carries its name too.
+    const monday = weekSchedule({ ...base, loggedByDate: new Map() })[0];
+    expect(monday.kind === "planned" && monday.signature).toBe(
+      "Back Squat 5×5",
+    );
   });
 
   it("shows a rest day where no session is scheduled", () => {
@@ -175,7 +169,7 @@ describe("weekSchedule", () => {
     const monday = week[0];
     expect(monday.kind).toBe("logged");
     expect(monday).toMatchObject({ name: "Heavy Lower" });
-    expect(monday.kind === "logged" && monday.detail).toBe("8 sets · 45 min");
+    expect(monday.kind === "logged" && monday.summary).toBe("8 sets · 45 min");
   });
 
   it("is all rest when no program is placed", () => {
