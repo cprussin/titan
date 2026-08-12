@@ -12,6 +12,7 @@ import { TopBar } from "../../../../../components/TopBar";
 import { db } from "../../../../../db";
 import { exerciseNames } from "../../../../../server/exercise-names";
 import { nextSessionAdaptations } from "../../../../../server/next-adaptations";
+import { sessionDurationMin } from "../../../../../session-duration";
 import { Badge } from "../../../../../ui";
 import { USER_ID } from "../../../../../user";
 
@@ -42,17 +43,7 @@ const CompletePage = async ({
       (count, result) => count + result.sets.length,
       0,
     );
-    const durationMin =
-      session.startedAt !== undefined && session.completedAt !== undefined
-        ? Math.max(
-            1,
-            Math.round(
-              (Date.parse(session.completedAt) -
-                Date.parse(session.startedAt)) /
-                60_000,
-            ),
-          )
-        : session.estimatedDurationMin;
+    const durationMin = sessionDurationMin(session);
 
     return (
       <div
