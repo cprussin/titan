@@ -123,9 +123,16 @@ const fabStyles = css({
   columnGap: 3,
   display: "grid",
   gridTemplateColumns: "auto auto",
+  // At the phone size the FAB floats above the bottom tab bar, so it clears the
+  // bar's height (plus the OS safe-area inset below it).
   insetBlockEnd: "calc(env(safe-area-inset-bottom) + {spacing.24})",
   insetInlineEnd: 4,
   lg: { display: "none" },
+  // Through the `mdToLg` window there's no bottom bar — the nav is an off-canvas
+  // drawer — so the FAB has nothing to clear and just sits its inline offset off
+  // the bottom edge (still honoring the safe-area inset). Only the block-end
+  // origin changes here; from `lg` up the FAB is hidden entirely.
+  md: { insetBlockEnd: "calc(env(safe-area-inset-bottom) + {spacing.4})" },
   position: "fixed",
   rowGap: 3,
   zIndex: 8,
