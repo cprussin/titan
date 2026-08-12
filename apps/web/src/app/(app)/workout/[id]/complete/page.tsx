@@ -1,4 +1,4 @@
-import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr/CheckCircle";
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ClockCounterClockwise";
 import { listPersonalRecords } from "@titan/db/personal-records";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
 import type { Metadata } from "next";
@@ -61,7 +61,7 @@ const CompletePage = async ({
         <TopBar
           actions={<DeleteWorkoutButton sessionId={id} size="sm" />}
           breadcrumbs={[{ href: "/history", label: "History" }]}
-          icon={<CheckCircleIcon size={18} />}
+          icon={<ClockCounterClockwiseIcon size={18} />}
           title={session.scheduledDate}
         />
 

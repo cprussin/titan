@@ -1,4 +1,4 @@
-import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr/CheckCircle";
+import { ClockCounterClockwiseIcon } from "@phosphor-icons/react/dist/ssr/ClockCounterClockwise";
 import { css } from "../../../../../../styled-system/css";
 import { grid, vstack } from "../../../../../../styled-system/patterns";
 import { TopBar } from "../../../../../components/TopBar";
@@ -14,7 +14,7 @@ const CompleteLoading = () => (
     <TopBar
       actions={<Skeleton height="1.75rem" radius="md" width="4rem" />}
       breadcrumbs={[{ href: "/history", label: "History" }]}
-      icon={<CheckCircleIcon size={18} />}
+      icon={<ClockCounterClockwiseIcon size={18} />}
       title={<Skeleton height="1rem" width="7rem" />}
     />
 

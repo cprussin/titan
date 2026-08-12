@@ -1,8 +1,8 @@
 import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
-import { css } from "../../../../../styled-system/css";
-import { hstack, vstack } from "../../../../../styled-system/patterns";
-import { TopBar } from "../../../../components/TopBar";
-import { Skeleton } from "../../../../ui";
+import { css } from "../../../../../../styled-system/css";
+import { hstack, vstack } from "../../../../../../styled-system/patterns";
+import { TopBar } from "../../../../../components/TopBar";
+import { Skeleton } from "../../../../../ui";
 
 /**
  * Loading state for the workout execution screen. Mirrors its layout — the
