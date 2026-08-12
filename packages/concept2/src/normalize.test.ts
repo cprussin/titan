@@ -63,4 +63,9 @@ describe("normalizeWorkout", () => {
     expect(normalized.summary.avgHr).toBeUndefined();
     expect(normalized.summary.avgStrokeRate).toBe(24);
   });
+
+  it("yields no intervals when the workout object omits them", () => {
+    const normalized = normalizeWorkout({ ...rawWorkout, workout: {} });
+    expect(normalized.intervals).toHaveLength(0);
+  });
 });

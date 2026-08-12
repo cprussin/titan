@@ -33,6 +33,14 @@ describe("concept2ResultSchema", () => {
     expect(parsed.heart_rate).toBeUndefined();
   });
 
+  it("accepts a workout with no intervals", () => {
+    const parsed = concept2ResultSchema.parse({
+      ...rawResult,
+      workout: {},
+    });
+    expect(parsed.workout?.intervals).toBeUndefined();
+  });
+
   it("rejects a payload missing a required field", () => {
     const { time, ...withoutTime } = rawResult;
     expect(concept2ResultSchema.safeParse(withoutTime).success).toBe(false);
