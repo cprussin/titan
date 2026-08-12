@@ -23,3 +23,7 @@ export { Skeleton } from "@titan/component-library/Skeleton";
 export { Slider } from "@titan/component-library/Slider";
 export { Textarea } from "@titan/component-library/Textarea";
 export { ThemeSwitch } from "@titan/component-library/ThemeSwitch";
+export {
+  ToggleGroup,
+  type ToggleGroupItem,
+} from "@titan/component-library/ToggleGroup";
