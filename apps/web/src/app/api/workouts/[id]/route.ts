@@ -9,6 +9,7 @@ import { apiAuthGuard } from "../../../../auth/session";
 import { db } from "../../../../db";
 import { cancelWorkout } from "../../../../server/cancel-workout";
 import { completeWorkout } from "../../../../server/complete-workout";
+import { stampResultTimes } from "../../../../server/stamp-result-times";
 import { USER_ID } from "../../../../user";
 
 const bodySchema = z.object({
@@ -37,7 +38,12 @@ export const PATCH = async (
       if (session === undefined) {
         return NextResponse.json({ error: "not found" }, { status: 404 });
       } else {
-        await upsertWorkoutSession(db, { ...session, results: body.results });
+        const results = stampResultTimes(
+          session.results,
+          body.results,
+          new Date().toISOString(),
+        );
+        await upsertWorkoutSession(db, { ...session, results });
         return NextResponse.json({ ok: true });
       }
     }

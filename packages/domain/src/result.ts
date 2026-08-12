@@ -57,6 +57,12 @@ export const exerciseResultSchema = z.object({
   notes: z.string().optional(),
   /** Snapshot of the prescription this result was measured against. */
   prescription: prescriptionSchema,
+  /** ISO instant this result was recorded, stamped server-side as the session
+   *  is saved. Gives each piece a wall-clock position within the session so the
+   *  time the app spent on a cardio piece can be told apart from the piece's own
+   *  logged duration (see the workout-complete duration measure). Absent on
+   *  results recorded before this was tracked. */
+  recordedAt: z.string().optional(),
   sets: z.array(setResultSchema),
   slotId: idSchema,
 });

@@ -17,6 +17,7 @@ import type { PersonalRecord } from "@titan/domain/personal-record";
 import type { ExerciseResult } from "@titan/domain/result";
 import type { WorkoutSession } from "@titan/domain/workout-session";
 import { detectPersonalRecords } from "./detect-personal-records";
+import { stampResultTimes } from "./stamp-result-times";
 
 export type CompletionResult = {
   personalRecords: readonly PersonalRecord[];
@@ -41,7 +42,7 @@ export const completeWorkout = async (
     const completed: WorkoutSession = {
       ...session,
       completedAt,
-      results: [...results],
+      results: stampResultTimes(session.results, results, completedAt),
       status: "completed",
     };
     await upsertWorkoutSession(db, completed);
