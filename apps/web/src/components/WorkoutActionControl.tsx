@@ -31,27 +31,51 @@ export const WorkoutActionControl = ({
   iconOnly = false,
 }: Props) =>
   action.kind === "continue" ? (
-    iconOnly ? (
-      <Button
-        href={`/workout/${action.sessionId}`}
-        label="Continue workout"
-        rounded={rounded}
-        size={size}
-        variant={rounded ? "accent" : "solid"}
-      >
-        <ArrowRightIcon size={20} weight="bold" />
-      </Button>
-    ) : (
-      <Button
-        beforeIcon={<ArrowRightIcon size={20} weight="bold" />}
-        href={`/workout/${action.sessionId}`}
-        rounded={rounded}
-        size={size}
-        variant={rounded ? "accent" : "solid"}
-      >
-        Continue workout
-      </Button>
-    )
+    <ContinueWorkout
+      iconOnly={iconOnly}
+      rounded={rounded}
+      sessionId={action.sessionId}
+      size={size}
+    />
   ) : (
     <StartWorkout iconOnly={iconOnly} rounded={rounded} size={size} />
+  );
+
+type ContinueWorkoutProps = {
+  /** The in-progress session the control links into. */
+  sessionId: string;
+} & Pick<Props, "iconOnly" | "rounded" | "size">;
+
+/**
+ * The `continue` control: a neutral solid button (accent when pilled for the
+ * FAB) carrying a forward arrow into the in-progress session. Icon-only for the
+ * mobile FAB stack — its name carried by `aria-label` — and labelled inline
+ * everywhere else.
+ */
+const ContinueWorkout = ({
+  sessionId,
+  rounded = false,
+  size = "lg",
+  iconOnly = false,
+}: ContinueWorkoutProps) =>
+  iconOnly ? (
+    <Button
+      href={`/workout/${sessionId}`}
+      label="Continue workout"
+      rounded={rounded}
+      size={size}
+      variant={rounded ? "accent" : "solid"}
+    >
+      <ArrowRightIcon size={20} weight="bold" />
+    </Button>
+  ) : (
+    <Button
+      beforeIcon={<ArrowRightIcon size={20} weight="bold" />}
+      href={`/workout/${sessionId}`}
+      rounded={rounded}
+      size={size}
+      variant={rounded ? "accent" : "solid"}
+    >
+      Continue workout
+    </Button>
   );
