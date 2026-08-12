@@ -1,7 +1,6 @@
 "use client";
 
 import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
-import type { NormalizedWorkout } from "@titan/domain/external";
 import type { LoadUnit } from "@titan/domain/load-unit";
 import type { Modality } from "@titan/domain/movement";
 import type { Prescription } from "@titan/domain/prescription";
@@ -11,14 +10,12 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { css } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
-import { buildImportResult } from "../build-import-result";
-import { checkConcept2Match } from "../check-concept2-match";
-import { formatDuration, formatWeight, parseDuration } from "../format";
+import { formatWeight } from "../format";
 import { describePrescription } from "../prescription-text";
 import { roleTone } from "../role-tone";
-import { Badge, Button, Input } from "../ui";
+import { Badge } from "../ui";
 import { CancelWorkoutButton } from "./CancelWorkoutButton";
-import { Concept2Check } from "./Concept2Check";
+import { CardioLogger } from "./CardioLogger";
 import { PrescriptionTarget } from "./PrescriptionTarget";
 import { RestTimer } from "./RestTimer";
 import { StrengthLogger } from "./StrengthLogger";
@@ -315,134 +312,6 @@ const ExerciseLogger = ({
   );
 };
 
-type CardioLoggerProps = {
-  busy: boolean;
-  concept2Connected: boolean;
-  modality: Modality | undefined;
-  onComplete: (result: ExerciseResult) => void;
-  prescribed: PrescribedExercise;
-  sessionId: string;
-};
-
-const CardioLogger = ({
-  busy,
-  concept2Connected,
-  modality,
-  onComplete,
-  prescribed,
-  sessionId,
-}: CardioLoggerProps) => {
-  const [distanceM, setDistanceM] = useState("");
-  const [duration, setDuration] = useState("");
-  const [avgHr, setAvgHr] = useState("");
-
-  const checkConcept2 = useCallback(
-    () => checkConcept2Match(sessionId),
-    [sessionId],
-  );
-  const logImport = useCallback(
-    (normalized: NormalizedWorkout) => {
-      onComplete(buildImportResult(prescribed, normalized));
-    },
-    [onComplete, prescribed],
-  );
-
-  const complete = () => {
-    const distanceMeters = Number(distanceM) || 0;
-    const durationSec = parseDuration(duration) ?? 0;
-    const heart = Number(avgHr) || 0;
-    onComplete({
-      cardio: {
-        ...(distanceMeters > 0 ? { distanceMeters } : {}),
-        ...(durationSec > 0 ? { durationSec } : {}),
-        ...(distanceMeters > 0 && durationSec > 0
-          ? { splitSecPer500: durationSec / (distanceMeters / 500) }
-          : {}),
-        ...(heart > 0 ? { avgHr: heart } : {}),
-      },
-      exerciseId: prescribed.exerciseId,
-      id: crypto.randomUUID(),
-      prescription: prescribed.prescription,
-      sets: [],
-      slotId: prescribed.slotId,
-    });
-  };
-
-  return (
-    <div className={vstack({ alignItems: "stretch", gap: 3 })}>
-      {modality === "rower" && concept2Connected && (
-        <Concept2Check check={checkConcept2} onFound={logImport} />
-      )}
-      <NumberField
-        label="Distance (m)"
-        onChange={setDistanceM}
-        value={distanceM}
-      />
-      <DurationField
-        label="Duration (m:ss)"
-        onChange={setDuration}
-        value={duration}
-      />
-      <NumberField
-        label="Avg HR (optional)"
-        onChange={setAvgHr}
-        value={avgHr}
-      />
-      <Button loading={busy} onClick={complete} size="xl" variant="success">
-        Complete
-      </Button>
-    </div>
-  );
-};
-
-type NumberFieldProps = {
-  label: string;
-  onChange: (value: string) => void;
-  value: string;
-};
-
-const NumberField = ({ label, onChange, value }: NumberFieldProps) => (
-  <div className={vstack({ alignItems: "stretch", gap: 1 })}>
-    <span className={fieldLabelStyles}>{label}</span>
-    <Input
-      aria-label={label}
-      inputMode="numeric"
-      onChange={(event) => onChange(event.currentTarget.value)}
-      type="number"
-      value={value}
-    />
-  </div>
-);
-
-type DurationFieldProps = {
-  label: string;
-  onChange: (value: string) => void;
-  value: string;
-};
-
-// A free-text clock entry (`m:ss`, `m:ss.s`, or bare seconds) rather than a
-// numeric field, so a rowing piece is logged at its true precision. The parsed
-// value is echoed back normalized so the athlete sees exactly what will be
-// stored.
-const DurationField = ({ label, onChange, value }: DurationFieldProps) => {
-  const parsed = parseDuration(value);
-  return (
-    <div className={vstack({ alignItems: "stretch", gap: 1 })}>
-      <span className={fieldLabelStyles}>{label}</span>
-      <Input
-        aria-label={label}
-        inputMode="text"
-        onChange={(event) => onChange(event.currentTarget.value)}
-        placeholder="m:ss"
-        value={value}
-      />
-      {parsed !== undefined && (
-        <span className={durationEchoStyles}>{formatDuration(parsed)}</span>
-      )}
-    </div>
-  );
-};
-
 const PreviousPerformance = ({
   previous,
 }: {
@@ -619,10 +488,6 @@ const nameStyles = css({
   lg: { fontSize: "4xl" },
   lineHeight: "condensed",
 });
-
-const fieldLabelStyles = css({ color: "muted", fontSize: "sm" });
-
-const durationEchoStyles = css({ color: "textTertiary", fontSize: "xs" });
 
 // Flat: a hairline accent rule on the inline-start edge instead of a filled
 // chip, so "last time" reads as a quiet aside with a touch of color.

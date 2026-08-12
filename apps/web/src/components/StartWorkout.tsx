@@ -2,16 +2,12 @@
 
 import { PlayIcon } from "@phosphor-icons/react/dist/ssr/Play";
 import { useRouter } from "next/navigation";
-import type { ChangeEvent } from "react";
 import { useState } from "react";
 import { z } from "zod";
-import { css } from "../../styled-system/css";
-import { hstack, vstack } from "../../styled-system/patterns";
-import { Button, Input, ModalDialog } from "../ui";
+import { Button, ModalDialog } from "../ui";
+import { ReadinessCheckIn } from "./ReadinessCheckIn";
 
 const responseSchema = z.object({ id: z.string() });
-
-const RATINGS = [1, 2, 3, 4, 5] as const;
 
 type Props = {
   /** Pill the trigger for the mobile FAB; leave square for the sidebar. */
@@ -120,69 +116,16 @@ export const StartWorkout = ({
         )
       }
     >
-      <div className={fieldsStyles}>
-        <p className={introStyles}>
-          A quick pre-workout check-in, recorded with today&rsquo;s session.
-          Skip to start right away.
-        </p>
-        <Rating label="Energy" onChange={setEnergy} value={energy} />
-        <Rating
-          label="Soreness (5 = fresh)"
-          onChange={setSoreness}
-          value={soreness}
-        />
-        <Rating
-          label="Sleep quality"
-          onChange={setSleepQuality}
-          value={sleepQuality}
-        />
-        <div className={fieldStyles}>
-          <span className={labelStyles}>Available time (min)</span>
-          <Input
-            aria-label="Available time in minutes"
-            inputMode="numeric"
-            onChange={(event: ChangeEvent<HTMLInputElement>) =>
-              setAvailableMinutes(Number(event.currentTarget.value) || 0)
-            }
-            type="number"
-            value={`${availableMinutes}`}
-          />
-        </div>
-      </div>
+      <ReadinessCheckIn
+        availableMinutes={availableMinutes}
+        energy={energy}
+        onAvailableMinutesChange={setAvailableMinutes}
+        onEnergyChange={setEnergy}
+        onSleepQualityChange={setSleepQuality}
+        onSorenessChange={setSoreness}
+        sleepQuality={sleepQuality}
+        soreness={soreness}
+      />
     </ModalDialog>
   );
 };
-
-type RatingProps = {
-  label: string;
-  onChange: (value: number) => void;
-  value: number;
-};
-
-const Rating = ({ label, onChange, value }: RatingProps) => (
-  <div className={fieldStyles}>
-    <span className={labelStyles}>{label}</span>
-    <div className={ratingsStyles}>
-      {RATINGS.map((rating) => (
-        <Button
-          key={rating}
-          onClick={() => onChange(rating)}
-          size="md"
-          variant={rating === value ? "accent" : "outline"}
-        >
-          {`${rating}`}
-        </Button>
-      ))}
-    </div>
-  </div>
-);
-
-const fieldsStyles = vstack({ alignItems: "stretch", gap: 4 });
-
-const introStyles = css({ color: "muted", fontSize: "sm" });
-
-const fieldStyles = vstack({ alignItems: "stretch", gap: 2 });
-
-const labelStyles = css({ fontSize: "sm", fontWeight: "medium" });
-
-const ratingsStyles = hstack({ gap: 2 });
