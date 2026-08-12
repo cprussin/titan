@@ -79,8 +79,9 @@ describe(BodyWeightTrendCard, () => {
         <BodyWeightTrendCard
           lastWeighInLabel="Yesterday"
           latestWeightLb={184}
-          save={async (weightLb) => {
+          save={(weightLb) => {
             saved.push(weightLb);
+            return Promise.resolve();
           }}
           series={[182, 184]}
           weighedInToday={false}
