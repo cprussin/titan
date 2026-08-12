@@ -1,10 +1,28 @@
 import { describe, expect, it } from "bun:test";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { Prescription } from "@titan/domain/prescription";
 import type { SetResult } from "@titan/domain/result";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
 
 import { StrengthLogger } from "./StrengthLogger";
+
+// A scheduler the test drives by hand so it can advance the hold timer a second
+// at a time without waiting on real time.
+const controllableSchedule = () => {
+  let onTick = () => undefined;
+  const schedule = (tick: () => void) => {
+    onTick = tick;
+    return () => {
+      onTick = () => undefined;
+    };
+  };
+  const tick = () => {
+    act(() => {
+      onTick();
+    });
+  };
+  return { schedule, tick };
+};
 
 const prescription = Prescription.Strength({ reps: 5, sets: 3, weight: 100 });
 
@@ -148,6 +166,56 @@ describe(StrengthLogger, () => {
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(set).toMatchObject({ reps: 5, setIndex: 0, weight: 50 });
+  });
+
+  it("offers the hold timer alongside the manual stepper for a timed hold", () => {
+    const hold = Prescription.TimedHold({ holdSec: 30, sets: 3 });
+    render(
+      <StrengthLogger
+        busy={false}
+        logged={[]}
+        onComplete={noop}
+        onEditSet={noop}
+        onLogSet={noop}
+        onUndoLastSet={noop}
+        prescribed={{ ...prescribed, prescription: hold }}
+        prescription={hold}
+      />,
+    );
+    // The timer is optional: the manual +/- stepper is still there to enter the
+    // hold by hand.
+    expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Increase Hold (sec)" }),
+    ).toBeInTheDocument();
+  });
+
+  it("fills the hold from the timer's elapsed time when it is used", async () => {
+    const { schedule, tick } = controllableSchedule();
+    const hold = Prescription.TimedHold({ holdSec: 30, sets: 3 });
+    const set = await new Promise<SetResult>((resolve) => {
+      render(
+        <StrengthLogger
+          busy={false}
+          logged={[]}
+          onComplete={noop}
+          onEditSet={noop}
+          onLogSet={resolve}
+          onUndoLastSet={noop}
+          prescribed={{ ...prescribed, prescription: hold }}
+          prescription={hold}
+          schedule={schedule}
+        />,
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Start" }));
+      for (let count = 0; count < 10; count++) {
+        tick();
+      }
+      fireEvent.click(screen.getByRole("button", { name: "Stop" }));
+      fireEvent.click(screen.getByRole("button", { name: "Use time" }));
+      fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+    });
+    expect(set).toMatchObject({ holdSec: 10, setIndex: 0 });
   });
 
   it("completes the exercise with the logged sets", async () => {

@@ -8,9 +8,11 @@ import { useCallback, useState } from "react";
 import { vstack } from "../../styled-system/patterns";
 import { buildImportResult } from "../build-import-result";
 import { checkConcept2Match } from "../check-concept2-match";
-import { formatDuration, parseDuration } from "../format";
+import { formatClock, formatDuration, parseDuration } from "../format";
+import type { ScheduleTick } from "../tick-scheduler";
 import { Button, Field, Input } from "../ui";
 import { Concept2Check } from "./Concept2Check";
+import { EffortTimer } from "./EffortTimer";
 
 type CardioLoggerProps = {
   busy: boolean;
@@ -18,6 +20,9 @@ type CardioLoggerProps = {
   modality: Modality | undefined;
   onComplete: (result: ExerciseResult) => void;
   prescribed: PrescribedExercise;
+  /** Tick scheduler for the piece timer, injected for testing; defaults to a 1s
+   *  `setInterval` inside {@link EffortTimer}. */
+  schedule?: ScheduleTick;
   sessionId: string;
 };
 
@@ -30,11 +35,16 @@ export const CardioLogger = ({
   modality,
   onComplete,
   prescribed,
+  schedule,
   sessionId,
 }: CardioLoggerProps) => {
   const [distanceM, setDistanceM] = useState("");
   const [duration, setDuration] = useState("");
   const [avgHr, setAvgHr] = useState("");
+  const durationTarget =
+    prescribed.prescription.type === "timed-cardio"
+      ? prescribed.prescription.durationSec
+      : undefined;
 
   const checkConcept2 = useCallback(
     () => checkConcept2Match(sessionId, prescribed.slotId),
@@ -82,6 +92,11 @@ export const CardioLogger = ({
         label="Duration (m:ss)"
         onChange={setDuration}
         value={duration}
+      />
+      <EffortTimer
+        onUse={(seconds) => setDuration(formatClock(seconds))}
+        schedule={schedule}
+        targetSeconds={durationTarget}
       />
       <NumberField
         label="Avg HR (optional)"
