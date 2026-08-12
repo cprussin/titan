@@ -5,18 +5,9 @@ import { css, cx } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
 import { formatSignedClock } from "../format";
 import { createAlarm as defaultCreateAlarm } from "../rest-alarm";
+import type { ScheduleTick } from "../tick-scheduler";
+import { scheduleTick } from "../tick-scheduler";
 import { Button } from "../ui";
-
-/** Schedules a repeating one-second tick, returning a canceler. Injected so
- *  tests can drive the clock by hand instead of waiting on real time. */
-type ScheduleTick = (onTick: () => void) => () => void;
-
-const defaultSchedule: ScheduleTick = (onTick) => {
-  const id = setInterval(onTick, 1000);
-  return () => {
-    clearInterval(id);
-  };
-};
 
 type Props = {
   initialSeconds: number;
@@ -39,7 +30,7 @@ export const RestTimer = ({
   initialSeconds,
   onFinish,
   createAlarm = defaultCreateAlarm,
-  schedule = defaultSchedule,
+  schedule = scheduleTick,
 }: Props) => {
   const [remaining, setRemaining] = useState(initialSeconds);
   const alarm = useMemo(() => createAlarm(), [createAlarm]);

@@ -9,7 +9,9 @@ import type { PrescribedExercise } from "@titan/domain/workout-session";
 import { useState } from "react";
 import { css } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
+import type { ScheduleTick } from "../tick-scheduler";
 import { Button } from "../ui";
+import { EffortTimer } from "./EffortTimer";
 import { nextSetReps, nextSetWeight } from "./next-set-defaults";
 import { RpePicker } from "./RpePicker";
 
@@ -30,6 +32,9 @@ type Props = {
   onUndoLastSet: () => void;
   prescribed: PrescribedExercise;
   prescription: StrengthLikePrescription;
+  /** Tick scheduler for the hold timer, injected for testing; defaults to a 1s
+   *  `setInterval` inside {@link EffortTimer}. */
+  schedule?: ScheduleTick;
 };
 
 /**
@@ -48,10 +53,13 @@ export const StrengthLogger = ({
   onUndoLastSet,
   prescribed,
   prescription,
+  schedule,
 }: Props) => {
   const sets = prescription.sets;
   const done = logged.length;
   const isHold = prescription.type === "timed-hold";
+  const holdTarget =
+    prescription.type === "timed-hold" ? prescription.holdSec : undefined;
   const unit = prescription.type === "strength" ? prescription.unit : undefined;
   const [weight, setWeight] = useState(nextSetWeight(prescription, logged));
   const [reps, setReps] = useState(nextSetReps(prescription));
@@ -128,12 +136,19 @@ export const StrengthLogger = ({
       {done < sets && (
         <div className={vstack({ alignItems: "stretch", gap: 3 })}>
           {isHold ? (
-            <Stepper
-              label="Hold (sec)"
-              onChange={setHoldSec}
-              step={5}
-              value={holdSec}
-            />
+            <div className={vstack({ alignItems: "stretch", gap: 3 })}>
+              <EffortTimer
+                onUse={(seconds) => setHoldSec(seconds)}
+                schedule={schedule}
+                targetSeconds={holdTarget}
+              />
+              <Stepper
+                label="Hold (sec)"
+                onChange={setHoldSec}
+                step={5}
+                value={holdSec}
+              />
+            </div>
           ) : (
             <>
               {unit !== undefined && (

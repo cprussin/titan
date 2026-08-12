@@ -1,10 +1,28 @@
 import { describe, expect, it } from "bun:test";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { Prescription } from "@titan/domain/prescription";
 import type { ExerciseResult } from "@titan/domain/result";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
 
 import { CardioLogger } from "./CardioLogger";
+
+// A scheduler the test drives by hand so it can advance the piece timer a second
+// at a time without waiting on real time.
+const controllableSchedule = () => {
+  let onTick = () => undefined;
+  const schedule = (tick: () => void) => {
+    onTick = tick;
+    return () => {
+      onTick = () => undefined;
+    };
+  };
+  const tick = () => {
+    act(() => {
+      onTick();
+    });
+  };
+  return { schedule, tick };
+};
 
 const prescription = Prescription.DistanceCardio({ distanceMeters: 2000 });
 
@@ -19,6 +37,7 @@ const noop = () => undefined;
 
 type Overrides = {
   onComplete?: (result: ExerciseResult) => void;
+  schedule?: (onTick: () => void) => () => void;
 };
 
 const renderLogger = (overrides: Overrides = {}) =>
@@ -29,6 +48,19 @@ const renderLogger = (overrides: Overrides = {}) =>
       modality={undefined}
       onComplete={overrides.onComplete ?? noop}
       prescribed={prescribed}
+      sessionId="session-1"
+    />,
+  );
+
+const renderLoggerWithSchedule = (schedule: Overrides["schedule"]) =>
+  render(
+    <CardioLogger
+      busy={false}
+      concept2Connected={false}
+      modality={undefined}
+      onComplete={noop}
+      prescribed={prescribed}
+      schedule={schedule}
       sessionId="session-1"
     />,
   );
@@ -57,6 +89,19 @@ describe(CardioLogger, () => {
     expect(screen.queryByText("10:00")).not.toBeInTheDocument();
     fireEvent.change(duration, { target: { value: "600" } });
     expect(screen.getByText("10:00")).toBeInTheDocument();
+  });
+
+  it("fills the duration field from the timer's elapsed time when it is used", () => {
+    const { schedule, tick } = controllableSchedule();
+    renderLoggerWithSchedule(schedule);
+    const duration = screen.getByRole("textbox", { name: "Duration (m:ss)" });
+    fireEvent.click(screen.getByRole("button", { name: "Start" }));
+    for (let count = 0; count < 65; count++) {
+      tick();
+    }
+    fireEvent.click(screen.getByRole("button", { name: "Stop" }));
+    fireEvent.click(screen.getByRole("button", { name: "Use time" }));
+    expect(duration).toHaveValue("1:05");
   });
 
   it("completes with the parsed distance, duration, and derived split", async () => {
