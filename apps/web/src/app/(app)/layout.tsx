@@ -17,9 +17,9 @@ import { USER_ID } from "../../user";
  * Layout for the authenticated app. Guards the whole section on login status —
  * an unauthenticated visitor is redirected to /login before any page or chrome
  * renders — and frames every page with the primary navigation and the app-wide
- * workout action (a floating button on phones, a sidebar button on wide
- * screens). The login screen lives outside this route group, so it renders no
- * nav.
+ * workout action (a floating button until the sidebar is permanent at `lg`,
+ * where it becomes a docked sidebar button). The login screen lives outside
+ * this route group, so it renders no nav.
  */
 // Everything in this route group is per-user and behind auth, so it carries no
 // public, indexable content — keep it out of search results wholesale. Pages
@@ -59,11 +59,15 @@ const contentStyles = css({ lg: { paddingInlineStart: 60 } });
 
 const mainStyles = css({
   // Fills the area beside the rail so the top bar and content run the full
-  // width. Padding steps up with the viewport; from `md` up the rail replaces
-  // the bottom bar, so the tall bottom padding it needed goes away.
+  // width. Padding steps up with the viewport; only from `lg` up — where the
+  // permanent sidebar replaces the FAB with its docked button — does the tall
+  // bottom padding the FAB needed go away.
   lg: { paddingBlock: 8, paddingInline: 8 },
-  md: { paddingBlock: 6, paddingInline: 6 },
-  // On phones the workout FAB stack floats over the page, so the block-end
+  // Step the inline and block-start padding up at `md`, but leave the block-end
+  // clearance alone: the FAB still floats through the `mdToLg` window, so the
+  // tall base value has to survive until `lg` swaps in the sidebar button.
+  md: { paddingBlockStart: 6, paddingInline: 6 },
+  // The workout FAB stack floats over the page below `lg`, so the block-end
   // padding has to clear its whole height — otherwise the last of the content
   // scrolls under it. The stack (see `fabStyles` in WorkoutActionButton) sits
   // `env(safe-area-inset-bottom) + {spacing.24}` off the bottom and rises the
