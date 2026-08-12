@@ -29,9 +29,11 @@ type Props = {
 
 /**
  * A between-sets countdown that runs *past* zero into overtime rather than
- * ending itself: it flashes in the final ten seconds, turns red and sounds an
- * alarm at zero, and keeps counting negative until the athlete presses Stop
- * (which silences the alarm and returns to logging). A +30s bump extends it.
+ * ending itself: the time flashes and a subtle blip sounds each second through
+ * the final ten, then at zero it turns a bold danger red and a pleasant chime
+ * takes over while the time keeps flashing. It counts negative until the athlete
+ * presses Stop (which silences the alarm and returns to logging). A +30s bump
+ * extends it.
  */
 export const RestTimer = ({
   initialSeconds,
@@ -52,6 +54,8 @@ export const RestTimer = ({
   useEffect(() => {
     if (remaining === 0) {
       alarm.start();
+    } else if (remaining > 0 && remaining <= 10) {
+      alarm.tick();
     }
   }, [remaining, alarm]);
 
@@ -70,7 +74,9 @@ export const RestTimer = ({
   return (
     <div className={wrapStyles} data-phase={timerPhase(remaining)}>
       <span className={labelStyles}>Rest</span>
-      <span className={timeStyles}>{formatSignedClock(remaining)}</span>
+      <span className={timeStyles} data-time="">
+        {formatSignedClock(remaining)}
+      </span>
       <div className={hstack({ gap: 2 })}>
         <Button
           onClick={() => setRemaining((current) => current + 30)}
@@ -102,9 +108,10 @@ const timerPhase = (remaining: number): TimerPhase => {
 };
 
 // A soft accent wash marks the rest state — flat (no border), just a tint. The
-// `data-phase` hook drives the count-specific treatment: the final ten seconds
-// flash (the accent `pulse` keyframe), and overtime turns a danger wash so an
-// overrun reads at a glance.
+// `data-phase` hook drives the count-specific treatment: overtime turns a bold
+// danger wash so an overrun reads at a glance. The final-ten-seconds flash lives
+// on the time itself (see `timeStyles`), not the whole card, so only the number
+// pulses — and it keeps pulsing past zero into overtime.
 const wrapStyles = cx(
   vstack({
     borderRadius: "xl",
@@ -115,18 +122,19 @@ const wrapStyles = cx(
   css({
     "&[data-phase='overtime']": {
       backgroundColor:
-        "color-mix(in oklab, {colors.danger} 22%, {colors.background})",
+        "color-mix(in oklab, {colors.danger} 40%, {colors.background})",
     },
     "&[data-phase='running'], &[data-phase='warning']": {
       backgroundColor:
         "color-mix(in oklab, {colors.accent} 14%, {colors.background})",
     },
-    "&[data-phase='warning']": {
-      animationDuration: "{durations.pulse}",
-      animationIterationCount: "infinite",
-      animationName: "pulse",
-      animationTimingFunction: "{easings.in-out}",
-    },
+    "&[data-phase='warning'] [data-time], &[data-phase='overtime'] [data-time]":
+      {
+        animationDuration: "{durations.pulse}",
+        animationIterationCount: "infinite",
+        animationName: "pulse",
+        animationTimingFunction: "{easings.in-out}",
+      },
   }),
 );
 
@@ -139,7 +147,7 @@ const labelStyles = css({
 
 const timeStyles = css({
   fontFamily: "mono",
-  fontSize: "5xl",
+  fontSize: "7xl",
   // A clock that shifts width as it counts is a bug.
   fontVariantNumeric: "tabular-nums",
   fontWeight: "bold",

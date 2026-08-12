@@ -22,7 +22,11 @@ const controllableSchedule = () => {
   return { schedule, tick };
 };
 
-const silentAlarm: Alarm = { start: () => undefined, stop: () => undefined };
+const silentAlarm: Alarm = {
+  start: () => undefined,
+  stop: () => undefined,
+  tick: () => undefined,
+};
 
 describe(RestTimer, () => {
   it("keeps counting past zero into negative time", () => {
@@ -62,12 +66,41 @@ describe(RestTimer, () => {
     expect(container.querySelector('[data-phase="overtime"]')).not.toBeNull();
   });
 
+  it("beeps once each second through the final ten seconds", () => {
+    const { schedule, tick } = controllableSchedule();
+    let beeps = 0;
+    const countingAlarm: Alarm = {
+      start: () => undefined,
+      stop: () => undefined,
+      tick: () => {
+        beeps += 1;
+      },
+    };
+    render(
+      <RestTimer
+        createAlarm={() => countingAlarm}
+        initialSeconds={11}
+        onFinish={() => undefined}
+        schedule={schedule}
+      />,
+    );
+    // 11 → 10, 9, … 1 is ten beeps; reaching 0 hands off to the alarm.
+    for (let count = 0; count < 11; count++) {
+      tick();
+    }
+    expect(beeps).toBe(10);
+  });
+
   it("sounds the alarm when the timer reaches zero", async () => {
     const { schedule, tick } = controllableSchedule();
     const started = new Promise<void>((resolve) => {
       render(
         <RestTimer
-          createAlarm={() => ({ start: resolve, stop: () => undefined })}
+          createAlarm={() => ({
+            start: resolve,
+            stop: () => undefined,
+            tick: () => undefined,
+          })}
           initialSeconds={1}
           onFinish={() => undefined}
           schedule={schedule}
@@ -87,7 +120,11 @@ describe(RestTimer, () => {
     const finished = new Promise<void>((resolve) => {
       render(
         <RestTimer
-          createAlarm={() => ({ start: () => undefined, stop: resolveStopped })}
+          createAlarm={() => ({
+            start: () => undefined,
+            stop: resolveStopped,
+            tick: () => undefined,
+          })}
           initialSeconds={1}
           onFinish={resolve}
           schedule={schedule}
@@ -107,7 +144,11 @@ describe(RestTimer, () => {
     });
     const { unmount } = render(
       <RestTimer
-        createAlarm={() => ({ start: () => undefined, stop: resolveStopped })}
+        createAlarm={() => ({
+          start: () => undefined,
+          stop: resolveStopped,
+          tick: () => undefined,
+        })}
         initialSeconds={1}
         onFinish={() => undefined}
         schedule={schedule}
