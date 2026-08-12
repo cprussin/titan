@@ -30,6 +30,13 @@ describe("weekDates", () => {
       "2026-09-06",
     ]);
   });
+
+  it("pages forward and backward whole weeks by offset", () => {
+    expect(weekDates("2026-08-12", 1)[0]).toBe("2026-08-17");
+    expect(weekDates("2026-08-12", 1).at(-1)).toBe("2026-08-23");
+    expect(weekDates("2026-08-12", -1)[0]).toBe("2026-08-03");
+    expect(weekDates("2026-08-12", -2)[0]).toBe("2026-07-27");
+  });
 });
 
 describe("dayLabel", () => {

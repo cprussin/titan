@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { Prescription } from "@titan/domain/prescription";
 import { dashboardView } from "./dashboard-view";
 import type { LoggedSessionView } from "./logged-session-view";
 import type { Today } from "./today";
@@ -6,7 +7,25 @@ import type { Today } from "./today";
 const workout = (name: string): Today =>
   ({
     kind: "workout",
-    resolved: { prescribedExercises: [{ slotId: "a" }] },
+    resolved: {
+      estimatedDurationMin: 62,
+      prescribedExercises: [
+        {
+          prescription: Prescription.Strength({
+            reps: 5,
+            sets: 5,
+            weight: 225,
+          }),
+        },
+        {
+          prescription: Prescription.Strength({
+            reps: 8,
+            sets: 3,
+            weight: 155,
+          }),
+        },
+      ],
+    },
     template: { name },
   }) as unknown as Today;
 
@@ -24,29 +43,31 @@ const base = {
   isFuture: false,
   isToday: true,
   logged: undefined,
-  nextLabel: undefined,
-  programContext: "Athletic Health Foundation · Week 3 of 8",
+  programName: "Athletic Health Foundation",
+  weekCount: "W3 / 8",
   weekLabel: "TUE 11",
 };
 
 describe("dashboardView", () => {
-  it("pre-workout today: accent program eyebrow, session title, start action, prescription grid", () => {
+  it("pre-workout today: program eyebrow, no status, start action, today's-session header", () => {
     const view = dashboardView({ ...base, selected: workout("Heavy Lower") });
-    expect(view.eyebrow).toBe("Athletic Health Foundation · Week 3 of 8");
-    expect(view.eyebrowTone).toBe("accent");
+    expect(view.eyebrow.programName).toBe("Athletic Health Foundation");
+    expect(view.eyebrow.weekCount).toBe("W3 / 8");
+    expect(view.eyebrow.status).toBeUndefined();
     expect(view.title).toBe("Heavy Lower");
-    expect(view.subtitle).toBeUndefined();
-    expect(view.trailing).toEqual({
+    expect(view.primary).toEqual({
       action: { kind: "start" },
       kind: "start-workout",
     });
+    expect(view.session?.label).toBe("Today's session");
+    expect(view.session?.summary).toBe("2 exercises · 8 sets · ~62 min");
     expect(view.body.kind).toBe("prescription");
     expect(view.body.kind === "prescription" && view.body.loadHeader).toBe(
       "Load",
     );
   });
 
-  it("future day: projected eyebrow, back-to-today, projected-load grid with a note", () => {
+  it("future day: projected status, back-to-today, projected-load grid, caveat in summary", () => {
     const view = dashboardView({
       ...base,
       isFuture: true,
@@ -54,20 +75,19 @@ describe("dashboardView", () => {
       selected: workout("Heavy Upper"),
       weekLabel: "FRI 14",
     });
-    expect(view.eyebrow).toBe(
-      "FRI 14 · Projected · Athletic Health Foundation · Week 3 of 8",
-    );
-    expect(view.eyebrowTone).toBe("tertiary");
-    expect(view.trailing).toEqual({ kind: "back-to-today" });
+    expect(view.eyebrow.status).toEqual({
+      text: "FRI 14 · Projected",
+      tone: "tertiary",
+    });
+    expect(view.primary).toEqual({ kind: "back-to-today" });
+    expect(view.session?.label).toBe("Projected session");
+    expect(view.session?.summary).toContain("loads adjust");
     expect(view.body.kind === "prescription" && view.body.loadHeader).toBe(
       "Projected load",
     );
-    expect(view.body.kind === "prescription" && view.body.note).toContain(
-      "Heavy Upper",
-    );
   });
 
-  it("past logged day: logged eyebrow, summary subtitle, back-to-today, log grid", () => {
+  it("past logged day: logged status, logged-session header with summary, log grid", () => {
     const view = dashboardView({
       ...base,
       isToday: false,
@@ -75,40 +95,43 @@ describe("dashboardView", () => {
       selected: workout("Volume Upper"),
       weekLabel: "MON 10",
     });
-    expect(view.eyebrow).toBe(
-      "MON 10 · Logged · Athletic Health Foundation · Week 3 of 8",
-    );
-    expect(view.eyebrowTone).toBe("success");
+    expect(view.eyebrow.status).toEqual({
+      text: "MON 10 · Logged",
+      tone: "success",
+    });
     expect(view.title).toBe("Volume Upper");
-    expect(view.subtitle).toBe("6 exercises · 22 sets · 58 min · avg RPE 7.5");
-    expect(view.trailing).toEqual({ kind: "back-to-today" });
+    expect(view.primary).toEqual({ kind: "back-to-today" });
+    expect(view.session?.label).toBe("Logged session");
+    expect(view.session?.summary).toBe(
+      "6 exercises · 22 sets · 58 min · avg RPE 7.5",
+    );
     expect(view.body.kind).toBe("log");
   });
 
-  it("today completed: complete eyebrow, done title, completed trailing, log grid", () => {
+  it("today completed: complete status, no primary action, log grid", () => {
     const view = dashboardView({
       ...base,
       logged: loggedView,
-      nextLabel: "Row Intervals · Thu 13",
       selected: workout("Heavy Lower"),
     });
-    expect(view.eyebrow).toBe(
-      "Today · Complete · Athletic Health Foundation · Week 3 of 8",
-    );
-    expect(view.eyebrowTone).toBe("success");
-    expect(view.title).toBe("Heavy Lower done");
-    expect(view.trailing.kind).toBe("completed");
-    expect(view.trailing.kind === "completed" && view.trailing.nextLabel).toBe(
-      "Row Intervals · Thu 13",
-    );
+    expect(view.eyebrow.status).toEqual({
+      text: "Today · Complete",
+      tone: "success",
+    });
+    expect(view.primary).toEqual({ kind: "none" });
+    expect(view.session?.label).toBe("Today's session");
     expect(view.body.kind).toBe("log");
   });
 
-  it("rest day today: rest eyebrow and copy, no trailing", () => {
+  it("rest day today: rest status, recovery copy, no session block", () => {
     const view = dashboardView({ ...base, selected: rest });
-    expect(view.eyebrow).toBe("Today · Rest");
+    expect(view.eyebrow.status).toEqual({
+      text: "Today · Rest",
+      tone: "tertiary",
+    });
     expect(view.title).toBe("Recovery");
-    expect(view.trailing).toEqual({ kind: "none" });
+    expect(view.primary).toEqual({ kind: "none" });
+    expect(view.session).toBeUndefined();
     expect(view.body.kind).toBe("rest");
   });
 
@@ -119,13 +142,13 @@ describe("dashboardView", () => {
       selected: rest,
       weekLabel: "WED 12",
     });
-    expect(view.eyebrow).toBe("WED 12 · Rest");
-    expect(view.eyebrowTone).toBe("tertiary");
-    expect(view.trailing).toEqual({ kind: "back-to-today" });
+    expect(view.eyebrow.status?.text).toBe("WED 12 · Rest");
+    expect(view.primary).toEqual({ kind: "back-to-today" });
   });
 
-  it("no program: prompt title and rest body", () => {
+  it("no program: empty eyebrow, prompt title, rest body", () => {
     const view = dashboardView({ ...base, selected: noProgram });
+    expect(view.eyebrow.programName).toBeUndefined();
     expect(view.title).toBe("No active program");
     expect(view.body.kind).toBe("rest");
   });
