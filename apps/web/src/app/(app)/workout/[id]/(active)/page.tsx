@@ -4,11 +4,11 @@ import { getWorkoutSession } from "@titan/db/workout-sessions";
 import type { AdaptationDecision } from "@titan/domain/adaptation-decision";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
-import { WorkoutExecution } from "../../../../components/WorkoutExecution";
-import { db } from "../../../../db";
-import { exerciseModalities } from "../../../../server/exercise-modalities";
-import { exerciseNames } from "../../../../server/exercise-names";
-import { USER_ID } from "../../../../user";
+import { WorkoutExecution } from "../../../../../components/WorkoutExecution";
+import { db } from "../../../../../db";
+import { exerciseModalities } from "../../../../../server/exercise-modalities";
+import { exerciseNames } from "../../../../../server/exercise-names";
+import { USER_ID } from "../../../../../user";
 
 export const metadata: Metadata = {
   description: "Log today's session set by set.",
