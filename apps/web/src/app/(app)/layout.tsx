@@ -63,17 +63,24 @@ const mainStyles = css({
   // permanent sidebar replaces the FAB with its docked button — does the tall
   // bottom padding the FAB needed go away.
   lg: { paddingBlock: 8, paddingInline: 8 },
-  // Step the inline and block-start padding up at `md`, but leave the block-end
-  // clearance alone: the FAB still floats through the `mdToLg` window, so the
-  // tall base value has to survive until `lg` swaps in the sidebar button.
-  md: { paddingBlockStart: 6, paddingInline: 6 },
-  // The workout FAB stack floats over the page below `lg`, so the block-end
-  // padding has to clear its whole height — otherwise the last of the content
-  // scrolls under it. The stack (see `fabStyles` in WorkoutActionButton) sits
-  // `env(safe-area-inset-bottom) + {spacing.24}` off the bottom and rises the
-  // height of its two buttons above that: `xl` (12) + row gap (3) + `lg` (10).
-  // Match that origin and add a little breathing room above the top button:
-  // 24 + 12 + 3 + 10 + 4 = 53.
+  // Step the inline and block-start padding up at `md`, and drop the block-end
+  // clearance to match the FAB's lower origin there: through the `mdToLg` window
+  // the bottom bar is gone, so the FAB sits `env(safe-area-inset-bottom) +
+  // {spacing.4}` off the bottom (see `fabStyles`) instead of the phone-size 24.
+  // Same stack height above that origin: 4 + `xl` (12) + row gap (3) + `lg` (10)
+  // + breathing room (4) = 33.
+  md: {
+    paddingBlockEnd: "calc(env(safe-area-inset-bottom) + {spacing.33})",
+    paddingBlockStart: 6,
+    paddingInline: 6,
+  },
+  // At the phone size the workout FAB stack floats over the page above the
+  // bottom tab bar, so the block-end padding has to clear its whole height —
+  // otherwise the last of the content scrolls under it. The stack (see
+  // `fabStyles` in WorkoutActionButton) sits `env(safe-area-inset-bottom) +
+  // {spacing.24}` off the bottom and rises the height of its two buttons above
+  // that: `xl` (12) + row gap (3) + `lg` (10). Match that origin and add a
+  // little breathing room above the top button: 24 + 12 + 3 + 10 + 4 = 53.
   paddingBlockEnd: "calc(env(safe-area-inset-bottom) + {spacing.53})",
   paddingBlockStart: 4,
   paddingInline: 4,
