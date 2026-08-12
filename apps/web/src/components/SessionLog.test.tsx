@@ -42,6 +42,6 @@ describe(SessionLog, () => {
   it("summarizes a cardio piece on one line", () => {
     render(<SessionLog exerciseNames={names} results={[row]} />);
     expect(screen.getByText("Rowing")).toBeInTheDocument();
-    expect(screen.getByText("2 km · 8:00.0")).toBeInTheDocument();
+    expect(screen.getByText("2,000 m · 8:00.0")).toBeInTheDocument();
   });
 });

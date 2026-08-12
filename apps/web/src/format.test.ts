@@ -45,9 +45,13 @@ describe("formatters", () => {
     expect(formatSplit(105)).toBe("1:45.0 /500m");
   });
 
-  it("formats distance in m and km", () => {
+  it("formats distance to the whole metre, grouping thousands", () => {
     expect(formatDistance(500)).toBe("500 m");
-    expect(formatDistance(2000)).toBe("2 km");
+    // A time-based piece (a 10-minute row) covers an arbitrary distance the
+    // athlete needs to the metre — not snapped to the nearest half-kilometre.
+    expect(formatDistance(2734)).toBe("2,734 m");
+    expect(formatDistance(2000)).toBe("2,000 m");
+    expect(formatDistance(10_000)).toBe("10,000 m");
   });
 
   describe("formatDuration", () => {

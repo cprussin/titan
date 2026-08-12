@@ -48,8 +48,13 @@ export const formatSplit = (secondsPer500: number): string => {
   return `${minutes}:${seconds} /500m`;
 };
 
+/** Rowing distance is measured to the metre — a time-based piece covers an
+ *  arbitrary distance whose exact value is the point, so it is never snapped to
+ *  a coarser kilometre. Thousands are grouped so a long row stays readable. */
+const metersFormat = new Intl.NumberFormat("en-US");
+
 export const formatDistance = (meters: number): string =>
-  meters >= 1000 ? `${tidy(meters / 1000)} km` : `${Math.round(meters)} m`;
+  `${metersFormat.format(Math.round(meters))} m`;
 
 /** At or above this length a piece is logged to the whole second; tenths that
  *  matter on a sprint are noise on a long steady row. */

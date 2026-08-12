@@ -92,7 +92,9 @@ describe("loggedExerciseLines", () => {
           prescription: Prescription.DistanceCardio({ distanceMeters: 5000 }),
         }),
       ),
-    ).toEqual([{ label: "", value: "5 km · 20:00 · 2:00.0 /500m · 150 bpm" }]);
+    ).toEqual([
+      { label: "", value: "5,000 m · 20:00 · 2:00.0 /500m · 150 bpm" },
+    ]);
   });
 
   it("marks a cardio effort with no recorded optics rather than blanking", () => {
