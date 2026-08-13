@@ -44,7 +44,6 @@ const data: DashboardData = {
     },
     primary: { kind: "none" },
     title: "Recovery",
-    weighedInToday: false,
   },
   names: new Map(),
   session: undefined,

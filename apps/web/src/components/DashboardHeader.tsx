@@ -14,8 +14,6 @@ export type DashboardHeaderData = {
   eyebrow: DashboardEyebrow;
   primary: DashboardPrimary;
   title: string;
-  /** Passed through to the weigh-in button, which hides once today is logged. */
-  weighedInToday: boolean;
 };
 
 type Props = {
@@ -51,7 +49,7 @@ export const DashboardHeader = ({ load }: Props) => (
         <Skeleton height="2.75rem" radius="md" width="10rem" />
       ) : (
         <>
-          <WeighInButton weighedInToday={load.value.weighedInToday} />
+          <WeighInButton />
           <PrimaryAction primary={load.value.primary} />
         </>
       )}
