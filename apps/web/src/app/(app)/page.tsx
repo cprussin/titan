@@ -128,7 +128,7 @@ const DashboardPage = async ({
       rowPace: summary.rowPace,
       strengthSeries: summary.strengthSeries,
     },
-    week: { days: week, selectedDate, weekOffset },
+    week: { days: week, selectedDate, today, weekOffset },
   };
 
   return <DashboardContent load={{ isLoading: false, value: data }} />;

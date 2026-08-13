@@ -1,139 +1,146 @@
 import { describe, expect, it } from "bun:test";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import type { WeekDay } from "../server/week-day";
 import { WeekRibbon } from "./WeekRibbon";
 
-const days: readonly WeekDay[] = [
-  {
-    date: "2026-08-10",
-    dayOfWeek: 1,
-    isPast: true,
-    isToday: false,
-    kind: "logged",
-    label: "MON 10",
-    name: "Volume Upper",
-    summary: "18 sets · 52 min",
-  },
-  {
-    date: "2026-08-11",
-    dayOfWeek: 2,
-    isPast: false,
-    isToday: true,
-    kind: "planned",
-    label: "TUE 11",
-    name: "Heavy Lower",
-    signature: "Back Squat 5×5",
-    summary: "6 exercises · ~62 min",
-  },
-  {
-    date: "2026-08-12",
-    dayOfWeek: 3,
-    isPast: false,
-    isToday: false,
-    kind: "rest",
-    label: "WED 12",
-  },
-  {
-    date: "2026-08-14",
-    dayOfWeek: 5,
-    isPast: false,
-    isToday: false,
-    kind: "planned",
-    label: "FRI 14",
-    name: "Heavy Upper",
-    signature: "Bench Press 5×5",
-    summary: "5 exercises · ~55 min",
-  },
+const TODAY = "2026-08-13"; // A Thursday, so its ISO week runs Aug 10 → Aug 16.
+
+/** The `YYYY-MM-DD` date `offset` days from today. */
+const dateAt = (offset: number): string => {
+  const date = new Date(`${TODAY}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + offset);
+  return date.toISOString().slice(0, 10);
+};
+
+/** A planned day at a given offset from today, named so its link is findable. */
+const dayAt = (offset: number, overrides: Partial<WeekDay> = {}): WeekDay => ({
+  date: dateAt(offset),
+  dayOfWeek: 1,
+  isPast: offset < 0,
+  isToday: offset === 0,
+  kind: "planned",
+  label: `DAY ${offset}`,
+  name: `Session ${offset}`,
+  signature: undefined,
+  summary: "6 exercises · ~62 min",
+  ...(overrides as WeekDay),
+});
+
+// The current ISO week (Aug 10 → 16), covering day offsets −3 … 3.
+const currentWeek: readonly WeekDay[] = [
+  dayAt(-3, { kind: "logged", label: "MON 10", name: "Volume Upper" }),
+  dayAt(-2),
+  dayAt(-1),
+  dayAt(0, { name: "Heavy Lower" }),
+  dayAt(1, { kind: "rest", label: "FRI 14", name: undefined }),
+  dayAt(2, { name: "Heavy Upper" }),
+  dayAt(3),
 ];
+
+/** A contiguous seven-day week `weekOffset` weeks from today's week, each cell
+ *  named after its offset so a test can tell which week a lazily-loaded cell
+ *  came from. Today's week (offset 0) is the hand-built {@link currentWeek}. */
+const weekDays = (weekOffset: number): readonly WeekDay[] => {
+  if (weekOffset === 0) {
+    return currentWeek;
+  } else {
+    const mondayOffset = -3 + weekOffset * 7;
+    return Array.from({ length: 7 }, (_, index) =>
+      dayAt(mondayOffset + index, {
+        label: `W${weekOffset} D${index}`,
+        name: `Week ${weekOffset} Day ${index}`,
+      }),
+    );
+  }
+};
 
 const loaded = (selectedDate: string, weekOffset: number) =>
-  ({ isLoading: false, value: { days, selectedDate, weekOffset } }) as const;
+  ({
+    isLoading: false,
+    value: {
+      days: weekDays(weekOffset),
+      selectedDate,
+      today: TODAY,
+      weekOffset,
+    },
+  }) as const;
 
-/** A two-cell week whose cells name their offset, so a test can spot which week
- *  a lazily-loaded cell came from. */
-const week = (offset: number): readonly WeekDay[] => [
-  {
-    date: `date-${offset}-a`,
-    dayOfWeek: 1,
-    isPast: false,
-    isToday: false,
-    kind: "planned",
-    label: `LBL-${offset}-a`,
-    name: `Week ${offset} Day A`,
-    signature: undefined,
-    summary: "sum",
-  },
-  {
-    date: `date-${offset}-b`,
-    dayOfWeek: 2,
-    isPast: false,
-    isToday: false,
-    kind: "rest",
-    label: `LBL-${offset}-b`,
-  },
-];
-
-/** Captures the edge callbacks the ribbon registers so a test can fire them, and
- *  records which weeks the loader was asked for. */
+/** Records which weeks the loader was asked for and resolves each synchronously,
+ *  so the strip's mount-time prefetch settles inside `waitFor`. */
 const harness = () => {
   const requested: number[] = [];
-  const edges: { onEarlier?: () => void; onLater?: () => void } = {};
   return {
-    edges,
     loadWeek: (offset: number) => {
       requested.push(offset);
-      return Promise.resolve(week(offset));
-    },
-    observeEdges: (args: {
-      onEarlier: () => void;
-      onLater: () => void;
-    }): (() => void) => {
-      edges.onEarlier = args.onEarlier;
-      edges.onLater = args.onLater;
-      return () => undefined;
+      return Promise.resolve(weekDays(offset));
     },
     requested,
   };
 };
 
+/** The strip's transform position — the loaded-array index of its leftmost
+ *  visible cell — read from the inline custom property that drives the slide. */
+const leftIndex = (): number => {
+  const track = document.querySelector("[data-strip-track]");
+  if (!(track instanceof HTMLElement)) {
+    throw new Error("strip track not found");
+  }
+  return Number(track.style.getPropertyValue("--left-index"));
+};
+
 describe(WeekRibbon, () => {
-  it("marks today and links it back to the dashboard root", () => {
-    render(<WeekRibbon load={loaded("2026-08-11", 0)} />);
-    const today = screen.getByRole("link", { name: /TUE 11 · TODAY/ });
+  it("marks today and links it back to the dashboard root", async () => {
+    const { loadWeek } = harness();
+    render(<WeekRibbon load={loaded(TODAY, 0)} loadWeek={loadWeek} />);
+    const today = await screen.findByRole("link", { name: /Heavy Lower/ });
     expect(today.getAttribute("href")).toBe("/");
   });
 
-  it("links a day by date, carrying the week offset", () => {
-    render(<WeekRibbon load={loaded("2026-08-11", 2)} />);
-    const friday = screen.getByRole("link", { name: /Heavy Upper/ });
-    expect(friday.getAttribute("href")).toBe("/?week=2&date=2026-08-14");
+  it("links a day by date, carrying the week offset", async () => {
+    const { loadWeek } = harness();
+    render(
+      <WeekRibbon
+        load={loaded(dateAt(14), 2)}
+        loadWeek={loadWeek}
+        measureVisibleDays={() => 3}
+      />,
+    );
+    const day = await screen.findByRole("link", { name: /Week 2 Day 0/ });
+    expect(day.getAttribute("href")).toBe(`/?week=2&date=${dateAt(11)}`);
     // Simplified cells: no per-day detail line.
-    expect(friday).not.toHaveTextContent("Bench Press");
-    expect(friday).not.toHaveTextContent("5 exercises");
+    expect(day).not.toHaveTextContent("exercises");
   });
 
-  it("marks the selected day with aria-current and no textual badge", () => {
-    render(<WeekRibbon load={loaded("2026-08-10", 0)} />);
-    const monday = screen.getByRole("link", { name: /MON 10/ });
+  it("marks the selected day with aria-current and no textual badge", async () => {
+    const { loadWeek } = harness();
+    render(<WeekRibbon load={loaded(dateAt(-3), 0)} loadWeek={loadWeek} />);
+    const monday = await screen.findByRole("link", { name: /Volume Upper/ });
     expect(monday).toHaveAttribute("aria-current", "page");
-    // The "SELECTED" badge is gone — only "TODAY" annotates a cell.
     expect(screen.queryByText(/SELECTED/)).toBeNull();
   });
 
-  it("ticks a logged day and renders a rest day", () => {
-    render(<WeekRibbon load={loaded("2026-08-10", 0)} />);
-    expect(screen.getByRole("link", { name: /Volume Upper ✓/ })).toBeDefined();
+  it("ticks a logged day and renders a rest day", async () => {
+    const { loadWeek } = harness();
+    render(<WeekRibbon load={loaded(TODAY, 0)} loadWeek={loadWeek} />);
+    expect(
+      await screen.findByRole("link", { name: /Volume Upper ✓/ }),
+    ).toBeDefined();
     expect(screen.getByRole("link", { name: /Rest/ })).toBeDefined();
   });
 
-  it("offers scroll buttons that never navigate, so the selected day stays put", () => {
-    render(<WeekRibbon load={loaded("2026-08-11", 0)} />);
-    const earlier = screen.getByRole("button", {
-      name: "Scroll to earlier days",
+  it("offers page arrows that never navigate, so the selected day stays put", async () => {
+    const { loadWeek } = harness();
+    render(<WeekRibbon load={loaded(TODAY, 0)} loadWeek={loadWeek} />);
+    const earlier = await screen.findByRole("button", {
+      name: "Show earlier days",
     });
-    const later = screen.getByRole("button", { name: "Scroll to later days" });
-    // Buttons, not links: clicking them can only scroll — never change the URL,
-    // and so never change which day is selected. No week-caret links exist.
+    const later = screen.getByRole("button", { name: "Show later days" });
     expect(earlier.tagName).toBe("BUTTON");
     expect(later.tagName).toBe("BUTTON");
     expect(
@@ -141,65 +148,134 @@ describe(WeekRibbon, () => {
     ).toBeNull();
   });
 
-  it("fills the strip with skeleton cells while loading", () => {
-    const { container } = render(<WeekRibbon load={{ isLoading: true }} />);
-    // No day links until the schedule resolves.
+  it("fills the strip with skeleton cells while loading and fetches nothing", () => {
+    const { loadWeek, requested } = harness();
+    const { container } = render(
+      <WeekRibbon load={{ isLoading: true }} loadWeek={loadWeek} />,
+    );
     expect(screen.queryAllByRole("link")).toHaveLength(0);
-    // The scroll buttons stay, standing in for the scrollbar.
     expect(
-      screen.getByRole("button", { name: "Scroll to earlier days" }),
+      screen.getByRole("button", { name: "Show earlier days" }),
     ).toBeDefined();
     expect(
       container.querySelectorAll("[data-skeleton]").length,
     ).toBeGreaterThan(0);
+    expect(requested).toHaveLength(0);
   });
 
-  it("appends the next week when the later edge comes into view", async () => {
-    const { edges, loadWeek, observeEdges } = harness();
+  it("prefetches the flanking weeks on mount so the first page is instant", async () => {
+    const { loadWeek, requested } = harness();
     render(
       <WeekRibbon
-        load={loaded("date-0-a", 0)}
+        load={loaded(TODAY, 0)}
         loadWeek={loadWeek}
-        observeEdges={observeEdges}
+        measureVisibleDays={() => 3}
       />,
     );
-    act(() => edges.onLater?.());
-    await waitFor(() =>
-      expect(screen.getByRole("link", { name: /Week 1 Day A/ })).toBeDefined(),
-    );
-  });
-
-  it("prepends the previous week when the earlier edge comes into view", async () => {
-    const { edges, loadWeek, observeEdges } = harness();
-    render(
-      <WeekRibbon
-        load={loaded("date-0-a", 0)}
-        loadWeek={loadWeek}
-        observeEdges={observeEdges}
-      />,
-    );
-    act(() => edges.onEarlier?.());
-    await waitFor(() =>
-      expect(screen.getByRole("link", { name: /Week -1 Day A/ })).toBeDefined(),
-    );
-  });
-
-  it("does not refetch a week it is already loading", async () => {
-    const { edges, loadWeek, observeEdges, requested } = harness();
-    render(
-      <WeekRibbon
-        load={loaded("date-0-a", 0)}
-        loadWeek={loadWeek}
-        observeEdges={observeEdges}
-      />,
-    );
-    act(() => {
-      edges.onLater?.();
-      edges.onLater?.();
+    // A three-day window centred on today needs the prior and next pages ready;
+    // those spill into the neighbouring weeks, so both get fetched.
+    await waitFor(() => {
+      expect([...requested].sort((a, b) => a - b)).toEqual([-1, 1]);
     });
-    await waitFor(() =>
-      expect(screen.getByRole("link", { name: /Week 1 Day A/ })).toBeDefined(),
+  });
+
+  it("advances a whole screenful into the future when the later arrow is pressed", async () => {
+    const { loadWeek } = harness();
+    render(
+      <WeekRibbon
+        load={loaded(TODAY, 0)}
+        loadWeek={loadWeek}
+        measureVisibleDays={() => 3}
+      />,
     );
-    expect(requested).toEqual([1]);
+    const later = await screen.findByRole("button", {
+      name: "Show later days",
+    });
+    await waitFor(() => {
+      expect(leftIndex()).toBe(9); // leftOffset −1 against a min-offset of −10.
+    });
+    act(() => {
+      fireEvent.click(later);
+    });
+    // Paged forward by exactly the three visible days.
+    expect(leftIndex()).toBe(12);
+  });
+
+  it("retreats a whole screenful into the past when the earlier arrow is pressed", async () => {
+    const { loadWeek } = harness();
+    render(
+      <WeekRibbon
+        load={loaded(TODAY, 0)}
+        loadWeek={loadWeek}
+        measureVisibleDays={() => 3}
+      />,
+    );
+    const earlier = await screen.findByRole("button", {
+      name: "Show earlier days",
+    });
+    await waitFor(() => {
+      expect(leftIndex()).toBe(9);
+    });
+    act(() => {
+      fireEvent.click(earlier);
+    });
+    expect(leftIndex()).toBe(6);
+  });
+
+  it("prefetches the next set as paging approaches the loaded edge", async () => {
+    const { loadWeek, requested } = harness();
+    render(
+      <WeekRibbon
+        load={loaded(TODAY, 0)}
+        loadWeek={loadWeek}
+        measureVisibleDays={() => 3}
+      />,
+    );
+    const later = await screen.findByRole("button", {
+      name: "Show later days",
+    });
+    await waitFor(() => {
+      expect(requested).toContain(1);
+    });
+    // Page forward until the buffer reaches past the already-loaded weeks.
+    act(() => {
+      fireEvent.click(later);
+      fireEvent.click(later);
+      fireEvent.click(later);
+    });
+    await waitFor(() => {
+      expect(requested).toContain(2);
+    });
+    // No week is ever fetched twice.
+    expect(new Set(requested).size).toBe(requested.length);
+  });
+
+  it("advances on a right-to-left swipe and retreats on a left-to-right swipe", async () => {
+    const { loadWeek } = harness();
+    const { container } = render(
+      <WeekRibbon
+        load={loaded(TODAY, 0)}
+        loadWeek={loadWeek}
+        measureVisibleDays={() => 3}
+      />,
+    );
+    await screen.findByRole("button", { name: "Show later days" });
+    await waitFor(() => {
+      expect(leftIndex()).toBe(9);
+    });
+    const viewport = container.querySelector("[data-strip-viewport]");
+    if (!(viewport instanceof HTMLElement)) {
+      throw new Error("viewport not found");
+    }
+    act(() => {
+      fireEvent.pointerDown(viewport, { clientX: 300, pointerId: 1 });
+      fireEvent.pointerUp(viewport, { clientX: 100, pointerId: 1 });
+    });
+    expect(leftIndex()).toBe(12); // right-to-left → future.
+    act(() => {
+      fireEvent.pointerDown(viewport, { clientX: 100, pointerId: 1 });
+      fireEvent.pointerUp(viewport, { clientX: 300, pointerId: 1 });
+    });
+    expect(leftIndex()).toBe(9); // left-to-right → back to the past.
   });
 });

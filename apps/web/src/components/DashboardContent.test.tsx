@@ -23,7 +23,17 @@ const wrap = (ui: ReactElement) =>
     </AppRouterContext.Provider>,
   );
 
+// Today flanked by a day on either side, so the ribbon's opening window is
+// already covered and it prefetches nothing during this composition test.
 const days: readonly WeekDay[] = [
+  {
+    date: "2026-08-10",
+    dayOfWeek: 1,
+    isPast: true,
+    isToday: false,
+    kind: "rest",
+    label: "MON 10",
+  },
   {
     date: "2026-08-11",
     dayOfWeek: 2,
@@ -31,6 +41,14 @@ const days: readonly WeekDay[] = [
     isToday: true,
     kind: "rest",
     label: "TUE 11",
+  },
+  {
+    date: "2026-08-12",
+    dayOfWeek: 3,
+    isPast: false,
+    isToday: false,
+    kind: "rest",
+    label: "WED 12",
   },
 ];
 
@@ -53,7 +71,12 @@ const data: DashboardData = {
     rowPace: undefined,
     strengthSeries: [],
   },
-  week: { days, selectedDate: "2026-08-11", weekOffset: 0 },
+  week: {
+    days,
+    selectedDate: "2026-08-11",
+    today: "2026-08-11",
+    weekOffset: 0,
+  },
 };
 
 describe(DashboardContent, () => {
