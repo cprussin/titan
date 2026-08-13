@@ -60,9 +60,7 @@ export const AppNav = ({ user, workoutAction }: Props) => {
         <span className={brandStyles}>
           <TitanLockup />
         </span>
-        {workoutAction !== undefined && (
-          <WorkoutActionButton action={workoutAction} variant="sidebar" />
-        )}
+        <WorkoutActionButton action={workoutAction} variant="sidebar" />
         <ul className={listStyles}>
           {LINKS.map(({ Icon, href, label }) => {
             const active = isActiveNavSection(href, pathname);

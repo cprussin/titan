@@ -11,41 +11,49 @@ import { WeighInDialog } from "./WeighInDialog";
 import { WorkoutActionControl } from "./WorkoutActionControl";
 
 type Props = {
-  action: WorkoutAction;
+  /** The day's workout action, or `undefined` when there's nothing to launch (a
+   *  rest day or no program placed). The weigh-in affordance stands on its own
+   *  and is offered regardless. */
+  action?: WorkoutAction | undefined;
   /** `fab` floats above the page wherever the sidebar isn't permanent (phones
-   *  and the `mdToLg` collapsed-drawer window); `sidebar` docks as a full-width
-   *  button in the permanent `lg` rail. Each is shown only at its own
+   *  and the `mdToLg` collapsed-drawer window); `sidebar` docks as full-width
+   *  buttons in the permanent `lg` rail. Each is shown only at its own
    *  breakpoints, so the two instances never appear at once. */
   variant: "fab" | "sidebar";
 };
 
 /**
- * The app-wide primary workout action: `continue` links into the in-progress
- * session, `start` opens the readiness check-in and creates today's session.
+ * The app-wide chrome for logging bodyweight and launching the day's workout:
+ * the weigh-in button is always offered, and — when there's one to launch — the
+ * primary workout action rides alongside it (`continue` links into the
+ * in-progress session, `start` opens the readiness check-in and creates today's
+ * session).
  *
- * On phones the `fab` floats that action above the bottom bar as an Android-
- * style stack: icon-only circles centered on a shared vertical axis with their
- * text labels sitting to their left. It pairs the primary with a smaller, neutral
- * secondary weigh-in button so logging bodyweight is one tap away without
- * competing with the accent primary; the weigh-in sits on top with the primary
- * action below it, closest to the thumb. The `sidebar` docks the primary action
- * alone in the wide-screen rail.
+ * On phones the `fab` floats above the bottom bar as an Android-style stack:
+ * icon-only circles centered on a shared vertical axis with their text labels
+ * sitting to their left. The neutral secondary weigh-in keeps bodyweight one tap
+ * away without competing with the accent primary; it sits on top with the
+ * primary action below it, closest to the thumb. The `sidebar` docks the same
+ * pair as full-width buttons in the wide-screen rail. Because the weigh-in never
+ * depends on the workout action, both surfaces keep it once today's workout is
+ * done (or on a rest day), where the launch control falls away.
  *
- * The action falls away once there's nothing to launch. While the athlete is
- * *on* their in-progress session's screen the action would only duplicate that
- * screen's own controls, and once today's workout is done there's nothing left
- * to start — so in both cases the FAB hides and the sidebar stands in a
- * same-size status marker ("Workout in progress" or "Workout complete", keeping
- * the rail from shifting). Every other screen — including historical days —
- * shows the real action.
+ * The launch control itself falls away once there's nothing to launch: while the
+ * athlete is *on* their in-progress session's screen it would only duplicate
+ * that screen's own controls (the FAB hides it entirely; the sidebar stands in a
+ * same-size "Workout in progress" marker), and once today's workout is done
+ * there's nothing left to start (the sidebar stands in a "Workout complete"
+ * marker). Every other screen — including historical days — shows the real
+ * action.
  */
 export const WorkoutActionButton = ({ action, variant }: Props) => {
   const pathname = usePathname();
   const onActiveSession =
-    action.kind === "continue" && isOnSessionScreen(pathname, action.sessionId);
+    action?.kind === "continue" &&
+    isOnSessionScreen(pathname, action.sessionId);
 
   if (variant === "fab") {
-    return onActiveSession || action.kind === "done" ? undefined : (
+    return onActiveSession ? undefined : (
       <div className={fabStyles}>
         <FabAction label="Weigh in">
           <WeighInDialog
@@ -56,35 +64,44 @@ export const WorkoutActionButton = ({ action, variant }: Props) => {
             }
           />
         </FabAction>
-        <FabAction
-          label={
-            action.kind === "continue" ? "Continue workout" : "Start workout"
-          }
-        >
-          <WorkoutActionControl action={action} iconOnly rounded size="xl" />
-        </FabAction>
+        {(action?.kind === "start" || action?.kind === "continue") && (
+          <FabAction
+            label={
+              action.kind === "continue" ? "Continue workout" : "Start workout"
+            }
+          >
+            <WorkoutActionControl action={action} iconOnly rounded size="xl" />
+          </FabAction>
+        )}
       </div>
     );
   } else {
     return (
       <div className={sidebarStyles}>
-        <SidebarBody action={action} onActiveSession={onActiveSession} />
+        <SidebarWorkout action={action} onActiveSession={onActiveSession} />
+        <WeighInDialog
+          trigger={
+            <Button beforeIcon={<ScalesIcon size={18} />} variant="outline">
+              Weigh in
+            </Button>
+          }
+        />
       </div>
     );
   }
 };
 
-type SidebarBodyProps = {
-  action: WorkoutAction;
-  /** Whether the athlete is on the in-progress session's own screen, where the
-   *  live control would duplicate that screen's own controls. */
+/** The sidebar's workout portion above the weigh-in: a status marker when
+ *  there's nothing to launch — the athlete is on their in-progress session's
+ *  screen, or today's workout is already done — the live launch control when
+ *  there's one, and nothing on a rest / no-program day. */
+const SidebarWorkout = ({
+  action,
+  onActiveSession,
+}: {
+  action: WorkoutAction | undefined;
   onActiveSession: boolean;
-};
-
-/** The sidebar's docked content: a status marker when there's nothing to launch
- *  — the athlete is on their in-progress session's screen, or today's workout is
- *  already done — and the live launch control otherwise. */
-const SidebarBody = ({ action, onActiveSession }: SidebarBodyProps) => {
+}) => {
   if (onActiveSession) {
     return (
       <div className={markerStyles({ tone: "progress" })}>
@@ -92,13 +109,15 @@ const SidebarBody = ({ action, onActiveSession }: SidebarBodyProps) => {
         Workout in progress
       </div>
     );
-  } else if (action.kind === "done") {
+  } else if (action?.kind === "done") {
     return (
       <div className={markerStyles({ tone: "complete" })}>
         <CheckIcon size={16} weight="bold" />
         Workout complete
       </div>
     );
+  } else if (action === undefined) {
+    return undefined;
   } else {
     return <WorkoutActionControl action={action} />;
   }
@@ -192,27 +211,29 @@ const liftedStyles = css({
   justifySelf: "center",
 });
 
-// The sidebar counterpart: a full-width button docked at the head of the nav
+// The sidebar counterpart: full-width buttons docked at the head of the nav
 // rail, shown only from `lg` up where the sidebar is permanently on screen.
 // Below `lg` the FAB stands in — including through the `mdToLg` window, where
-// the sidebar collapses to an off-canvas drawer and would only surface this
-// button while the drawer is open. Gating it to `lg` keeps it and the FAB
-// mutually exclusive. `alignItems: stretch` fills the control (or the
-// in-progress marker) to the rail width.
+// the sidebar collapses to an off-canvas drawer and would only surface these
+// buttons while the drawer is open. Gating them to `lg` keeps them and the FAB
+// mutually exclusive. `alignItems: stretch` fills the workout control (or its
+// status marker) and the weigh-in button to the rail width; `gap` sets the two
+// apart.
 const sidebarStyles = css({
   alignItems: "stretch",
   display: "none",
   flexDirection: "column",
+  gap: 2,
   lg: { display: "flex" },
   marginBlockEnd: 2,
 });
 
-// The status marker that stands in for the sidebar action when there's nothing
-// to launch. Sized to the `lg` control height (CONTROL_HEIGHT.lg) so swapping it
-// for the button never shifts the rail, and tinted with a status language rather
-// than looking like a disabled button: `progress` in the app's in-progress
-// (warning) hue while the athlete is on that session's screen, `complete` in the
-// success hue once today's workout is done.
+// The status marker that stands in for the sidebar's workout control when
+// there's nothing to launch. Sized to the `lg` control height (CONTROL_HEIGHT.lg)
+// so swapping it for the button never shifts the rail, and tinted with a status
+// language rather than looking like a disabled button: `progress` in the app's
+// in-progress (warning) hue while the athlete is on that session's screen,
+// `complete` in the success hue once today's workout is done.
 const markerStyles = cva({
   base: {
     alignItems: "center",

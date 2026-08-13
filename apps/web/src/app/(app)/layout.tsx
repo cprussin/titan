@@ -43,9 +43,7 @@ const AppLayout = async ({ children }: { children: ReactNode }) => {
         <main className={mainStyles}>{children}</main>
       </div>
       <AppNav user={user} workoutAction={workoutAction} />
-      {workoutAction !== undefined && (
-        <WorkoutActionButton action={workoutAction} variant="fab" />
-      )}
+      <WorkoutActionButton action={workoutAction} variant="fab" />
     </NavDrawerProvider>
   );
 };

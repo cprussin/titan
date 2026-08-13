@@ -44,19 +44,29 @@ describe(WorkoutActionButton, () => {
       ).toBeTruthy();
     });
 
-    it("hides once today's workout is done", () => {
+    it("keeps the weigh-in once today's workout is done, dropping only the launch control", () => {
       renderWithRouter(<WorkoutActionButton action={done} variant="fab" />);
+      expect(
+        screen.getByRole("button", { name: /weigh in/i }),
+      ).toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: "Start workout" }),
       ).not.toBeInTheDocument();
+    });
+
+    it("keeps the weigh-in when there's no workout action (a rest day)", () => {
+      renderWithRouter(<WorkoutActionButton variant="fab" />);
       expect(
-        screen.queryByRole("button", { name: /weigh in/i }),
+        screen.getByRole("button", { name: /weigh in/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Start workout" }),
       ).not.toBeInTheDocument();
     });
   });
 
   describe("sidebar", () => {
-    it("docks the primary action alone — the weigh-in only floats", () => {
+    it("docks a weigh-in button beside the primary action", () => {
       renderWithRouter(
         <WorkoutActionButton action={start} variant="sidebar" />,
       );
@@ -64,13 +74,26 @@ describe(WorkoutActionButton, () => {
         screen.getByRole("button", { name: "Start workout" }),
       ).toBeInTheDocument();
       expect(
-        screen.queryByRole("button", { name: /weigh in/i }),
+        screen.getByRole("button", { name: /weigh in/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("keeps the weigh-in beside a complete marker once today's workout is done", () => {
+      renderWithRouter(<WorkoutActionButton action={done} variant="sidebar" />);
+      expect(screen.getByText("Workout complete")).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /weigh in/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Start workout" }),
       ).not.toBeInTheDocument();
     });
 
-    it("stands in a complete marker once today's workout is done", () => {
-      renderWithRouter(<WorkoutActionButton action={done} variant="sidebar" />);
-      expect(screen.getByText("Workout complete")).toBeInTheDocument();
+    it("keeps the weigh-in when there's no workout action (a rest day)", () => {
+      renderWithRouter(<WorkoutActionButton variant="sidebar" />);
+      expect(
+        screen.getByRole("button", { name: /weigh in/i }),
+      ).toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: "Start workout" }),
       ).not.toBeInTheDocument();
