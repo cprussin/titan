@@ -3,25 +3,110 @@
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr/CaretLeft";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr/CaretRight";
 import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
-import { css, cva, cx } from "../../styled-system/css";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { z } from "zod";
+import { css, cva } from "../../styled-system/css";
 import type { Loadable } from "../loadable";
-import type { WeekDay } from "../server/week-schedule";
+import type { WeekDay } from "../server/week-day";
+import { weekDaySchema } from "../server/week-day";
 import { Skeleton } from "../ui";
-import { centeredScrollLeft, visibleDayCount } from "./week-ribbon-scroll";
+import {
+  centeredScrollLeft,
+  scrollLeftAfterPrepend,
+  visibleDayCount,
+} from "./week-ribbon-scroll";
 
 export type WeekRibbonData = {
   days: readonly WeekDay[];
   /** The day the page below is showing — its cell takes the accent border and
    *  `aria-current`, and reads "· TODAY" when it is also today. */
   selectedDate: string;
-  /** Which week is shown: 0 is the current week, ±1 the adjacent ones. Drives
-   *  the caret links and is carried on each day link. */
+  /** Which week the page rendered: 0 is the current week, ±1 the adjacent ones.
+   *  Anchors the strip and is carried on each of its day links. */
   weekOffset: number;
+};
+
+const weekResponseSchema = z.object({ days: z.array(weekDaySchema) });
+
+/** Fetch one week of ribbon cells at a given offset from the current week.
+ *  Parsed at the boundary (DATA.md); throws on a failed load so the caller
+ *  surfaces it rather than showing a silently empty week. */
+export const fetchWeek = async (
+  weekOffset: number,
+): Promise<readonly WeekDay[]> => {
+  const response = await fetch(`/api/week?offset=${weekOffset}`);
+  if (!response.ok) {
+    throw new Error(`week load failed with status ${response.status}`);
+  }
+  return weekResponseSchema.parse(await response.json()).days;
+};
+
+/** Observe the strip's leading and trailing sentinels, calling back when either
+ *  scrolls into view. Injected in tests; defaults to an `IntersectionObserver`
+ *  rooted on the viewport, pre-loading a little before the edge is reached. */
+export type EdgeObserver = (args: {
+  earlier: Element;
+  later: Element;
+  onEarlier: () => void;
+  onLater: () => void;
+  root: Element;
+}) => () => void;
+
+const observeEdgesWithIntersectionObserver: EdgeObserver = ({
+  earlier,
+  later,
+  onEarlier,
+  onLater,
+  root,
+}) => {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          switch (entry.target) {
+            case earlier: {
+              onEarlier();
+              break;
+            }
+            case later: {
+              onLater();
+              break;
+            }
+            default: {
+              break;
+            }
+          }
+        }
+      }
+    },
+    { root, rootMargin: "0px 200px" },
+  );
+  observer.observe(earlier);
+  observer.observe(later);
+  return () => {
+    observer.disconnect();
+  };
+};
+
+/** A week of cells the strip is showing, tagged with its offset from the current
+ *  week so each cell links back with the right `?week`. */
+type LoadedWeek = {
+  days: readonly WeekDay[];
+  offset: number;
 };
 
 type Props = {
   load: Loadable<WeekRibbonData>;
+  /** Fetches an adjacent week; injected in tests. */
+  loadWeek?: typeof fetchWeek;
+  /** Watches the strip edges; injected in tests. */
+  observeEdges?: EdgeObserver;
 };
 
 /** Each day cell asks for at least this much width; the strip fits as many
@@ -34,22 +119,50 @@ const GAP_REM = 0.5;
 // schedule resolves.
 const PLACEHOLDER_DAYS = [0, 1, 2, 3, 4, 5, 6];
 
-/** The dashboard's week picker. Above `md` the caret links step whole weeks and
- *  seven equal-width day cells lay out as a static grid between them. Below `md`
- *  the carets give way to scroll buttons that page a horizontally-scrolling
- *  strip; the strip fits a whole number of equal-width days between the buttons
- *  and opens centered on the selected day. Each cell links the page to that day;
+/** The dashboard's week picker: one horizontally-scrolling strip of equal-width
+ *  day cells that fits a whole number of days between two scroll buttons. The
+ *  buttons only slide the strip — they never change the selected day — and the
+ *  strip lazy-loads the neighbouring weeks as either end nears view, so it
+ *  scrolls across weeks without bound. Each cell links the page to that day;
  *  today links back to the un-parameterized dashboard. While loading, the same
- *  strip fills with skeleton cells and the week carets go inert. */
-export const WeekRibbon = ({ load }: Props) => {
+ *  strip fills with skeleton cells. */
+export const WeekRibbon = ({
+  load,
+  loadWeek = fetchWeek,
+  observeEdges = observeEdgesWithIntersectionObserver,
+}: Props) => {
   const viewportRef = useRef<HTMLDivElement | null>(null);
-  const dayCount = load.isLoading
-    ? PLACEHOLDER_DAYS.length
-    : load.value.days.length;
+  const earlierSentinelRef = useRef<HTMLDivElement | null>(null);
+  const laterSentinelRef = useRef<HTMLDivElement | null>(null);
+
+  const [weeks, setWeeks] = useState<readonly LoadedWeek[]>(() =>
+    load.isLoading
+      ? []
+      : [{ days: load.value.days, offset: load.value.weekOffset }],
+  );
+
+  // The strip's outer offsets and the loads in flight — kept in a ref so the
+  // edge callbacks read the latest bounds without re-subscribing the observer.
+  const boundsRef = useRef({
+    max: load.isLoading ? 0 : load.value.weekOffset,
+    min: load.isLoading ? 0 : load.value.weekOffset,
+    pending: new Set<number>(),
+  });
+  // The strip metrics captured just before a prepend; set alongside the new
+  // week so the layout effect can hold the view still once it commits.
+  const [pendingPrepend, setPendingPrepend] = useState<
+    { oldScrollLeft: number; oldScrollWidth: number } | undefined
+  >(undefined);
+
+  const totalDays = weeks.reduce(
+    (count, entry) => count + entry.days.length,
+    0,
+  );
+  const dayCount = load.isLoading ? PLACEHOLDER_DAYS.length : totalDays;
 
   // Fit a whole number of equal-width days between the scroll buttons, re-fitting
   // on resize by publishing the count as `--visible-days` for the cells to divide
-  // the strip by. Inert above `md`, where the cells lay out as a grid instead.
+  // the strip by.
   useEffect(() => {
     const viewport = viewportRef.current;
     if (viewport === null) {
@@ -94,6 +207,82 @@ export const WeekRibbon = ({ load }: Props) => {
     });
   }, []);
 
+  // Once the prepended week has committed, shift the scroll by the width it
+  // added so the cells the user was looking at stay exactly where they were.
+  useLayoutEffect(() => {
+    const viewport = viewportRef.current;
+    if (pendingPrepend === undefined || viewport === null) {
+      return;
+    }
+    viewport.scrollLeft = scrollLeftAfterPrepend({
+      newScrollWidth: viewport.scrollWidth,
+      oldScrollWidth: pendingPrepend.oldScrollWidth,
+      scrollLeft: pendingPrepend.oldScrollLeft,
+    });
+    setPendingPrepend(undefined);
+  }, [pendingPrepend]);
+
+  const loadEarlier = useCallback(() => {
+    const viewport = viewportRef.current;
+    const target = boundsRef.current.min - 1;
+    if (viewport === null || boundsRef.current.pending.has(target)) {
+      return;
+    }
+    boundsRef.current.pending.add(target);
+    loadWeek(target)
+      .then((loaded) => {
+        boundsRef.current.pending.delete(target);
+        boundsRef.current.min = target;
+        setPendingPrepend({
+          oldScrollLeft: viewport.scrollLeft,
+          oldScrollWidth: viewport.scrollWidth,
+        });
+        setWeeks((prev) => [{ days: loaded, offset: target }, ...prev]);
+      })
+      .catch((error: unknown) => {
+        boundsRef.current.pending.delete(target);
+        // biome-ignore lint/suspicious/noConsole: surface a failed week load
+        console.error("Failed to load earlier week", error);
+      });
+  }, [loadWeek]);
+
+  const loadLater = useCallback(() => {
+    const target = boundsRef.current.max + 1;
+    if (boundsRef.current.pending.has(target)) {
+      return;
+    }
+    boundsRef.current.pending.add(target);
+    loadWeek(target)
+      .then((loaded) => {
+        boundsRef.current.pending.delete(target);
+        boundsRef.current.max = target;
+        setWeeks((prev) => [...prev, { days: loaded, offset: target }]);
+      })
+      .catch((error: unknown) => {
+        boundsRef.current.pending.delete(target);
+        // biome-ignore lint/suspicious/noConsole: surface a failed week load
+        console.error("Failed to load later week", error);
+      });
+  }, [loadWeek]);
+
+  // Watch the strip's ends; the sentinels only render once loaded, so while
+  // loading the refs are null and this stays inert.
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    const earlier = earlierSentinelRef.current;
+    const later = laterSentinelRef.current;
+    if (viewport === null || earlier === null || later === null) {
+      return;
+    }
+    return observeEdges({
+      earlier,
+      later,
+      onEarlier: loadEarlier,
+      onLater: loadLater,
+      root: viewport,
+    });
+  }, [loadEarlier, loadLater, observeEdges]);
+
   const scrollByPage = useCallback((direction: -1 | 1) => {
     const viewport = viewportRef.current;
     if (viewport === null) {
@@ -107,10 +296,9 @@ export const WeekRibbon = ({ load }: Props) => {
 
   return (
     <nav aria-label="Training week" className={pickerStyles}>
-      <WeekCaret direction={-1} load={load} />
       <button
         aria-label="Scroll to earlier days"
-        className={scrollButtonStyles}
+        className={arrowStyles}
         onClick={() => {
           scrollByPage(-1);
         }}
@@ -119,27 +307,36 @@ export const WeekRibbon = ({ load }: Props) => {
         <CaretLeftIcon />
       </button>
       <div className={cellsStyles} ref={viewportRef}>
-        {load.isLoading
-          ? PLACEHOLDER_DAYS.map((cell) => (
-              <WeekCell key={cell} load={{ isLoading: true }} />
-            ))
-          : load.value.days.map((day) => (
-              <WeekCell
-                key={day.date}
-                load={{
-                  isLoading: false,
-                  value: {
-                    day,
-                    selected: day.date === load.value.selectedDate,
-                    weekOffset: load.value.weekOffset,
-                  },
-                }}
-              />
-            ))}
+        {load.isLoading ? (
+          PLACEHOLDER_DAYS.map((cell) => <SkeletonCell key={cell} />)
+        ) : (
+          <>
+            <div
+              aria-hidden
+              className={sentinelStyles}
+              ref={earlierSentinelRef}
+            />
+            {weeks.map((entry) =>
+              entry.days.map((day) => (
+                <WeekCell
+                  day={day}
+                  key={`${entry.offset}:${day.date}`}
+                  selected={day.date === load.value.selectedDate}
+                  weekOffset={entry.offset}
+                />
+              )),
+            )}
+            <div
+              aria-hidden
+              className={sentinelStyles}
+              ref={laterSentinelRef}
+            />
+          </>
+        )}
       </div>
       <button
         aria-label="Scroll to later days"
-        className={scrollButtonStyles}
+        className={arrowStyles}
         onClick={() => {
           scrollByPage(1);
         }}
@@ -147,79 +344,43 @@ export const WeekRibbon = ({ load }: Props) => {
       >
         <CaretRightIcon />
       </button>
-      <WeekCaret direction={1} load={load} />
     </nav>
   );
 };
 
-/** A week-stepping caret: a link to the adjacent week once loaded, an inert
- *  placeholder while loading (the target week is not yet known). */
-const WeekCaret = ({
-  direction,
-  load,
+/** One day cell: the day's label and session name linking to that day. */
+const WeekCell = ({
+  day,
+  selected,
+  weekOffset,
 }: {
-  direction: -1 | 1;
-  load: Loadable<WeekRibbonData>;
-}) => {
-  const icon = direction === -1 ? <CaretLeftIcon /> : <CaretRightIcon />;
-  return load.isLoading ? (
-    <span aria-hidden className={weekCaretStyles}>
-      {icon}
-    </span>
-  ) : (
-    <Link
-      aria-label={direction === -1 ? "Previous week" : "Next week"}
-      className={weekCaretStyles}
-      href={weekHref(load.value.weekOffset + direction)}
-    >
-      {icon}
-    </Link>
-  );
-};
-
-type WeekCellData = {
   day: WeekDay;
   selected: boolean;
   weekOffset: number;
-};
+}) => (
+  <Link
+    aria-current={selected ? "page" : undefined}
+    className={cellStyles({
+      dimmed: day.isPast && !selected,
+      selected,
+    })}
+    href={day.isToday ? "/" : dayHref(day.date, weekOffset)}
+  >
+    <span className={labelStyles({ accent: day.isToday || selected })}>
+      {cellLabel(day)}
+    </span>
+    <span className={nameStyles({ tone: nameTone(day) })}>{cellName(day)}</span>
+  </Link>
+);
 
-/** One day cell: the day's label and session name linking to that day once
- *  loaded, a pair of skeleton lines while loading. */
-const WeekCell = ({ load }: { load: Loadable<WeekCellData> }) =>
-  load.isLoading ? (
-    <div className={cellStyles({ dimmed: false, selected: false })}>
-      <Skeleton height="0.75rem" width="3rem" />
-      <Skeleton height="0.875rem" width="4rem" />
-    </div>
-  ) : (
-    <Link
-      aria-current={load.value.selected ? "page" : undefined}
-      className={cellStyles({
-        dimmed: load.value.day.isPast && !load.value.selected,
-        selected: load.value.selected,
-      })}
-      href={
-        load.value.day.isToday
-          ? "/"
-          : dayHref(load.value.day.date, load.value.weekOffset)
-      }
-    >
-      <span
-        className={labelStyles({
-          accent: load.value.day.isToday || load.value.selected,
-        })}
-      >
-        {cellLabel(load.value.day)}
-      </span>
-      <span className={nameStyles({ tone: nameTone(load.value.day) })}>
-        {cellName(load.value.day)}
-      </span>
-    </Link>
-  );
-
-/** The link to a week: the bare dashboard for the current week, else `?week`. */
-const weekHref = (offset: number): string =>
-  offset === 0 ? "/" : `/?week=${offset}`;
+/** A placeholder cell: a pair of skeleton lines standing in for a day's label
+ *  and session name until the schedule resolves. */
+const SkeletonCell = () => (
+  <div className={cellStyles({ dimmed: false, selected: false })}>
+    <Skeleton height="0.75rem" width="3rem" />
+    <Skeleton height="0.875rem" width="4rem" />
+  </div>
+);
 
 /** The link to a specific day, carrying the week offset when it is not the
  *  current week. */
@@ -268,8 +429,8 @@ const pickerStyles = css({
   gap: 2,
 });
 
-// The shared square-arrow look worn by both the week carets and the scroll
-// buttons, so the same affordance sits in the same place across breakpoints.
+// The square-arrow scroll buttons that page the strip left and right, standing
+// in for the scrollbar the strip hides.
 const arrowStyles = css({
   _hoverEnabled: { borderColor: "muted", color: "foreground" },
   alignItems: "center",
@@ -279,6 +440,7 @@ const arrowStyles = css({
   borderRadius: "md",
   color: "muted",
   cursor: "pointer",
+  display: "flex",
   flexShrink: 0,
   fontFamily: "inherit",
   inlineSize: 8,
@@ -287,34 +449,24 @@ const arrowStyles = css({
     "color {durations.fast} {easings.out}, border-color {durations.fast} {easings.out}",
 });
 
-// The carets page whole weeks; shown from `md` up, where the full week fits.
-const weekCaretStyles = cx(
-  arrowStyles,
-  css({ display: { base: "none", md: "flex" } }),
-);
-
-// The scroll buttons page the day strip; shown below `md`, standing in for the
-// scrollbar.
-const scrollButtonStyles = cx(
-  arrowStyles,
-  css({ display: { base: "flex", md: "none" } }),
-);
-
-// A horizontally-scrolling strip below `md` (scrollbar hidden — the buttons
-// drive it), an equal-column grid from `md` up.
+// A horizontally-scrolling strip; the scroll buttons drive it so its scrollbar
+// is hidden. `scroll-behavior: smooth` makes the buttons slide it.
 const cellsStyles = css({
   "&::-webkit-scrollbar": { display: "none" },
   display: "flex",
   flex: 1,
   gap: 2,
-  md: {
-    display: "grid",
-    gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
-    overflowX: "visible",
-  },
   overflowX: "auto",
   position: "relative",
+  scrollBehavior: "smooth",
   scrollbarWidth: "none",
+});
+
+// Zero-width markers at the strip's ends; when one scrolls into view the strip
+// loads the week beyond it.
+const sentinelStyles = css({
+  flexShrink: 0,
+  inlineSize: "0.0625rem",
 });
 
 const cellStyles = cva({
@@ -329,14 +481,13 @@ const cellStyles = cva({
     borderRadius: "md",
     display: "flex",
     // Divide the strip into a whole number of equal cells (`--visible-days`,
-    // set by the fit effect); the grid takes over from `md` up.
+    // set by the fit effect).
     flexBasis:
       "calc((100% - (var(--visible-days, 1) - 1) * {spacing.2}) / var(--visible-days, 1))",
     flexDirection: "column",
     flexGrow: 0,
     flexShrink: 0,
     gap: 1,
-    md: { flexBasis: "auto", minInlineSize: 0 },
     padding: 3,
     transition:
       "background {durations.fast} {easings.out}, border-color {durations.fast} {easings.out}, opacity {durations.fast} {easings.out}",

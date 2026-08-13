@@ -10,33 +10,10 @@ import { isoDayOfWeek } from "../date";
 import { prescriptionColumns } from "../prescription-columns";
 import { sessionDurationMin } from "../session-duration";
 import { dayLabel } from "./week-dates";
+import type { WeekDayBase } from "./week-day";
+import { WeekDay, weekDaySchema } from "./week-day";
 
-/** One cell of the dashboard's week ribbon. Every cell carries where it sits in
- *  the week; its `kind` says what to show — a rest day, a planned session, or a
- *  session already logged. */
-export type WeekDay = {
-  date: string;
-  dayOfWeek: number;
-  isPast: boolean;
-  isToday: boolean;
-  label: string;
-} & (
-  | { kind: "rest" }
-  | {
-      kind: "planned";
-      name: string;
-      /** The primary-movement signature shown on a collapsed cell. */
-      signature: string | undefined;
-      /** The exercise count and duration shown on an expanded cell. */
-      summary: string;
-    }
-  | {
-      kind: "logged";
-      name: string;
-      /** The sets and actual duration shown on an expanded cell. */
-      summary: string;
-    }
-);
+export { WeekDay, weekDaySchema };
 
 /** Everything the pure resolver needs, gathered once by the page so the ribbon
  *  reads a single set of DB rows rather than re-querying per day. */
@@ -61,7 +38,7 @@ export const weekSchedule = (input: WeekScheduleInput): readonly WeekDay[] =>
   input.weekDates.map((date) => resolveDay(input, date));
 
 const resolveDay = (input: WeekScheduleInput, date: string): WeekDay => {
-  const common = {
+  const base = {
     date,
     dayOfWeek: isoDayOfWeek(date),
     isPast: date < input.today,
@@ -74,20 +51,15 @@ const resolveDay = (input: WeekScheduleInput, date: string): WeekDay => {
       ? undefined
       : findTemplate(input.programVersion, logged.sessionTemplateId);
   if (logged !== undefined && loggedTemplate !== undefined) {
-    return {
-      ...common,
-      kind: "logged",
-      name: loggedTemplate.name,
-      summary: loggedSummary(logged),
-    };
+    return WeekDay.Logged(base, loggedTemplate.name, loggedSummary(logged));
   } else {
-    return resolvePlanned(input, common);
+    return resolvePlanned(input, base);
   }
 };
 
 const resolvePlanned = (
   input: WeekScheduleInput,
-  common: Pick<WeekDay, "date" | "dayOfWeek" | "isPast" | "isToday" | "label">,
+  base: WeekDayBase,
 ): WeekDay => {
   const position =
     input.programVersion === undefined
@@ -95,14 +67,14 @@ const resolvePlanned = (
       : resolvePosition(
           input.programVersion,
           input.absoluteWeek,
-          common.dayOfWeek,
+          base.dayOfWeek,
         );
   const template =
     position === undefined
       ? undefined
       : findTemplate(input.programVersion, position.sessionTemplateId);
   if (position === undefined || template === undefined) {
-    return { ...common, kind: "rest" };
+    return WeekDay.Rest(base);
   } else {
     const resolved = resolveSession({
       historyBySlot: input.historyBySlot,
@@ -110,14 +82,27 @@ const resolvePlanned = (
       template,
       weekInBlock: position.weekInBlock,
     });
-    return {
-      ...common,
-      kind: "planned",
-      name: template.name,
-      signature: primarySignature(resolved.prescribedExercises, input.names),
-      summary: `${resolved.prescribedExercises.length} exercises · ~${resolved.estimatedDurationMin} min`,
-    };
+    return WeekDay.Planned(
+      base,
+      template.name,
+      primarySignature(resolved.prescribedExercises, input.names),
+      `${resolved.prescribedExercises.length} exercises · ~${resolved.estimatedDurationMin} min`,
+    );
   }
+};
+
+/** Completed sessions keyed by their scheduled date, for the ribbon's
+ *  logged-day lookup. */
+export const completedSessionsByDate = (
+  sessions: readonly WorkoutSession[],
+): ReadonlyMap<string, WorkoutSession> => {
+  const byDate = new Map<string, WorkoutSession>();
+  for (const session of sessions) {
+    if (session.status === "completed") {
+      byDate.set(session.scheduledDate, session);
+    }
+  }
+  return byDate;
 };
 
 /** The template a session id points at within the current program version, or

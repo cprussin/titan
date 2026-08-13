@@ -34,3 +34,16 @@ export const centeredScrollLeft = ({
   const target = cellOffset + cellWidth / 2 - viewportWidth / 2;
   return Math.min(maxScrollLeft, Math.max(0, target));
 };
+
+/** The `scrollLeft` that keeps the currently-shown cells in place after a week
+ *  is prepended to the strip: prepending grows the content before the viewport
+ *  by the width the new cells added, so the scroll offset shifts by that much. */
+export const scrollLeftAfterPrepend = ({
+  newScrollWidth,
+  oldScrollWidth,
+  scrollLeft,
+}: {
+  newScrollWidth: number;
+  oldScrollWidth: number;
+  scrollLeft: number;
+}): number => scrollLeft + (newScrollWidth - oldScrollWidth);

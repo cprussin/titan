@@ -7,7 +7,6 @@ import {
   getWorkoutSessionByDate,
   listWorkoutSessions,
 } from "@titan/db/workout-sessions";
-import type { WorkoutSession } from "@titan/domain/workout-session";
 import type { Metadata } from "next";
 import { z } from "zod";
 import type { DashboardData } from "../../components/DashboardContent";
@@ -23,7 +22,10 @@ import type { Today } from "../../server/today";
 import { resolveScheduledDay } from "../../server/today";
 import { trendsSummary } from "../../server/trends-summary";
 import { dayLabel, weekDates } from "../../server/week-dates";
-import { weekSchedule } from "../../server/week-schedule";
+import {
+  completedSessionsByDate,
+  weekSchedule,
+} from "../../server/week-schedule";
 import { resolveWorkoutAction } from "../../server/workout-action";
 import { USER_ID } from "../../user";
 
@@ -88,7 +90,7 @@ const DashboardPage = async ({
   const week = weekSchedule({
     absoluteWeek,
     historyBySlot: historyLookup(historyMap),
-    loggedByDate: completedByDate(sessions),
+    loggedByDate: completedSessionsByDate(sessions),
     names,
     programVersion,
     today,
@@ -149,19 +151,6 @@ const selectDate = (
 const selectWeek = (param: string | string[] | undefined): number => {
   const parsed = weekParamSchema.safeParse(param);
   return parsed.success ? parsed.data : 0;
-};
-
-/** Completed sessions keyed by their scheduled date, for the ribbon. */
-const completedByDate = (
-  sessions: readonly WorkoutSession[],
-): ReadonlyMap<string, WorkoutSession> => {
-  const byDate = new Map<string, WorkoutSession>();
-  for (const session of sessions) {
-    if (session.status === "completed") {
-      byDate.set(session.scheduledDate, session);
-    }
-  }
-  return byDate;
 };
 
 /** The active program's name for the selected day, when a program is placed. */
