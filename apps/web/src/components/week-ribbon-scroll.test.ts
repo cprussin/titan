@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import {
+  alignedScrollLeft,
   centeredScrollLeft,
   scrollLeftAfterPrepend,
   visibleDayCount,
@@ -93,6 +94,77 @@ describe(centeredScrollLeft, () => {
         viewportWidth: 400,
       }),
     ).toBe(800);
+  });
+});
+
+describe(alignedScrollLeft, () => {
+  // A seven-cell strip whose cells start at 0, 100, …, 600 (stride 100).
+  const strip = {
+    cellCount: 7,
+    firstStart: 0,
+    maxScrollLeft: 1000,
+    stride: 100,
+  };
+
+  it("pages forward by a whole number of cells, the same on every click", () => {
+    expect(alignedScrollLeft({ ...strip, scrollLeft: 0, shift: 3 })).toBe(300);
+    expect(alignedScrollLeft({ ...strip, scrollLeft: 300, shift: 3 })).toBe(
+      600,
+    );
+  });
+
+  it("pages backward by the same amount", () => {
+    expect(alignedScrollLeft({ ...strip, scrollLeft: 600, shift: -3 })).toBe(
+      300,
+    );
+  });
+
+  it("snaps a mid-cell offset to the nearest cell (a resize re-align)", () => {
+    // 260 rounds up to cell 3 (300); 240 rounds down to cell 2 (200).
+    expect(alignedScrollLeft({ ...strip, scrollLeft: 260, shift: 0 })).toBe(
+      300,
+    );
+    expect(alignedScrollLeft({ ...strip, scrollLeft: 240, shift: 0 })).toBe(
+      200,
+    );
+  });
+
+  it("clamps to the last cell rather than paging past the end", () => {
+    expect(alignedScrollLeft({ ...strip, scrollLeft: 500, shift: 3 })).toBe(
+      600,
+    );
+  });
+
+  it("clamps to maxScrollLeft rather than scrolling past the strip", () => {
+    expect(
+      alignedScrollLeft({
+        cellCount: 20,
+        firstStart: 0,
+        maxScrollLeft: 850,
+        scrollLeft: 800,
+        shift: 3,
+        stride: 100,
+      }),
+    ).toBe(850);
+  });
+
+  it("clamps to the start rather than paging before it", () => {
+    expect(alignedScrollLeft({ ...strip, scrollLeft: 100, shift: -3 })).toBe(0);
+  });
+
+  it("accounts for a leading sentinel offset before the first cell", () => {
+    // The first cell starts at 9 (a hidden sentinel plus its gap), so paging
+    // three cells forward lands flush on the cell at 309.
+    expect(
+      alignedScrollLeft({
+        cellCount: 7,
+        firstStart: 9,
+        maxScrollLeft: 1000,
+        scrollLeft: 9,
+        shift: 3,
+        stride: 100,
+      }),
+    ).toBe(309);
   });
 });
 
