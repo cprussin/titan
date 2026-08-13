@@ -22,4 +22,13 @@ describe(WorkoutActionControl, () => {
       expect(link).toHaveAttribute("href", "/workout/session-123");
     });
   });
+
+  describe("done", () => {
+    it("renders nothing — a finished day has no action to launch", () => {
+      const { container } = render(
+        <WorkoutActionControl action={{ kind: "done" }} />,
+      );
+      expect(container).toBeEmptyDOMElement();
+    });
+  });
 });

@@ -7,6 +7,7 @@ import type { WorkoutAction } from "../server/workout-action";
 import { WorkoutActionButton } from "./WorkoutActionButton";
 
 const start: WorkoutAction = { kind: "start" };
+const done: WorkoutAction = { kind: "done" };
 
 // The workout action's trigger reads the app router on render, so mount the
 // component inside a stub router context (the router is a Next.js platform
@@ -42,6 +43,16 @@ describe(WorkoutActionButton, () => {
           Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy();
     });
+
+    it("hides once today's workout is done", () => {
+      renderWithRouter(<WorkoutActionButton action={done} variant="fab" />);
+      expect(
+        screen.queryByRole("button", { name: "Start workout" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: /weigh in/i }),
+      ).not.toBeInTheDocument();
+    });
   });
 
   describe("sidebar", () => {
@@ -54,6 +65,14 @@ describe(WorkoutActionButton, () => {
       ).toBeInTheDocument();
       expect(
         screen.queryByRole("button", { name: /weigh in/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it("stands in a complete marker once today's workout is done", () => {
+      renderWithRouter(<WorkoutActionButton action={done} variant="sidebar" />);
+      expect(screen.getByText("Workout complete")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Start workout" }),
       ).not.toBeInTheDocument();
     });
   });
