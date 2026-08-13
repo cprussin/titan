@@ -1,5 +1,9 @@
 import { describe, expect, it } from "bun:test";
-import { centeredScrollLeft, visibleDayCount } from "./week-ribbon-scroll";
+import {
+  centeredScrollLeft,
+  scrollLeftAfterPrepend,
+  visibleDayCount,
+} from "./week-ribbon-scroll";
 
 describe(visibleDayCount, () => {
   it("counts the whole cells that fit, accounting for the gaps between them", () => {
@@ -89,5 +93,27 @@ describe(centeredScrollLeft, () => {
         viewportWidth: 400,
       }),
     ).toBe(800);
+  });
+});
+
+describe(scrollLeftAfterPrepend, () => {
+  it("shifts the scroll by the width the prepended week added, holding the view still", () => {
+    expect(
+      scrollLeftAfterPrepend({
+        newScrollWidth: 1400,
+        oldScrollWidth: 1000,
+        scrollLeft: 150,
+      }),
+    ).toBe(550);
+  });
+
+  it("is a no-op when nothing was added", () => {
+    expect(
+      scrollLeftAfterPrepend({
+        newScrollWidth: 1000,
+        oldScrollWidth: 1000,
+        scrollLeft: 150,
+      }),
+    ).toBe(150);
   });
 });

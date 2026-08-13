@@ -8,7 +8,12 @@ import type {
 } from "@titan/domain/program";
 import { ProgressionPolicy } from "@titan/domain/progression-policy";
 import type { WorkoutSession } from "@titan/domain/workout-session";
-import { weekSchedule } from "./week-schedule";
+import {
+  completedSessionsByDate,
+  WeekDay,
+  weekDaySchema,
+  weekSchedule,
+} from "./week-schedule";
 
 const strengthSlot = (id: string): ExerciseSlot => ({
   base: Prescription.Strength({ reps: 5, sets: 5, weight: 225 }),
@@ -179,5 +184,51 @@ describe("weekSchedule", () => {
       programVersion: undefined,
     });
     expect(week.every((day) => day.kind === "rest")).toBe(true);
+  });
+});
+
+describe("completedSessionsByDate", () => {
+  const completedTuesday = {
+    ...loggedHeavyLower,
+    scheduledDate: "2026-08-11",
+  } as unknown as WorkoutSession;
+  const inProgress = {
+    scheduledDate: "2026-08-12",
+    status: "in-progress",
+  } as unknown as WorkoutSession;
+
+  it("keys completed sessions by their scheduled date", () => {
+    const byDate = completedSessionsByDate([
+      loggedHeavyLower,
+      completedTuesday,
+    ]);
+    expect(byDate.get("2026-08-10")).toBe(loggedHeavyLower);
+    expect(byDate.get("2026-08-11")).toBe(completedTuesday);
+  });
+
+  it("drops sessions that are not completed", () => {
+    const byDate = completedSessionsByDate([inProgress]);
+    expect(byDate.has("2026-08-12")).toBe(false);
+  });
+});
+
+describe("weekDaySchema", () => {
+  const base = {
+    date: "2026-08-10",
+    dayOfWeek: 1,
+    isPast: false,
+    isToday: true,
+    label: "MON 10",
+  };
+
+  it("round-trips every variant its constructors build", () => {
+    for (const day of [
+      WeekDay.Rest(base),
+      WeekDay.Planned(base, "Heavy Lower", "Back Squat 5×5", "6 exercises"),
+      WeekDay.Planned(base, "Row Intervals", undefined, "1 exercise"),
+      WeekDay.Logged(base, "Heavy Lower", "18 sets · 52 min"),
+    ]) {
+      expect(weekDaySchema.parse(JSON.parse(JSON.stringify(day)))).toEqual(day);
+    }
   });
 });
