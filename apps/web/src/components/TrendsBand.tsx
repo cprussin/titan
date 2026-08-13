@@ -45,10 +45,8 @@ export const TrendsBand = ({ load }: Props) => {
   return (
     <div>
       <div className={bandStyles}>
-        {renderColumn(load, leadColumn, "lead", false)}
-        {renderColumn(load, secondColumn, "extraA", !expanded)}
-        {renderColumn(load, paceColumn, "extraB", !expanded)}
-        <div className={columnStyles({ hidden: false, slot: "bodyWeight" })}>
+        {renderColumn(load, leadColumn, "lead")}
+        <div className={columnStyles({ slot: "bodyWeight" })}>
           {load.isLoading ? (
             <BodyWeightColumnSkeleton />
           ) : (
@@ -58,9 +56,25 @@ export const TrendsBand = ({ load }: Props) => {
             />
           )}
         </div>
+        {/* On phones the extras collapse behind the toggle and animate open; on
+         *  `md` the wrapper is `display: contents`, so the columns rejoin the
+         *  band's four-across row as direct grid children. */}
+        <div
+          className={extrasWrapperStyles}
+          data-expanded={expanded ? "" : undefined}
+          data-trends-extras=""
+          id={extrasRegionId}
+        >
+          <div className={extrasInnerStyles}>
+            {renderColumn(load, secondColumn, "extraA")}
+            {renderColumn(load, paceColumn, "extraB")}
+          </div>
+        </div>
       </div>
       {hasExtras && (
         <button
+          aria-controls={extrasRegionId}
+          aria-expanded={expanded}
           className={toggleStyles}
           onClick={() => setExpanded((value) => !value)}
           type="button"
@@ -72,6 +86,8 @@ export const TrendsBand = ({ load }: Props) => {
     </div>
   );
 };
+
+const extrasRegionId = "trends-band-extras";
 
 type TrendColumnData = {
   label: string;
@@ -85,41 +101,26 @@ const renderColumn = (
   load: Loadable<TrendsBandData>,
   select: (data: TrendsBandData) => TrendColumnData | undefined,
   slot: ColumnSlot,
-  hidden: boolean,
 ) => {
   if (load.isLoading) {
-    return (
-      <TrendColumn
-        hidden={hidden}
-        key={slot}
-        load={{ isLoading: true }}
-        slot={slot}
-      />
-    );
+    return <TrendColumn key={slot} load={{ isLoading: true }} slot={slot} />;
   }
   const value = select(load.value);
   return value === undefined ? undefined : (
-    <TrendColumn
-      hidden={hidden}
-      key={slot}
-      load={{ isLoading: false, value }}
-      slot={slot}
-    />
+    <TrendColumn key={slot} load={{ isLoading: false, value }} slot={slot} />
   );
 };
 
 /** One non-editable trend column: label, latest value, sparkline — each a
  *  skeleton while loading. */
 const TrendColumn = ({
-  hidden = false,
   load,
   slot,
 }: {
-  hidden?: boolean;
   load: Loadable<TrendColumnData>;
   slot: ColumnSlot;
 }) => (
-  <div className={columnStyles({ hidden, slot })}>
+  <div className={columnStyles({ slot })}>
     {load.isLoading ? (
       <>
         <Skeleton height="0.875rem" width="7rem" />
@@ -203,13 +204,17 @@ const strengthValue = (series: StrengthSeries): string => {
 };
 
 // Two columns on phones (the lead lift and body weight in the first row), four
-// across from `md`.
-const bandStyles = grid({ columns: { base: 2, md: 4 }, gap: 6 });
+// across from `md`. Row-gap is 0 because the phone-only gap above the extras
+// lives inside the collapsible wrapper, so it animates away with the reveal.
+const bandStyles = grid({
+  columnGap: 6,
+  columns: { base: 2, md: 4 },
+  rowGap: 0,
+});
 
-// On phones the visible pair (lead lift, body weight) leads, then the extras
-// flow below when expanded — so revealing them appends a row rather than
-// splitting the pair. `md` order restores the wide layout (lifts, row pace,
-// then body weight).
+// On phones the visible pair (lead lift, body weight) leads in source order,
+// then the extras wrapper flows below. `md` order restores the wide layout
+// (lifts, row pace, then body weight).
 const columnStyles = cva({
   base: {
     alignItems: "stretch",
@@ -218,18 +223,40 @@ const columnStyles = cva({
     gap: 2,
   },
   variants: {
-    hidden: {
-      false: {},
-      // Collapsed on phones, always shown from `md`.
-      true: { display: "none", md: { display: "flex" } },
-    },
     slot: {
-      bodyWeight: { md: { order: 3 }, order: 1 },
-      extraA: { md: { order: 1 }, order: 2 },
-      extraB: { md: { order: 2 }, order: 3 },
-      lead: { md: { order: 0 }, order: 0 },
+      bodyWeight: { md: { order: 3 } },
+      extraA: { md: { order: 1 } },
+      extraB: { md: { order: 2 } },
+      lead: { md: { order: 0 } },
     },
   },
+});
+
+// The phone-only collapsible holding both extra columns. It spans the band's
+// two phone columns and animates its height via the `grid-template-rows`
+// `0fr → 1fr` reveal, driven by `data-expanded`. From `md` it becomes
+// `display: contents`, dissolving so the columns rejoin the four-across row.
+const extrasWrapperStyles = css({
+  "&[data-expanded]": { gridTemplateRows: "1fr" },
+  display: "grid",
+  gridColumn: "1 / -1",
+  gridTemplateRows: "0fr",
+  md: { display: "contents" },
+  transition: "grid-template-rows {durations.normal} {easings.out}",
+});
+
+// The clipped inner track: `minBlockSize: 0` lets the row shrink past its
+// content and `overflow: hidden` hides it while collapsed. `paddingBlockStart`
+// is the phone-only gap above the extras, clipped away with the reveal. From
+// `md` it too dissolves so the columns land directly in the band grid.
+const extrasInnerStyles = css({
+  columnGap: 6,
+  display: "grid",
+  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+  md: { display: "contents" },
+  minBlockSize: 0,
+  overflow: "hidden",
+  paddingBlockStart: 6,
 });
 
 const labelStyles = css({ color: "muted", fontSize: "sm", minInlineSize: 0 });
