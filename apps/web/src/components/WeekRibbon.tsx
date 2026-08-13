@@ -17,6 +17,7 @@ import type { WeekDay } from "../server/week-day";
 import { weekDaySchema } from "../server/week-day";
 import { Skeleton } from "../ui";
 import {
+  alignedScrollLeft,
   centeredScrollLeft,
   scrollLeftAfterPrepend,
   visibleDayCount,
@@ -115,6 +116,16 @@ const MIN_CELL_REM = 8.5;
 /** The gap between cells, matching the `gap: 2` (0.5rem) on the strip. */
 const GAP_REM = 0.5;
 
+/** The document's root font size in pixels, used to turn the strip's rem-based
+ *  metrics into the pixels its layout math needs. Falls back to the CSS initial
+ *  16px when the computed value is unreadable. */
+const rootFontSizePx = (): number => {
+  const parsed = Number.parseFloat(
+    getComputedStyle(document.documentElement).fontSize,
+  );
+  return Number.isNaN(parsed) ? 16 : parsed;
+};
+
 // A representative week's worth of cells fills the strip before the real
 // schedule resolves.
 const PLACEHOLDER_DAYS = [0, 1, 2, 3, 4, 5, 6];
@@ -160,37 +171,88 @@ export const WeekRibbon = ({
   );
   const dayCount = load.isLoading ? PLACEHOLDER_DAYS.length : totalDays;
 
-  // Fit a whole number of equal-width days between the scroll buttons, re-fitting
-  // on resize by publishing the count as `--visible-days` for the cells to divide
-  // the strip by.
+  // The count of whole cells that currently fit: the cells divide the strip by it
+  // (via `--visible-days`) and the arrows page by it. Held in refs so the resize
+  // handler and the scroll buttons read the latest without re-subscribing.
+  const visibleDaysRef = useRef(1);
+  const dayCountRef = useRef(dayCount);
   useEffect(() => {
+    dayCountRef.current = dayCount;
+  }, [dayCount]);
+
+  const fitToWidth = useCallback((count: number) => {
     const viewport = viewportRef.current;
     if (viewport === null) {
       return;
     }
-    const rootFontSize =
-      Number.parseFloat(getComputedStyle(document.documentElement).fontSize) ||
-      16;
-    const fit = () => {
-      const count = visibleDayCount({
-        containerWidth: viewport.clientWidth,
-        dayCount,
-        gap: GAP_REM * rootFontSize,
-        minCellWidth: MIN_CELL_REM * rootFontSize,
+    const rootFontSize = rootFontSizePx();
+    const visible = visibleDayCount({
+      containerWidth: viewport.clientWidth,
+      dayCount: count,
+      gap: GAP_REM * rootFontSize,
+      minCellWidth: MIN_CELL_REM * rootFontSize,
+    });
+    visibleDaysRef.current = visible;
+    viewport.style.setProperty("--visible-days", String(visible));
+  }, []);
+
+  // Slide the strip so it comes to rest flush on a cell boundary: `shift` cells
+  // from the cell nearest the current edge, smoothly for the arrow buttons or
+  // instantly to re-align after a resize. Reads the live cell geometry, so it
+  // tracks lazily loaded weeks and resized cells alike.
+  const scrollToAligned = useCallback(
+    (shift: number, behavior: ScrollBehavior) => {
+      const viewport = viewportRef.current;
+      if (viewport === null) {
+        return;
+      }
+      const cells = viewport.querySelectorAll("a");
+      const first = cells.item(0);
+      const second = cells.item(1);
+      if (first === null || second === null) {
+        return;
+      }
+      viewport.scrollTo({
+        behavior,
+        left: alignedScrollLeft({
+          cellCount: cells.length,
+          firstStart: first.offsetLeft,
+          maxScrollLeft: viewport.scrollWidth - viewport.clientWidth,
+          scrollLeft: viewport.scrollLeft,
+          shift,
+          stride: second.offsetLeft - first.offsetLeft,
+        }),
       });
-      viewport.style.setProperty("--visible-days", String(count));
+    },
+    [],
+  );
+
+  // Fit a whole number of equal-width days between the buttons as the strip gains
+  // days — in a layout effect, before paint, so no wrongly-sized cells flash.
+  useLayoutEffect(() => {
+    fitToWidth(dayCount);
+  }, [dayCount, fitToWidth]);
+
+  // Resizes re-fit and re-align through their own listener rather than the effect
+  // above, so a lazily loaded week never nudges the scroll: only a real resize
+  // snaps the strip back to a whole number of days.
+  useEffect(() => {
+    const onResize = () => {
+      fitToWidth(dayCountRef.current);
+      scrollToAligned(0, "auto");
     };
-    fit();
-    window.addEventListener("resize", fit);
+    window.addEventListener("resize", onResize);
     return () => {
-      window.removeEventListener("resize", fit);
+      window.removeEventListener("resize", onResize);
     };
-  }, [dayCount]);
+  }, [fitToWidth, scrollToAligned]);
 
   // On load, bring the selected day (today, by default) to the middle of the
-  // strip so it anchors the view rather than sitting off-screen. Instant, not
-  // animated — this is the opening position, not a navigation.
-  useEffect(() => {
+  // strip so it anchors the view rather than sitting off-screen. In a layout
+  // effect, before paint and with an instant assignment (the strip no longer
+  // scrolls smoothly on its own), so the opening position appears settled rather
+  // than flashing in and scrolling into place.
+  useLayoutEffect(() => {
     const viewport = viewportRef.current;
     if (viewport === null) {
       return;
@@ -283,24 +345,13 @@ export const WeekRibbon = ({
     });
   }, [loadEarlier, loadLater, observeEdges]);
 
-  const scrollByPage = useCallback((direction: -1 | 1) => {
-    const viewport = viewportRef.current;
-    if (viewport === null) {
-      return;
-    }
-    viewport.scrollBy({
-      behavior: "smooth",
-      left: direction * viewport.clientWidth,
-    });
-  }, []);
-
   return (
     <nav aria-label="Training week" className={pickerStyles}>
       <button
         aria-label="Scroll to earlier days"
         className={arrowStyles}
         onClick={() => {
-          scrollByPage(-1);
+          scrollToAligned(-visibleDaysRef.current, "smooth");
         }}
         type="button"
       >
@@ -338,7 +389,7 @@ export const WeekRibbon = ({
         aria-label="Scroll to later days"
         className={arrowStyles}
         onClick={() => {
-          scrollByPage(1);
+          scrollToAligned(visibleDaysRef.current, "smooth");
         }}
         type="button"
       >
@@ -450,7 +501,9 @@ const arrowStyles = css({
 });
 
 // A horizontally-scrolling strip; the scroll buttons drive it so its scrollbar
-// is hidden. `scroll-behavior: smooth` makes the buttons slide it.
+// is hidden. Scrolling is left to explicit `scrollTo` calls — smooth for the
+// buttons, instant for positioning — so `scroll-behavior` stays unset, keeping
+// the opening position and the lazy-load prepends from animating.
 const cellsStyles = css({
   "&::-webkit-scrollbar": { display: "none" },
   display: "flex",
@@ -458,7 +511,6 @@ const cellsStyles = css({
   gap: 2,
   overflowX: "auto",
   position: "relative",
-  scrollBehavior: "smooth",
   scrollbarWidth: "none",
 });
 

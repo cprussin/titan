@@ -35,6 +35,33 @@ export const centeredScrollLeft = ({
   return Math.min(maxScrollLeft, Math.max(0, target));
 };
 
+/** The `scrollLeft` that pages the strip by whole day cells and leaves it flush
+ *  on a cell boundary. The strip's cells are uniform, so cell `i` starts at
+ *  `firstStart + i·stride`. From the cell nearest the current `scrollLeft`, this
+ *  shifts by `shift` cells (negative pages earlier) and brings that cell flush to
+ *  the viewport's start, clamped to the strip. A `shift` of 0 simply re-aligns —
+ *  used after a resize changes the cell widths — while ±the visible-day count
+ *  pages by exactly one screenful of days, the same distance on every click. */
+export const alignedScrollLeft = ({
+  cellCount,
+  firstStart,
+  maxScrollLeft,
+  scrollLeft,
+  shift,
+  stride,
+}: {
+  cellCount: number;
+  firstStart: number;
+  maxScrollLeft: number;
+  scrollLeft: number;
+  shift: number;
+  stride: number;
+}): number => {
+  const nearest = Math.round((scrollLeft - firstStart) / stride);
+  const target = Math.min(cellCount - 1, Math.max(0, nearest + shift));
+  return Math.min(maxScrollLeft, Math.max(0, firstStart + target * stride));
+};
+
 /** The `scrollLeft` that keeps the currently-shown cells in place after a week
  *  is prepended to the strip: prepending grows the content before the viewport
  *  by the width the new cells added, so the scroll offset shifts by that much. */
