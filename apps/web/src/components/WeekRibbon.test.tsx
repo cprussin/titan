@@ -72,12 +72,27 @@ describe(WeekRibbon, () => {
     expect(friday).not.toHaveTextContent("5 exercises");
   });
 
-  it("marks the selected day and ticks a logged day; renders a rest day", () => {
+  it("marks the selected day with aria-current and no textual badge", () => {
     render(<WeekRibbon days={days} selectedDate="2026-08-10" weekOffset={0} />);
-    expect(
-      screen.getByRole("link", { name: /MON 10 · SELECTED/ }),
-    ).toBeDefined();
+    const monday = screen.getByRole("link", { name: /MON 10/ });
+    expect(monday).toHaveAttribute("aria-current", "page");
+    // The "SELECTED" badge is gone — only "TODAY" annotates a cell.
+    expect(screen.queryByText(/SELECTED/)).toBeNull();
+  });
+
+  it("ticks a logged day and renders a rest day", () => {
+    render(<WeekRibbon days={days} selectedDate="2026-08-10" weekOffset={0} />);
     expect(screen.getByRole("link", { name: /Volume Upper ✓/ })).toBeDefined();
     expect(screen.getByRole("link", { name: /Rest/ })).toBeDefined();
+  });
+
+  it("offers scroll buttons to page the day strip", () => {
+    render(<WeekRibbon days={days} selectedDate="2026-08-11" weekOffset={0} />);
+    expect(
+      screen.getByRole("button", { name: "Scroll to earlier days" }),
+    ).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: "Scroll to later days" }),
+    ).toBeDefined();
   });
 });
