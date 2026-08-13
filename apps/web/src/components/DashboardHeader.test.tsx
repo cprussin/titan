@@ -39,7 +39,6 @@ describe(DashboardHeader, () => {
           eyebrow,
           primary: { kind: "back-to-today" },
           title: "Volume Upper",
-          weighedInToday: false,
         })}
       />,
     );
@@ -49,14 +48,13 @@ describe(DashboardHeader, () => {
     expect(screen.getByText("MON 10 · Logged")).toBeDefined();
   });
 
-  it("always offers a weigh-in button until logged", () => {
+  it("always offers a weigh-in button", () => {
     wrap(
       <DashboardHeader
         load={loaded({
           eyebrow,
           primary: { kind: "none" },
           title: "Heavy Lower",
-          weighedInToday: false,
         })}
       />,
     );
@@ -70,7 +68,6 @@ describe(DashboardHeader, () => {
           eyebrow,
           primary: { kind: "back-to-today" },
           title: "Heavy Upper",
-          weighedInToday: false,
         })}
       />,
     );
@@ -86,7 +83,6 @@ describe(DashboardHeader, () => {
           eyebrow: { ...eyebrow, status: undefined },
           primary: { action: { kind: "start" }, kind: "start-workout" },
           title: "Heavy Lower",
-          weighedInToday: false,
         })}
       />,
     );

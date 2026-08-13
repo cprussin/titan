@@ -109,7 +109,6 @@ const DashboardPage = async ({
   });
 
   const summary = trendsSummary(metrics, sessions, externals);
-  const weighedInToday = metrics.at(0)?.date === today;
 
   const data: DashboardData = {
     body: view.body,
@@ -117,7 +116,6 @@ const DashboardPage = async ({
       eyebrow: view.eyebrow,
       primary: view.primary,
       title: view.title,
-      weighedInToday,
     },
     names,
     session: view.session,

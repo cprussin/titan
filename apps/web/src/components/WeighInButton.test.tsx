@@ -13,21 +13,12 @@ describe(WeighInButton, () => {
   it("opens the weigh-in editor when clicked", () => {
     render(
       <WeighInProvider>
-        <WeighInButton weighedInToday={false} />
+        <WeighInButton />
         <Probe />
       </WeighInProvider>,
     );
     expect(screen.getByTestId("state").textContent).toBe("closed");
     fireEvent.click(screen.getByRole("button", { name: "Weigh in" }));
     expect(screen.getByTestId("state").textContent).toBe("open");
-  });
-
-  it("hides once today's weigh-in is logged", () => {
-    render(
-      <WeighInProvider>
-        <WeighInButton weighedInToday={true} />
-      </WeighInProvider>,
-    );
-    expect(screen.queryByRole("button", { name: "Weigh in" })).toBeNull();
   });
 });
