@@ -63,6 +63,22 @@ describe(TrendsBand, () => {
     expect(screen.getByRole("button", { name: /Show less/i })).toBeDefined();
   });
 
+  it("marks the extras region expanded as the toggle flips", () => {
+    const { container } = wrap(full);
+    const extras = container.querySelector("[data-trends-extras]");
+    expect(extras?.getAttribute("data-expanded")).toBeNull();
+    const toggle = screen.getByRole("button", { name: /Show more/i });
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+
+    fireEvent.click(toggle);
+    expect(extras?.getAttribute("data-expanded")).toBe("");
+    expect(
+      screen
+        .getByRole("button", { name: /Show less/i })
+        .getAttribute("aria-expanded"),
+    ).toBe("true");
+  });
+
   it("has no toggle when there is only body weight to show", () => {
     wrap(
       <TrendsBand
