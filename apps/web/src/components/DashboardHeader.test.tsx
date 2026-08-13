@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { render, screen } from "@testing-library/react";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import type { ReactElement } from "react";
+import type { DashboardHeaderData } from "./DashboardHeader";
 import { DashboardHeader } from "./DashboardHeader";
 import { WeighInProvider } from "./WeighInContext";
 
@@ -27,14 +28,19 @@ const eyebrow = {
   weekCount: "W3 / 8",
 };
 
+const loaded = (value: DashboardHeaderData) =>
+  ({ isLoading: false, value }) as const;
+
 describe(DashboardHeader, () => {
   it("renders the three eyebrow segments and the title", () => {
     wrap(
       <DashboardHeader
-        eyebrow={eyebrow}
-        primary={{ kind: "back-to-today" }}
-        title="Volume Upper"
-        weighedInToday={false}
+        load={loaded({
+          eyebrow,
+          primary: { kind: "back-to-today" },
+          title: "Volume Upper",
+          weighedInToday: false,
+        })}
       />,
     );
     expect(screen.getByRole("heading", { name: "Volume Upper" })).toBeDefined();
@@ -46,10 +52,12 @@ describe(DashboardHeader, () => {
   it("always offers a weigh-in button until logged", () => {
     wrap(
       <DashboardHeader
-        eyebrow={eyebrow}
-        primary={{ kind: "none" }}
-        title="Heavy Lower"
-        weighedInToday={false}
+        load={loaded({
+          eyebrow,
+          primary: { kind: "none" },
+          title: "Heavy Lower",
+          weighedInToday: false,
+        })}
       />,
     );
     expect(screen.getByRole("button", { name: "Weigh in" })).toBeDefined();
@@ -58,10 +66,12 @@ describe(DashboardHeader, () => {
   it("offers a back-to-today link as the primary action", () => {
     wrap(
       <DashboardHeader
-        eyebrow={eyebrow}
-        primary={{ kind: "back-to-today" }}
-        title="Heavy Upper"
-        weighedInToday={false}
+        load={loaded({
+          eyebrow,
+          primary: { kind: "back-to-today" },
+          title: "Heavy Upper",
+          weighedInToday: false,
+        })}
       />,
     );
     expect(
@@ -72,12 +82,23 @@ describe(DashboardHeader, () => {
   it("shows the launch control before today's workout", () => {
     wrap(
       <DashboardHeader
-        eyebrow={{ ...eyebrow, status: undefined }}
-        primary={{ action: { kind: "start" }, kind: "start-workout" }}
-        title="Heavy Lower"
-        weighedInToday={false}
+        load={loaded({
+          eyebrow: { ...eyebrow, status: undefined },
+          primary: { action: { kind: "start" }, kind: "start-workout" },
+          title: "Heavy Lower",
+          weighedInToday: false,
+        })}
       />,
     );
     expect(screen.getByRole("button", { name: "Start workout" })).toBeDefined();
+  });
+
+  it("stands in skeletons while loading, with no headline or actions", () => {
+    const { container } = wrap(<DashboardHeader load={{ isLoading: true }} />);
+    expect(screen.queryByRole("heading")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Weigh in" })).toBeNull();
+    expect(
+      container.querySelectorAll("[data-skeleton]").length,
+    ).toBeGreaterThan(0);
   });
 });

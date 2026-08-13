@@ -1,15 +1,16 @@
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr/ArrowLeft";
 import { css, cva } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
+import type { Loadable } from "../loadable";
 import type {
   DashboardEyebrow,
   DashboardPrimary,
 } from "../server/dashboard-view";
-import { Button } from "../ui";
+import { Button, Skeleton } from "../ui";
 import { WeighInButton } from "./WeighInButton";
 import { WorkoutActionControl } from "./WorkoutActionControl";
 
-type Props = {
+export type DashboardHeaderData = {
   eyebrow: DashboardEyebrow;
   primary: DashboardPrimary;
   title: string;
@@ -17,38 +18,62 @@ type Props = {
   weighedInToday: boolean;
 };
 
+type Props = {
+  load: Loadable<DashboardHeaderData>;
+};
+
 /** The dashboard's headline, describing the selected day: an eyebrow that places
  *  it (program, week count, and — away from today — its standing), the session
  *  title, and the trailing actions (a weigh-in button beside the day's primary
- *  action). */
-export const DashboardHeader = ({
-  eyebrow,
-  primary,
-  title,
-  weighedInToday,
-}: Props) => (
+ *  action). While loading, each of these stands in as a skeleton so the headline
+ *  keeps its footprint. */
+export const DashboardHeader = ({ load }: Props) => (
   <div className={headerStyles}>
     <div className={leadStyles}>
       <div className={eyebrowStyles}>
-        {eyebrow.programName !== undefined && (
-          <span className={programStyles}>{eyebrow.programName}</span>
-        )}
-        {eyebrow.weekCount !== undefined && (
-          <span className={weekCountStyles}>{eyebrow.weekCount}</span>
-        )}
-        {eyebrow.status !== undefined && (
-          <span className={statusStyles({ tone: eyebrow.status.tone })}>
-            {eyebrow.status.text}
-          </span>
+        {load.isLoading ? (
+          <>
+            <Skeleton height="0.75rem" width="9rem" />
+            <Skeleton height="0.875rem" width="3.5rem" />
+          </>
+        ) : (
+          <Eyebrow eyebrow={load.value.eyebrow} />
         )}
       </div>
-      <h2 className={titleStyles}>{title}</h2>
+      {load.isLoading ? (
+        <Skeleton height="2.25rem" radius="md" width="14rem" />
+      ) : (
+        <h2 className={titleStyles}>{load.value.title}</h2>
+      )}
     </div>
     <div className={actionsStyles}>
-      <WeighInButton weighedInToday={weighedInToday} />
-      <PrimaryAction primary={primary} />
+      {load.isLoading ? (
+        <Skeleton height="2.75rem" radius="md" width="10rem" />
+      ) : (
+        <>
+          <WeighInButton weighedInToday={load.value.weighedInToday} />
+          <PrimaryAction primary={load.value.primary} />
+        </>
+      )}
     </div>
   </div>
+);
+
+/** The eyebrow's three baseline segments, each shown only when present. */
+const Eyebrow = ({ eyebrow }: { eyebrow: DashboardEyebrow }) => (
+  <>
+    {eyebrow.programName !== undefined && (
+      <span className={programStyles}>{eyebrow.programName}</span>
+    )}
+    {eyebrow.weekCount !== undefined && (
+      <span className={weekCountStyles}>{eyebrow.weekCount}</span>
+    )}
+    {eyebrow.status !== undefined && (
+      <span className={statusStyles({ tone: eyebrow.status.tone })}>
+        {eyebrow.status.text}
+      </span>
+    )}
+  </>
 );
 
 const PrimaryAction = ({ primary }: { primary: DashboardPrimary }) => {

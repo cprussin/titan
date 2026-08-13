@@ -5,10 +5,12 @@ import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr/CaretRight";
 import Link from "next/link";
 import { useCallback, useEffect, useRef } from "react";
 import { css, cva, cx } from "../../styled-system/css";
+import type { Loadable } from "../loadable";
 import type { WeekDay } from "../server/week-schedule";
+import { Skeleton } from "../ui";
 import { centeredScrollLeft, visibleDayCount } from "./week-ribbon-scroll";
 
-type Props = {
+export type WeekRibbonData = {
   days: readonly WeekDay[];
   /** The day the page below is showing — its cell takes the accent border and
    *  `aria-current`, and reads "· TODAY" when it is also today. */
@@ -18,20 +20,32 @@ type Props = {
   weekOffset: number;
 };
 
+type Props = {
+  load: Loadable<WeekRibbonData>;
+};
+
 /** Each day cell asks for at least this much width; the strip fits as many
  *  whole cells as clear it. */
 const MIN_CELL_REM = 8.5;
 /** The gap between cells, matching the `gap: 2` (0.5rem) on the strip. */
 const GAP_REM = 0.5;
 
+// A representative week's worth of cells fills the strip before the real
+// schedule resolves.
+const PLACEHOLDER_DAYS = [0, 1, 2, 3, 4, 5, 6];
+
 /** The dashboard's week picker. Above `md` the caret links step whole weeks and
  *  seven equal-width day cells lay out as a static grid between them. Below `md`
  *  the carets give way to scroll buttons that page a horizontally-scrolling
  *  strip; the strip fits a whole number of equal-width days between the buttons
  *  and opens centered on the selected day. Each cell links the page to that day;
- *  today links back to the un-parameterized dashboard. */
-export const WeekRibbon = ({ days, selectedDate, weekOffset }: Props) => {
+ *  today links back to the un-parameterized dashboard. While loading, the same
+ *  strip fills with skeleton cells and the week carets go inert. */
+export const WeekRibbon = ({ load }: Props) => {
   const viewportRef = useRef<HTMLDivElement | null>(null);
+  const dayCount = load.isLoading
+    ? PLACEHOLDER_DAYS.length
+    : load.value.days.length;
 
   // Fit a whole number of equal-width days between the scroll buttons, re-fitting
   // on resize by publishing the count as `--visible-days` for the cells to divide
@@ -47,7 +61,7 @@ export const WeekRibbon = ({ days, selectedDate, weekOffset }: Props) => {
     const fit = () => {
       const count = visibleDayCount({
         containerWidth: viewport.clientWidth,
-        dayCount: days.length,
+        dayCount,
         gap: GAP_REM * rootFontSize,
         minCellWidth: MIN_CELL_REM * rootFontSize,
       });
@@ -58,7 +72,7 @@ export const WeekRibbon = ({ days, selectedDate, weekOffset }: Props) => {
     return () => {
       window.removeEventListener("resize", fit);
     };
-  }, [days.length]);
+  }, [dayCount]);
 
   // On load, bring the selected day (today, by default) to the middle of the
   // strip so it anchors the view rather than sitting off-screen. Instant, not
@@ -93,13 +107,7 @@ export const WeekRibbon = ({ days, selectedDate, weekOffset }: Props) => {
 
   return (
     <nav aria-label="Training week" className={pickerStyles}>
-      <Link
-        aria-label="Previous week"
-        className={weekCaretStyles}
-        href={weekHref(weekOffset - 1)}
-      >
-        <CaretLeftIcon />
-      </Link>
+      <WeekCaret direction={-1} load={load} />
       <button
         aria-label="Scroll to earlier days"
         className={scrollButtonStyles}
@@ -111,14 +119,23 @@ export const WeekRibbon = ({ days, selectedDate, weekOffset }: Props) => {
         <CaretLeftIcon />
       </button>
       <div className={cellsStyles} ref={viewportRef}>
-        {days.map((day) => (
-          <WeekCell
-            day={day}
-            key={day.date}
-            selected={day.date === selectedDate}
-            weekOffset={weekOffset}
-          />
-        ))}
+        {load.isLoading
+          ? PLACEHOLDER_DAYS.map((cell) => (
+              <WeekCell key={cell} load={{ isLoading: true }} />
+            ))
+          : load.value.days.map((day) => (
+              <WeekCell
+                key={day.date}
+                load={{
+                  isLoading: false,
+                  value: {
+                    day,
+                    selected: day.date === load.value.selectedDate,
+                    weekOffset: load.value.weekOffset,
+                  },
+                }}
+              />
+            ))}
       </div>
       <button
         aria-label="Scroll to later days"
@@ -130,40 +147,75 @@ export const WeekRibbon = ({ days, selectedDate, weekOffset }: Props) => {
       >
         <CaretRightIcon />
       </button>
-      <Link
-        aria-label="Next week"
-        className={weekCaretStyles}
-        href={weekHref(weekOffset + 1)}
-      >
-        <CaretRightIcon />
-      </Link>
+      <WeekCaret direction={1} load={load} />
     </nav>
   );
 };
 
-const WeekCell = ({
-  day,
-  selected,
-  weekOffset,
+/** A week-stepping caret: a link to the adjacent week once loaded, an inert
+ *  placeholder while loading (the target week is not yet known). */
+const WeekCaret = ({
+  direction,
+  load,
 }: {
+  direction: -1 | 1;
+  load: Loadable<WeekRibbonData>;
+}) => {
+  const icon = direction === -1 ? <CaretLeftIcon /> : <CaretRightIcon />;
+  return load.isLoading ? (
+    <span aria-hidden className={weekCaretStyles}>
+      {icon}
+    </span>
+  ) : (
+    <Link
+      aria-label={direction === -1 ? "Previous week" : "Next week"}
+      className={weekCaretStyles}
+      href={weekHref(load.value.weekOffset + direction)}
+    >
+      {icon}
+    </Link>
+  );
+};
+
+type WeekCellData = {
   day: WeekDay;
   selected: boolean;
   weekOffset: number;
-}) => (
-  <Link
-    aria-current={selected ? "page" : undefined}
-    className={cellStyles({
-      dimmed: day.isPast && !selected,
-      selected,
-    })}
-    href={day.isToday ? "/" : dayHref(day.date, weekOffset)}
-  >
-    <span className={labelStyles({ accent: day.isToday || selected })}>
-      {cellLabel(day)}
-    </span>
-    <span className={nameStyles({ tone: nameTone(day) })}>{cellName(day)}</span>
-  </Link>
-);
+};
+
+/** One day cell: the day's label and session name linking to that day once
+ *  loaded, a pair of skeleton lines while loading. */
+const WeekCell = ({ load }: { load: Loadable<WeekCellData> }) =>
+  load.isLoading ? (
+    <div className={cellStyles({ dimmed: false, selected: false })}>
+      <Skeleton height="0.75rem" width="3rem" />
+      <Skeleton height="0.875rem" width="4rem" />
+    </div>
+  ) : (
+    <Link
+      aria-current={load.value.selected ? "page" : undefined}
+      className={cellStyles({
+        dimmed: load.value.day.isPast && !load.value.selected,
+        selected: load.value.selected,
+      })}
+      href={
+        load.value.day.isToday
+          ? "/"
+          : dayHref(load.value.day.date, load.value.weekOffset)
+      }
+    >
+      <span
+        className={labelStyles({
+          accent: load.value.day.isToday || load.value.selected,
+        })}
+      >
+        {cellLabel(load.value.day)}
+      </span>
+      <span className={nameStyles({ tone: nameTone(load.value.day) })}>
+        {cellName(load.value.day)}
+      </span>
+    </Link>
+  );
 
 /** The link to a week: the bare dashboard for the current week, else `?week`. */
 const weekHref = (offset: number): string =>

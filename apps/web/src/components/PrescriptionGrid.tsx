@@ -1,8 +1,11 @@
 import type { PrescribedExercise } from "@titan/domain/workout-session";
 import { css, cx } from "../../styled-system/css";
+import type { Loadable } from "../loadable";
 import { prescriptionColumns } from "../prescription-columns";
+import { Skeleton } from "../ui";
+import { FigureSkeleton } from "./FigureSkeleton";
 
-type Props = {
+export type PrescriptionGridData = {
   exercises: readonly PrescribedExercise[];
   /** The load column's heading — "Load" for today, "Projected load" for a
    *  future day whose figures are engine projections. */
@@ -10,14 +13,16 @@ type Props = {
   names: ReadonlyMap<string, string>;
 };
 
+type Props = {
+  load: Loadable<PrescriptionGridData>;
+};
+
 /** Today's (or a projected day's) prescription as a hairline ledger: exercise,
  *  scheme, and load, with the primary lift flagged. A real table so it reads as
- *  tabular data to assistive tech; CSS grid gives it the ruled columns. */
-export const PrescriptionGrid = ({
-  exercises,
-  loadHeader = "Load",
-  names,
-}: Props) => (
+ *  tabular data to assistive tech; CSS grid gives it the ruled columns. While
+ *  loading, a representative run of placeholder rows fills the same ledger so it
+ *  holds its place until the real prescription resolves. */
+export const PrescriptionGrid = ({ load }: Props) => (
   <table className={gridStyles}>
     <thead className={contentsStyles}>
       <tr className={headerRowStyles}>
@@ -28,31 +33,75 @@ export const PrescriptionGrid = ({
           Sets × reps
         </th>
         <th className={cx(headStyles, numericStyles)} scope="col">
-          {loadHeader}
+          {load.isLoading ? "Load" : (load.value.loadHeader ?? "Load")}
         </th>
       </tr>
     </thead>
     <tbody className={contentsStyles}>
-      {exercises.map((exercise) => {
-        const { load, scheme } = prescriptionColumns(exercise.prescription);
-        return (
-          <tr className={rowStyles} key={exercise.slotId}>
-            <td className={nameStyles}>
-              {names.get(exercise.exerciseId) ?? exercise.exerciseId}
-              {exercise.role === "primary" && (
-                <span className={tagStyles}>Primary</span>
-              )}
-            </td>
-            <td className={cx(figureStyles, numericStyles)}>{scheme}</td>
-            <td className={cx(figureStyles, loadStyles, numericStyles)}>
-              {load ?? "—"}
-            </td>
-          </tr>
-        );
-      })}
+      {load.isLoading
+        ? PLACEHOLDER_ROWS.map((row) => (
+            <PrescriptionRow key={row} load={{ isLoading: true }} />
+          ))
+        : load.value.exercises.map((exercise) => (
+            <PrescriptionRow
+              key={exercise.slotId}
+              load={{
+                isLoading: false,
+                value: toRow(exercise, load.value.names),
+              }}
+            />
+          ))}
     </tbody>
   </table>
 );
+
+type PrescriptionRowData = {
+  isPrimary: boolean;
+  loadText: string;
+  name: string;
+  scheme: string;
+};
+
+/** One ledger row: the exercise (with its primary flag), scheme, and load — each
+ *  a skeleton while loading. */
+const PrescriptionRow = ({ load }: { load: Loadable<PrescriptionRowData> }) => (
+  <tr className={rowStyles}>
+    <td className={nameStyles}>
+      {load.isLoading ? (
+        <Skeleton height="1.25rem" width="9rem" />
+      ) : (
+        <>
+          {load.value.name}
+          {load.value.isPrimary && <span className={tagStyles}>Primary</span>}
+        </>
+      )}
+    </td>
+    <td className={cx(figureStyles, numericStyles)}>
+      {load.isLoading ? <FigureSkeleton width="3rem" /> : load.value.scheme}
+    </td>
+    <td className={cx(figureStyles, loadStyles, numericStyles)}>
+      {load.isLoading ? <FigureSkeleton width="4rem" /> : load.value.loadText}
+    </td>
+  </tr>
+);
+
+/** Flatten a prescribed exercise into the row's display fields. */
+const toRow = (
+  exercise: PrescribedExercise,
+  names: ReadonlyMap<string, string>,
+): PrescriptionRowData => {
+  const { load, scheme } = prescriptionColumns(exercise.prescription);
+  return {
+    isPrimary: exercise.role === "primary",
+    loadText: load ?? "—",
+    name: names.get(exercise.exerciseId) ?? exercise.exerciseId,
+    scheme,
+  };
+};
+
+// Five placeholder rows — a representative session length — fill the ledger
+// before the real prescription lands.
+const PLACEHOLDER_ROWS = [0, 1, 2, 3, 4];
 
 // The table lays out as a stack of grid rows; thead/tbody dissolve so every row
 // shares one column track.

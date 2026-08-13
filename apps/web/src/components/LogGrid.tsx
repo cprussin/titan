@@ -1,14 +1,22 @@
 import { css, cva, cx } from "../../styled-system/css";
+import type { Loadable } from "../loadable";
 import type { LoggedExercise } from "../server/logged-session-view";
+import { Skeleton } from "../ui";
+import { FigureSkeleton } from "./FigureSkeleton";
+
+export type LogGridData = {
+  exercises: readonly LoggedExercise[];
+};
 
 type Props = {
-  exercises: readonly LoggedExercise[];
+  load: Loadable<LogGridData>;
 };
 
 /** A completed session as a ledger: prescribed versus done and the average RPE,
  *  the done column toned success when a piece met its target and warning when it
- *  fell short. A real table for assistive tech; CSS grid rules the columns. */
-export const LogGrid = ({ exercises }: Props) => (
+ *  fell short. A real table for assistive tech; CSS grid rules the columns.
+ *  While loading, placeholder rows fill the same ledger. */
+export const LogGrid = ({ load }: Props) => (
   <table className={gridStyles}>
     <thead className={contentsStyles}>
       <tr className={headerRowStyles}>
@@ -27,31 +35,57 @@ export const LogGrid = ({ exercises }: Props) => (
       </tr>
     </thead>
     <tbody className={contentsStyles}>
-      {exercises.map((exercise) => (
-        <tr className={rowStyles} key={exercise.name}>
-          <td className={nameStyles}>
-            {exercise.name}
-            {exercise.isPrimary && <span className={tagStyles}>Primary</span>}
-          </td>
-          <td className={cx(figureStyles, numericStyles)}>
-            {exercise.prescribed}
-          </td>
-          <td
-            className={cx(
-              doneStyles({ met: exercise.isAsPrescribed }),
-              numericStyles,
-            )}
-          >
-            {exercise.done}
-          </td>
-          <td className={cx(figureStyles, numericStyles)}>
-            {exercise.avgRpe ?? "—"}
-          </td>
-        </tr>
-      ))}
+      {load.isLoading
+        ? PLACEHOLDER_ROWS.map((row) => (
+            <LogRow key={row} load={{ isLoading: true }} />
+          ))
+        : load.value.exercises.map((exercise) => (
+            <LogRow
+              key={exercise.name}
+              load={{ isLoading: false, value: exercise }}
+            />
+          ))}
     </tbody>
   </table>
 );
+
+/** One ledger row: the exercise (with its primary flag), the prescribed and done
+ *  columns, and the average RPE — each a skeleton while loading. */
+const LogRow = ({ load }: { load: Loadable<LoggedExercise> }) => (
+  <tr className={rowStyles}>
+    <td className={nameStyles}>
+      {load.isLoading ? (
+        <Skeleton height="1.25rem" width="9rem" />
+      ) : (
+        <>
+          {load.value.name}
+          {load.value.isPrimary && <span className={tagStyles}>Primary</span>}
+        </>
+      )}
+    </td>
+    <td className={cx(figureStyles, numericStyles)}>
+      {load.isLoading ? <FigureSkeleton width="4rem" /> : load.value.prescribed}
+    </td>
+    <td
+      className={cx(
+        doneStyles({ met: load.isLoading || load.value.isAsPrescribed }),
+        numericStyles,
+      )}
+    >
+      {load.isLoading ? <FigureSkeleton width="4rem" /> : load.value.done}
+    </td>
+    <td className={cx(figureStyles, numericStyles)}>
+      {load.isLoading ? (
+        <FigureSkeleton width="2.5rem" />
+      ) : (
+        (load.value.avgRpe ?? "—")
+      )}
+    </td>
+  </tr>
+);
+
+// Five placeholder rows fill the ledger before the real session lands.
+const PLACEHOLDER_ROWS = [0, 1, 2, 3, 4];
 
 const gridStyles = css({ display: "grid", width: "100%" });
 

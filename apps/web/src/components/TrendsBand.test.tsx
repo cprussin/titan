@@ -30,13 +30,18 @@ const bodyWeight = { latestWeightLb: 184, series: [182, 184] };
 
 const full = (
   <TrendsBand
-    bodyWeight={bodyWeight}
-    names={names}
-    rowPace={{ latestSplitSec: 112, values: [114, 112] }}
-    strengthSeries={[
-      { exerciseId: "squat", unit: "lb", values: [270, 272.5] },
-      { exerciseId: "bench", unit: "lb", values: [205, 207.5] },
-    ]}
+    load={{
+      isLoading: false,
+      value: {
+        bodyWeight,
+        names,
+        rowPace: { latestSplitSec: 112, values: [114, 112] },
+        strengthSeries: [
+          { exerciseId: "squat", unit: "lb", values: [270, 272.5] },
+          { exerciseId: "bench", unit: "lb", values: [205, 207.5] },
+        ],
+      },
+    }}
   />
 );
 
@@ -61,13 +66,27 @@ describe(TrendsBand, () => {
   it("has no toggle when there is only body weight to show", () => {
     wrap(
       <TrendsBand
-        bodyWeight={bodyWeight}
-        names={names}
-        rowPace={undefined}
-        strengthSeries={[]}
+        load={{
+          isLoading: false,
+          value: {
+            bodyWeight,
+            names,
+            rowPace: undefined,
+            strengthSeries: [],
+          },
+        }}
       />,
     );
     expect(screen.queryByRole("button", { name: /Show more/i })).toBeNull();
     expect(screen.getByText("184 lb")).toBeDefined();
+  });
+
+  it("fills every column with skeletons while loading", () => {
+    const { container } = wrap(<TrendsBand load={{ isLoading: true }} />);
+    expect(screen.queryByText("184 lb")).toBeNull();
+    expect(screen.queryByText(/Est. 1RM/)).toBeNull();
+    expect(
+      container.querySelectorAll("[data-skeleton]").length,
+    ).toBeGreaterThan(0);
   });
 });

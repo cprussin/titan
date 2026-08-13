@@ -2,6 +2,7 @@ import type { ExerciseResult } from "@titan/domain/result";
 import { css } from "../../styled-system/css";
 import { grid, vstack } from "../../styled-system/patterns";
 import { loggedExerciseLines } from "../result-text";
+import { Skeleton } from "../ui";
 
 type Props = {
   /** Exercise display names by id, so a result reads as a movement rather than
@@ -40,6 +41,34 @@ export const SessionLog = ({ exerciseNames, results }: Props) => (
     </ul>
   </section>
 );
+
+/** The {@link SessionLog} in its loading state: the same ruled "What you logged"
+ *  panel with a representative run of placeholder exercises and set lines, so the
+ *  recap holds its place until the real log resolves. */
+export const SessionLogSkeleton = () => (
+  <section className={sectionStyles}>
+    <h2 className={titleStyles}>What you logged</h2>
+    <ul className={listStyles}>
+      {PLACEHOLDER_EXERCISES.map((exercise) => (
+        <li className={exerciseStyles} key={exercise}>
+          <Skeleton height="1rem" width="9rem" />
+          <ul className={setListStyles}>
+            {PLACEHOLDER_SETS.map((set) => (
+              <li className={rowStyles} key={set}>
+                <Skeleton height="0.875rem" width="4rem" />
+                <Skeleton height="0.875rem" width="5rem" />
+              </li>
+            ))}
+          </ul>
+        </li>
+      ))}
+    </ul>
+  </section>
+);
+
+// Four placeholder exercises of three sets each — a representative session.
+const PLACEHOLDER_EXERCISES = [0, 1, 2, 3];
+const PLACEHOLDER_SETS = [0, 1, 2];
 
 const sectionStyles = vstack({ alignItems: "stretch", gap: 3 });
 
