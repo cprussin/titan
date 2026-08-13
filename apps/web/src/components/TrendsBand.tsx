@@ -127,8 +127,10 @@ const strengthValue = (series: StrengthSeries): string => {
 // across from `md`.
 const bandStyles = grid({ columns: { base: 2, md: 4 }, gap: 6 });
 
-// Body weight sits second in the DOM so it lands in the phone's always-visible
-// row; `md` order restores the wide layout (lifts, row pace, then body weight).
+// On phones the visible pair (lead lift, body weight) leads, then the extras
+// flow below when expanded — so revealing them appends a row rather than
+// splitting the pair. `md` order restores the wide layout (lifts, row pace,
+// then body weight).
 const columnStyles = cva({
   base: {
     alignItems: "stretch",
@@ -143,10 +145,10 @@ const columnStyles = cva({
       true: { display: "none", md: { display: "flex" } },
     },
     slot: {
-      bodyWeight: { md: { order: 3 } },
-      extraA: { md: { order: 1 } },
-      extraB: { md: { order: 2 } },
-      lead: { md: { order: 0 } },
+      bodyWeight: { md: { order: 3 }, order: 1 },
+      extraA: { md: { order: 1 }, order: 2 },
+      extraB: { md: { order: 2 }, order: 3 },
+      lead: { md: { order: 0 }, order: 0 },
     },
   },
 });
