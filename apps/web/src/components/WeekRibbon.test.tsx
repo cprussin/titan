@@ -250,6 +250,31 @@ describe(WeekRibbon, () => {
     expect(new Set(requested).size).toBe(requested.length);
   });
 
+  it("keeps the selected day centred when the viewport shrinks", async () => {
+    const { loadWeek } = harness();
+    let fit = 5;
+    render(
+      <WeekRibbon
+        load={loaded(TODAY, 0)}
+        loadWeek={loadWeek}
+        measureVisibleDays={() => fit}
+      />,
+    );
+    await screen.findByRole("button", { name: "Show later days" });
+    // Five days centred on today: left edge at offset −2, which against the
+    // prefetched min-offset of −10 is index 8.
+    await waitFor(() => {
+      expect(leftIndex()).toBe(8);
+    });
+    // Shrinking to three days keeps today centred (left edge −1 → index 9)
+    // instead of leaving the left edge pinned at index 8 and cutting today off.
+    fit = 3;
+    act(() => {
+      window.dispatchEvent(new Event("resize"));
+    });
+    expect(leftIndex()).toBe(9);
+  });
+
   it("advances on a right-to-left swipe and retreats on a left-to-right swipe", async () => {
     const { loadWeek } = harness();
     const { container } = render(

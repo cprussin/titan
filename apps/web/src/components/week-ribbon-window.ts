@@ -55,6 +55,26 @@ export const pageLeftOffset = (
 ): number =>
   direction === "later" ? leftOffset + visibleDays : leftOffset - visibleDays;
 
+/** The leftmost offset that keeps the selected day at the same position within
+ *  the window as it is re-fitted from `fromVisibleDays` to `toVisibleDays` cells.
+ *  The selection holds its fractional place — a centred day stays centred, a day
+ *  at the left edge stays at the left edge — instead of the left edge staying
+ *  pinned and the selection drifting off the (now narrower) strip. */
+export const resizeLeftOffset = ({
+  fromVisibleDays,
+  leftOffset,
+  selectedOffset,
+  toVisibleDays,
+}: {
+  fromVisibleDays: number;
+  leftOffset: number;
+  selectedOffset: number;
+  toVisibleDays: number;
+}): number => {
+  const fraction = (selectedOffset - leftOffset) / fromVisibleDays;
+  return Math.round(selectedOffset - fraction * toVisibleDays);
+};
+
 /** Which way a horizontal swipe pages the strip: dragging right-to-left
  *  (`deltaX` negative) pulls the future in, left-to-right sends it back. A drag
  *  shorter than `threshold` is a tap, not a swipe, so a day can still be
