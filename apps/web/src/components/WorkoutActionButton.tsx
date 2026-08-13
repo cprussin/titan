@@ -1,9 +1,10 @@
 "use client";
 
+import { CheckIcon } from "@phosphor-icons/react/dist/ssr/Check";
 import { ScalesIcon } from "@phosphor-icons/react/dist/ssr/Scales";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { css } from "../../styled-system/css";
+import { css, cva } from "../../styled-system/css";
 import type { WorkoutAction } from "../server/workout-action";
 import { Button } from "../ui";
 import { WeighInDialog } from "./WeighInDialog";
@@ -30,10 +31,12 @@ type Props = {
  * action below it, closest to the thumb. The `sidebar` docks the primary action
  * alone in the wide-screen rail.
  *
- * While the athlete is *on* their in-progress session's screen the action would
- * only duplicate that screen's own controls, so the FAB hides and the sidebar
- * shows a same-size "Workout in progress" marker (keeping the rail from
- * shifting). Every other screen — including historical/completed workouts —
+ * The action falls away once there's nothing to launch. While the athlete is
+ * *on* their in-progress session's screen the action would only duplicate that
+ * screen's own controls, and once today's workout is done there's nothing left
+ * to start — so in both cases the FAB hides and the sidebar stands in a
+ * same-size status marker ("Workout in progress" or "Workout complete", keeping
+ * the rail from shifting). Every other screen — including historical days —
  * shows the real action.
  */
 export const WorkoutActionButton = ({ action, variant }: Props) => {
@@ -42,7 +45,7 @@ export const WorkoutActionButton = ({ action, variant }: Props) => {
     action.kind === "continue" && isOnSessionScreen(pathname, action.sessionId);
 
   if (variant === "fab") {
-    return onActiveSession ? undefined : (
+    return onActiveSession || action.kind === "done" ? undefined : (
       <div className={fabStyles}>
         <FabAction label="Weigh in">
           <WeighInDialog
@@ -65,16 +68,39 @@ export const WorkoutActionButton = ({ action, variant }: Props) => {
   } else {
     return (
       <div className={sidebarStyles}>
-        {onActiveSession ? (
-          <div className={inProgressStyles}>
-            <span className={dotStyles} />
-            Workout in progress
-          </div>
-        ) : (
-          <WorkoutActionControl action={action} />
-        )}
+        <SidebarBody action={action} onActiveSession={onActiveSession} />
       </div>
     );
+  }
+};
+
+type SidebarBodyProps = {
+  action: WorkoutAction;
+  /** Whether the athlete is on the in-progress session's own screen, where the
+   *  live control would duplicate that screen's own controls. */
+  onActiveSession: boolean;
+};
+
+/** The sidebar's docked content: a status marker when there's nothing to launch
+ *  — the athlete is on their in-progress session's screen, or today's workout is
+ *  already done — and the live launch control otherwise. */
+const SidebarBody = ({ action, onActiveSession }: SidebarBodyProps) => {
+  if (onActiveSession) {
+    return (
+      <div className={markerStyles({ tone: "progress" })}>
+        <span className={dotStyles} />
+        Workout in progress
+      </div>
+    );
+  } else if (action.kind === "done") {
+    return (
+      <div className={markerStyles({ tone: "complete" })}>
+        <CheckIcon size={16} weight="bold" />
+        Workout complete
+      </div>
+    );
+  } else {
+    return <WorkoutActionControl action={action} />;
   }
 };
 
@@ -181,23 +207,37 @@ const sidebarStyles = css({
   marginBlockEnd: 2,
 });
 
-// The "workout in progress" marker that stands in for the action while the
-// athlete is on that session's screen. Sized to the `lg` control height
-// (CONTROL_HEIGHT.lg) so swapping it for the button never shifts the rail, and
-// tinted with the app's in-progress (warning) language rather than looking like
-// a disabled button.
-const inProgressStyles = css({
-  alignItems: "center",
-  backgroundColor:
-    "color-mix(in oklab, {colors.warning} 12%, {colors.background})",
-  blockSize: 10,
-  borderRadius: "lg",
-  color: "color-mix(in oklab, {colors.warning} 65%, {colors.foreground})",
-  display: "flex",
-  fontSize: "sm",
-  fontWeight: "medium",
-  gap: 2,
-  justifyContent: "center",
+// The status marker that stands in for the sidebar action when there's nothing
+// to launch. Sized to the `lg` control height (CONTROL_HEIGHT.lg) so swapping it
+// for the button never shifts the rail, and tinted with a status language rather
+// than looking like a disabled button: `progress` in the app's in-progress
+// (warning) hue while the athlete is on that session's screen, `complete` in the
+// success hue once today's workout is done.
+const markerStyles = cva({
+  base: {
+    alignItems: "center",
+    blockSize: 10,
+    borderRadius: "lg",
+    display: "flex",
+    fontSize: "sm",
+    fontWeight: "medium",
+    gap: 2,
+    justifyContent: "center",
+  },
+  variants: {
+    tone: {
+      complete: {
+        backgroundColor:
+          "color-mix(in oklab, {colors.success} 12%, {colors.background})",
+        color: "color-mix(in oklab, {colors.success} 65%, {colors.foreground})",
+      },
+      progress: {
+        backgroundColor:
+          "color-mix(in oklab, {colors.warning} 12%, {colors.background})",
+        color: "color-mix(in oklab, {colors.warning} 65%, {colors.foreground})",
+      },
+    },
+  },
 });
 
 const dotStyles = css({

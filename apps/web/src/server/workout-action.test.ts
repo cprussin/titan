@@ -26,6 +26,24 @@ describe("resolveWorkoutAction", () => {
     expect(action).toEqual({ kind: "start" });
   });
 
+  it("marks today done when its workout is already completed", () => {
+    const action = resolveWorkoutAction(
+      today("workout"),
+      [session({ id: "s1", scheduledDate: date, status: "completed" })],
+      date,
+    );
+    expect(action).toEqual({ kind: "done" });
+  });
+
+  it("still starts today when the only completed session is another day's", () => {
+    const action = resolveWorkoutAction(
+      today("workout"),
+      [session({ id: "s1", scheduledDate: "2026-08-08", status: "completed" })],
+      date,
+    );
+    expect(action).toEqual({ kind: "start" });
+  });
+
   it("offers nothing on a rest day with no resumable session", () => {
     const action = resolveWorkoutAction(today("rest"), [], date);
     expect(action).toBeUndefined();

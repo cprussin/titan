@@ -19,27 +19,37 @@ type Props = {
 
 /**
  * The primary workout action itself, shared by the app-wide chrome button
- * ({@link WorkoutActionButton}) and the dashboard's Today card. The two states
- * read distinctly: `start` is the bold accent "begin" action, while `continue`
- * takes the neutral solid fill with a forward arrow — clearly not a fresh
- * start, without competing with it for attention.
+ * ({@link WorkoutActionButton}) and the dashboard's Today card. The two live
+ * states read distinctly: `start` is the bold accent "begin" action, while
+ * `continue` takes the neutral solid fill with a forward arrow — clearly not a
+ * fresh start, without competing with it for attention. A `done` day has no
+ * action to launch, so it renders nothing.
  */
 export const WorkoutActionControl = ({
   action,
   rounded = false,
   size = "lg",
   iconOnly = false,
-}: Props) =>
-  action.kind === "continue" ? (
-    <ContinueWorkout
-      iconOnly={iconOnly}
-      rounded={rounded}
-      sessionId={action.sessionId}
-      size={size}
-    />
-  ) : (
-    <StartWorkout iconOnly={iconOnly} rounded={rounded} size={size} />
-  );
+}: Props) => {
+  switch (action.kind) {
+    case "continue": {
+      return (
+        <ContinueWorkout
+          iconOnly={iconOnly}
+          rounded={rounded}
+          sessionId={action.sessionId}
+          size={size}
+        />
+      );
+    }
+    case "start": {
+      return <StartWorkout iconOnly={iconOnly} rounded={rounded} size={size} />;
+    }
+    case "done": {
+      return undefined;
+    }
+  }
+};
 
 type ContinueWorkoutProps = {
   /** The in-progress session the control links into. */
