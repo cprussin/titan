@@ -1,6 +1,5 @@
 "use client";
 
-import { BarbellIcon } from "@phosphor-icons/react/dist/ssr/Barbell";
 import type { LoadUnit } from "@titan/domain/load-unit";
 import type { Modality } from "@titan/domain/movement";
 import type { Prescription } from "@titan/domain/prescription";
@@ -19,7 +18,7 @@ import { CardioLogger } from "./CardioLogger";
 import { PrescriptionTarget } from "./PrescriptionTarget";
 import { RestTimer } from "./RestTimer";
 import { StrengthLogger } from "./StrengthLogger";
-import { TopBar } from "./TopBar";
+import { WorkoutScreenLayout } from "./WorkoutScreenLayout";
 
 type Props = {
   /** Whether the athlete's Concept2 Logbook is connected, gating the rowing
@@ -118,18 +117,17 @@ export const WorkoutExecution = ({
     return <p className={mutedStyles}>Nothing to do.</p>;
   } else {
     return (
-      <div className={rootStyles}>
-        <TopBar
-          actions={<CancelWorkoutButton sessionId={sessionId} size="sm" />}
-          icon={<BarbellIcon size={18} />}
-          title="Current Workout"
-        />
-        <ProgressBar
-          current={index}
-          segments={prescribedExercises.map((exercise) => exercise.slotId)}
-        />
-        <div className={bodyStyles}>
-          <div className={mainColStyles}>
+      <WorkoutScreenLayout
+        actions={<CancelWorkoutButton sessionId={sessionId} size="sm" />}
+        aside={
+          <SessionOutline
+            currentIndex={index}
+            exerciseNames={exerciseNames}
+            prescribedExercises={prescribedExercises}
+          />
+        }
+        main={
+          <>
             <header className={vstack({ alignItems: "flex-start", gap: 2 })}>
               <Badge tone={roleTone(current.role)}>{current.role}</Badge>
               <h1 className={nameStyles}>
@@ -186,17 +184,15 @@ export const WorkoutExecution = ({
                 {describePrescription(next.prescription)}
               </p>
             )}
-          </div>
-
-          <aside className={asideStyles}>
-            <SessionOutline
-              currentIndex={index}
-              exerciseNames={exerciseNames}
-              prescribedExercises={prescribedExercises}
-            />
-          </aside>
-        </div>
-      </div>
+          </>
+        }
+        progress={
+          <ProgressBar
+            current={index}
+            segments={prescribedExercises.map((exercise) => exercise.slotId)}
+          />
+        }
+      />
     );
   }
 };
@@ -391,42 +387,6 @@ const topSet = (result: ExerciseResult): SetResult | undefined =>
 
 const restSeconds = (prescribed: PrescribedExercise): number =>
   prescribed.role === "primary" ? 150 : 90;
-
-// Fills the shared content width like every other page; on desktop it splits
-// into the work area plus a standing session outline.
-const rootStyles = vstack({ alignItems: "stretch", gap: 4 });
-
-// One column on phones (outline hidden); a wide work area beside a narrower
-// outline rail on desktop.
-const bodyStyles = css({
-  display: "flex",
-  flexDirection: "column",
-  gap: 4,
-  lg: {
-    alignItems: "start",
-    display: "grid",
-    gap: 8,
-    gridTemplateColumns: "minmax(0, 1.6fr) minmax(0, 1fr)",
-  },
-});
-
-const mainColStyles = vstack({
-  alignItems: "stretch",
-  gap: 4,
-});
-
-// The outline pane: hidden on phones, and on desktop it sticks in view while
-// the work area scrolls through sets.
-const asideStyles = css({
-  display: "none",
-  lg: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 4,
-    insetBlockStart: 8,
-    position: "sticky",
-  },
-});
 
 // Flat: no card around the outline — a ruled "Session" heading over the list.
 const outlineStyles = vstack({ alignItems: "stretch", gap: 3 });

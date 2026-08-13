@@ -5,8 +5,10 @@ import { useState } from "react";
 import { css, cva } from "../../styled-system/css";
 import { grid } from "../../styled-system/patterns";
 import { formatSplitClock, formatWeight } from "../format";
+import type { Loadable } from "../loadable";
 import type { RowPaceSeries } from "../server/row-pace-series";
 import type { StrengthSeries } from "../server/strength-series";
+import { Skeleton } from "../ui";
 import { BodyWeightTrendCard } from "./BodyWeightTrendCard";
 import { Sparkline } from "./Sparkline";
 
@@ -15,69 +17,49 @@ type BodyWeight = {
   series: readonly number[];
 };
 
-type Props = {
+export type TrendsBandData = {
   bodyWeight: BodyWeight;
   names: ReadonlyMap<string, string>;
   rowPace: RowPaceSeries | undefined;
   strengthSeries: readonly StrengthSeries[];
 };
 
+type Props = {
+  load: Loadable<TrendsBandData>;
+};
+
+type ColumnSlot = "lead" | "extraA" | "extraB";
+
 /** The dashboard's opening band: up to four global trend columns — the
  *  most-trained lifts' estimated 1RM, rowing pace, and body weight — that never
  *  change with the selected day. On wide screens all four sit in a row; on
  *  phones two show (the lead lift and body weight) and a "Show more" toggle
  *  reveals the rest. Body weight is the weigh-in card, its value the one accent
- *  number. */
-export const TrendsBand = ({
-  bodyWeight,
-  names,
-  rowPace,
-  strengthSeries,
-}: Props) => {
+ *  number. While loading, the same four columns fill with skeletons. */
+export const TrendsBand = ({ load }: Props) => {
   const [expanded, setExpanded] = useState(false);
-  const lead = strengthSeries.at(0);
-  const secondLift = strengthSeries.at(1);
-  // The lead lift and body weight are the phone's always-visible pair; the
-  // second lift and row pace collapse behind the toggle.
-  const extras = [secondLift, rowPace].filter((entry) => entry !== undefined);
+  // Assume extras exist while loading so the toggle holds its place; once loaded
+  // it depends on how many series there are.
+  const hasExtras = load.isLoading || extrasPresent(load.value);
 
   return (
     <div>
       <div className={bandStyles}>
-        {lead !== undefined && (
-          <TrendColumn
-            label={strengthLabel(lead, names)}
-            slot="lead"
-            value={strengthValue(lead)}
-            values={lead.values}
-          />
-        )}
-        {secondLift !== undefined && (
-          <TrendColumn
-            hidden={!expanded}
-            label={strengthLabel(secondLift, names)}
-            slot="extraA"
-            value={strengthValue(secondLift)}
-            values={secondLift.values}
-          />
-        )}
-        {rowPace !== undefined && (
-          <TrendColumn
-            hidden={!expanded}
-            label="Row pace · 500m split"
-            slot="extraB"
-            value={formatSplitClock(rowPace.latestSplitSec)}
-            values={rowPace.values}
-          />
-        )}
+        {renderColumn(load, leadColumn, "lead", false)}
+        {renderColumn(load, secondColumn, "extraA", !expanded)}
+        {renderColumn(load, paceColumn, "extraB", !expanded)}
         <div className={columnStyles({ hidden: false, slot: "bodyWeight" })}>
-          <BodyWeightTrendCard
-            latestWeightLb={bodyWeight.latestWeightLb}
-            series={bodyWeight.series}
-          />
+          {load.isLoading ? (
+            <BodyWeightColumnSkeleton />
+          ) : (
+            <BodyWeightTrendCard
+              latestWeightLb={load.value.bodyWeight.latestWeightLb}
+              series={load.value.bodyWeight.series}
+            />
+          )}
         </div>
       </div>
-      {extras.length > 0 && (
+      {hasExtras && (
         <button
           className={toggleStyles}
           onClick={() => setExpanded((value) => !value)}
@@ -91,28 +73,125 @@ export const TrendsBand = ({
   );
 };
 
-/** One non-editable trend column: label, latest value, sparkline. */
-const TrendColumn = ({
-  hidden = false,
-  label,
-  slot,
-  value,
-  values,
-}: {
-  hidden?: boolean;
+type TrendColumnData = {
   label: string;
-  slot: "lead" | "extraA" | "extraB";
   value: string;
   values: readonly number[];
+};
+
+/** Render one trend slot: a skeleton column while loading, the resolved column
+ *  once loaded, or nothing when the loaded data has no series for that slot. */
+const renderColumn = (
+  load: Loadable<TrendsBandData>,
+  select: (data: TrendsBandData) => TrendColumnData | undefined,
+  slot: ColumnSlot,
+  hidden: boolean,
+) => {
+  if (load.isLoading) {
+    return (
+      <TrendColumn
+        hidden={hidden}
+        key={slot}
+        load={{ isLoading: true }}
+        slot={slot}
+      />
+    );
+  }
+  const value = select(load.value);
+  return value === undefined ? undefined : (
+    <TrendColumn
+      hidden={hidden}
+      key={slot}
+      load={{ isLoading: false, value }}
+      slot={slot}
+    />
+  );
+};
+
+/** One non-editable trend column: label, latest value, sparkline — each a
+ *  skeleton while loading. */
+const TrendColumn = ({
+  hidden = false,
+  load,
+  slot,
+}: {
+  hidden?: boolean;
+  load: Loadable<TrendColumnData>;
+  slot: ColumnSlot;
 }) => (
   <div className={columnStyles({ hidden, slot })}>
-    <span className={labelStyles}>{label}</span>
-    <span className={valueStyles}>{value}</span>
-    <Sparkline label={`${label} trend`} values={values} />
+    {load.isLoading ? (
+      <>
+        <Skeleton height="0.875rem" width="7rem" />
+        <Skeleton height="1.875rem" radius="md" width="4.5rem" />
+        <SparklineSkeleton />
+      </>
+    ) : (
+      <>
+        <span className={labelStyles}>{load.value.label}</span>
+        <span className={valueStyles}>{load.value.value}</span>
+        <Sparkline
+          label={`${load.value.label} trend`}
+          values={load.value.values}
+        />
+      </>
+    )}
   </div>
 );
 
-/** A strength column's label and latest est-1RM. */
+/** The body-weight column's skeleton: label, accent numeral, sparkline. */
+const BodyWeightColumnSkeleton = () => (
+  <>
+    <Skeleton height="0.875rem" width="6rem" />
+    <Skeleton height="1.875rem" radius="md" width="5rem" />
+    <SparklineSkeleton />
+  </>
+);
+
+/** A sparkline-sized skeleton, matching the real trend line's own height so the
+ *  column doesn't resize when the data arrives. */
+const SparklineSkeleton = () => (
+  <div className={sparklineSkeletonStyles}>
+    <Skeleton height="100%" radius="md" />
+  </div>
+);
+
+/** The lead strength lift's column, or nothing when no lift is tracked. */
+const leadColumn = (data: TrendsBandData): TrendColumnData | undefined =>
+  strengthColumn(data.strengthSeries.at(0), data.names);
+
+/** The second strength lift's column, hidden behind the phone toggle. */
+const secondColumn = (data: TrendsBandData): TrendColumnData | undefined =>
+  strengthColumn(data.strengthSeries.at(1), data.names);
+
+/** The rowing-pace column, hidden behind the phone toggle. */
+const paceColumn = (data: TrendsBandData): TrendColumnData | undefined =>
+  data.rowPace === undefined
+    ? undefined
+    : {
+        label: "Row pace · 500m split",
+        value: formatSplitClock(data.rowPace.latestSplitSec),
+        values: data.rowPace.values,
+      };
+
+/** A strength lift's column — its label and latest est-1RM — or nothing. */
+const strengthColumn = (
+  series: StrengthSeries | undefined,
+  names: ReadonlyMap<string, string>,
+): TrendColumnData | undefined =>
+  series === undefined
+    ? undefined
+    : {
+        label: strengthLabel(series, names),
+        value: strengthValue(series),
+        values: series.values,
+      };
+
+/** Whether the phone-only extra columns (second lift, row pace) exist. */
+const extrasPresent = (data: TrendsBandData): boolean =>
+  data.strengthSeries.length > 1 || data.rowPace !== undefined;
+
+/** A strength column's label. */
 const strengthLabel = (
   series: StrengthSeries,
   names: ReadonlyMap<string, string>,
@@ -162,6 +241,10 @@ const valueStyles = css({
   fontWeight: "bold",
   lineHeight: "condensed",
 });
+
+// Matches the Sparkline's own height so the column doesn't resize when the real
+// trend line renders.
+const sparklineSkeletonStyles = css({ blockSize: 16, lg: { blockSize: 28 } });
 
 // The show-more control only matters on phones, where the extra trends collapse.
 const toggleStyles = css({

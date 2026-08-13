@@ -24,7 +24,7 @@ const exercises: readonly LoggedExercise[] = [
 
 describe(LogGrid, () => {
   it("renders prescribed, done, and average RPE for each exercise", () => {
-    render(<LogGrid exercises={exercises} />);
+    render(<LogGrid load={{ isLoading: false, value: { exercises } }} />);
     const squat = screen.getByRole("row", { name: /Back Squat/ });
     expect(squat).toHaveTextContent("5×5 @ 225 lb");
     expect(squat).toHaveTextContent("5×5 ✓");
@@ -32,7 +32,7 @@ describe(LogGrid, () => {
   });
 
   it("has the Prescribed, Done, and Avg RPE column headers", () => {
-    render(<LogGrid exercises={exercises} />);
+    render(<LogGrid load={{ isLoading: false, value: { exercises } }} />);
     expect(
       screen.getByRole("columnheader", { name: "Prescribed" }),
     ).toBeDefined();
@@ -41,7 +41,7 @@ describe(LogGrid, () => {
   });
 
   it("marks the primary lift", () => {
-    render(<LogGrid exercises={exercises} />);
+    render(<LogGrid load={{ isLoading: false, value: { exercises } }} />);
     expect(screen.getByRole("row", { name: /Back Squat/ })).toHaveTextContent(
       "Primary",
     );
@@ -50,11 +50,27 @@ describe(LogGrid, () => {
   it("falls back to a dash when a piece logged no RPE", () => {
     render(
       <LogGrid
-        exercises={[{ ...exercises[0], avgRpe: undefined } as LoggedExercise]}
+        load={{
+          isLoading: false,
+          value: {
+            exercises: [
+              { ...exercises[0], avgRpe: undefined } as LoggedExercise,
+            ],
+          },
+        }}
       />,
     );
     expect(screen.getByRole("row", { name: /Back Squat/ })).toHaveTextContent(
       "—",
     );
+  });
+
+  it("fills the ledger with placeholder rows while loading", () => {
+    const { container } = render(<LogGrid load={{ isLoading: true }} />);
+    expect(screen.getByRole("columnheader", { name: "Done" })).toBeDefined();
+    expect(screen.queryByText("Back Squat")).toBeNull();
+    expect(
+      container.querySelectorAll("[data-skeleton]").length,
+    ).toBeGreaterThan(0);
   });
 });

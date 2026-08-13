@@ -1,17 +1,9 @@
-import { GearIcon } from "@phosphor-icons/react/dist/ssr/Gear";
 import { getConnection } from "@titan/db/external-connections";
 import { listExternalWorkouts } from "@titan/db/external-workouts";
 import type { Metadata } from "next";
-import type { ReactNode } from "react";
-import { css } from "../../../../styled-system/css";
-import { vstack } from "../../../../styled-system/patterns";
 import { requireAuth } from "../../../auth/session";
-import { Concept2Controls } from "../../../components/Concept2Controls";
-import { DeleteHistoryButton } from "../../../components/DeleteHistoryButton";
-import { LogOutButton } from "../../../components/LogOutButton";
-import { TopBar } from "../../../components/TopBar";
+import { SettingsContent } from "../../../components/SettingsContent";
 import { db } from "../../../db";
-import { ThemeSwitch } from "../../../ui";
 import { USER_ID } from "../../../user";
 
 export const metadata: Metadata = {
@@ -27,92 +19,17 @@ const SettingsPage = async () => {
   ]);
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } })}>
-      <TopBar icon={<GearIcon size={18} />} title="Settings" />
-
-      <div className={groupStyles}>
-        <SettingRow
-          control={<LogOutButton />}
-          description={`Signed in as ${user.email}.`}
-          title="Account"
-        />
-        <SettingRow
-          control={<ThemeSwitch />}
-          description="Switch between light, dark, and system."
-          title="Appearance"
-        />
-        <SettingRow
-          control={<Concept2Controls connected={connection !== undefined} />}
-          description={
-            connection === undefined
-              ? "Connect your Concept2 Logbook to import rows and heart-rate data."
-              : `${externals.length} imported workouts.`
-          }
-          title="Concept2 rowing"
-        />
-        <SettingRow
-          control={<DeleteHistoryButton />}
-          description="Permanently delete all logged workouts and weigh-ins."
-          title="Delete history"
-        />
-      </div>
-    </div>
+    <SettingsContent
+      load={{
+        isLoading: false,
+        value: {
+          accountEmail: user.email,
+          concept2Connected: connection !== undefined,
+          concept2WorkoutCount: externals.length,
+        },
+      }}
+    />
   );
 };
 
 export default SettingsPage;
-
-/** One settings entry: a titled description on the start edge and its control
- *  on the end edge, side by side on wider screens and stacked on phones. */
-const SettingRow = ({
-  control,
-  description,
-  title,
-}: {
-  control: ReactNode;
-  description: string;
-  title: string;
-}) => (
-  <section className={rowStyles}>
-    <div className={textStyles}>
-      <h2 className={sectionTitleStyles}>{title}</h2>
-      <p className={mutedStyles}>{description}</p>
-    </div>
-    <div className={controlStyles}>{control}</div>
-  </section>
-);
-
-// The settings themselves are borderless rows divided by hairlines — the first
-// rule sits above the top row so the group reads as one ledger.
-const groupStyles = css({
-  borderBlockStart: "1px solid {colors.border}",
-  display: "flex",
-  flexDirection: "column",
-});
-
-const rowStyles = css({
-  alignItems: "flex-start",
-  borderBlockEnd: "1px solid {colors.border}",
-  display: "flex",
-  flexDirection: "column",
-  gap: 3,
-  justifyContent: "space-between",
-  paddingBlock: 5,
-  sm: { alignItems: "center", flexDirection: "row", gap: 6 },
-});
-
-const textStyles = vstack({
-  alignItems: "flex-start",
-  gap: 1,
-  minInlineSize: 0,
-});
-
-const controlStyles = css({ flexShrink: 0 });
-
-const sectionTitleStyles = css({
-  fontSize: "md",
-  fontWeight: "semibold",
-  lg: { fontSize: "lg" },
-});
-
-const mutedStyles = css({ color: "muted", fontSize: "sm" });

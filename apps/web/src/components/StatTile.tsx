@@ -1,5 +1,6 @@
 import { css, cva } from "../../styled-system/css";
 import type { Tone } from "../ui";
+import { Skeleton } from "../ui";
 
 type Props = {
   hint?: string | undefined;
@@ -17,6 +18,16 @@ export const StatTile = ({ hint, label, tone = "neutral", value }: Props) => (
     <span className={valueStyles({ tone })}>{value}</span>
     <span className={labelStyles}>{label}</span>
     {hint !== undefined && <span className={hintStyles}>{hint}</span>}
+  </div>
+);
+
+/** The {@link StatTile} in its loading state: the same flat tile with skeletons
+ *  where its value and label will land, so a stat row holds steady while its
+ *  totals resolve. */
+export const StatTileSkeleton = () => (
+  <div className={tileStyles}>
+    <Skeleton height="1.75rem" radius="md" width="4rem" />
+    <Skeleton height="0.75rem" width="4rem" />
   </div>
 );
 

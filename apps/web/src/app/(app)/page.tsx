@@ -1,4 +1,3 @@
-import { GaugeIcon } from "@phosphor-icons/react/dist/ssr/Gauge";
 import { listAdaptationDecisionsBySession } from "@titan/db/adaptation-decisions";
 import { getAthleteState } from "@titan/db/athlete-state";
 import { listBodyMetrics } from "@titan/db/body-metrics";
@@ -11,23 +10,10 @@ import {
 import type { WorkoutSession } from "@titan/domain/workout-session";
 import type { Metadata } from "next";
 import { z } from "zod";
-import { css, cx } from "../../../styled-system/css";
-import { vstack } from "../../../styled-system/patterns";
-import { DashboardHeader } from "../../components/DashboardHeader";
-import { LogGrid } from "../../components/LogGrid";
-import { NoteAside } from "../../components/NoteAside";
-import { PrescriptionGrid } from "../../components/PrescriptionGrid";
-import { SessionHeader } from "../../components/SessionHeader";
-import { TopBar } from "../../components/TopBar";
-import { TrendsBand } from "../../components/TrendsBand";
-import { WeekRibbon } from "../../components/WeekRibbon";
-import { WeighInProvider } from "../../components/WeighInContext";
+import type { DashboardData } from "../../components/DashboardContent";
+import { DashboardContent } from "../../components/DashboardContent";
 import { db } from "../../db";
 import { programName } from "../../program-name";
-import type {
-  DashboardBody,
-  DashboardSession,
-} from "../../server/dashboard-view";
 import { dashboardView } from "../../server/dashboard-view";
 import { exerciseNames } from "../../server/exercise-names";
 import { todayIso } from "../../server/local-date";
@@ -123,40 +109,29 @@ const DashboardPage = async ({
   const summary = trendsSummary(metrics, sessions, externals);
   const weighedInToday = metrics.at(0)?.date === today;
 
-  return (
-    <div className={pageStyles}>
-      <TopBar icon={<GaugeIcon size={18} />} title="Dashboard" />
-      <WeighInProvider>
-        <div className={contentStyles}>
-          <TrendsBand
-            bodyWeight={{
-              latestWeightLb: summary.latestWeightLb,
-              series: summary.weightSeries,
-            }}
-            names={names}
-            rowPace={summary.rowPace}
-            strengthSeries={summary.strengthSeries}
-          />
-          <div className={sectionStyles}>
-            <WeekRibbon
-              days={week}
-              selectedDate={selectedDate}
-              weekOffset={weekOffset}
-            />
-          </div>
-          <div className={sectionStyles}>
-            <DashboardHeader
-              eyebrow={view.eyebrow}
-              primary={view.primary}
-              title={view.title}
-              weighedInToday={weighedInToday}
-            />
-          </div>
-          <SessionBlock body={view.body} names={names} session={view.session} />
-        </div>
-      </WeighInProvider>
-    </div>
-  );
+  const data: DashboardData = {
+    body: view.body,
+    header: {
+      eyebrow: view.eyebrow,
+      primary: view.primary,
+      title: view.title,
+      weighedInToday,
+    },
+    names,
+    session: view.session,
+    trends: {
+      bodyWeight: {
+        latestWeightLb: summary.latestWeightLb,
+        series: summary.weightSeries,
+      },
+      names,
+      rowPace: summary.rowPace,
+      strengthSeries: summary.strengthSeries,
+    },
+    week: { days: week, selectedDate, weekOffset },
+  };
+
+  return <DashboardContent load={{ isLoading: false, value: data }} />;
 };
 
 export default DashboardPage;
@@ -203,81 +178,3 @@ const weekCount = (selected: Today): string | undefined =>
   selected.kind === "workout"
     ? `W${selected.position.weekInBlock} / ${selected.position.block.durationWeeks}`
     : undefined;
-
-/** The session block: the session header over the day's grid, or a rest
- *  message. Adaptation notes follow a logged grid; a projection's caveat is
- *  already in the session summary, so a prescription needs no aside. */
-const SessionBlock = ({
-  body,
-  names,
-  session,
-}: {
-  body: DashboardBody;
-  names: ReadonlyMap<string, string>;
-  session: DashboardSession | undefined;
-}) => {
-  switch (body.kind) {
-    case "rest": {
-      return (
-        <section className={sectionStyles}>
-          <p className={copyStyles}>{body.copy}</p>
-        </section>
-      );
-    }
-    case "prescription": {
-      return (
-        <section className={cx(sectionStyles, blockStyles)}>
-          {session !== undefined && (
-            <SessionHeader label={session.label} summary={session.summary} />
-          )}
-          <PrescriptionGrid
-            exercises={body.exercises}
-            loadHeader={body.loadHeader}
-            names={names}
-          />
-        </section>
-      );
-    }
-    case "log": {
-      return (
-        <section className={cx(sectionStyles, blockStyles)}>
-          {session !== undefined && (
-            <SessionHeader label={session.label} summary={session.summary} />
-          )}
-          <LogGrid exercises={body.view.exercises} />
-          <NoteAside notes={body.view.notes} />
-        </section>
-      );
-    }
-  }
-};
-
-const pageStyles = vstack({ alignItems: "stretch", gap: 4, lg: { gap: 6 } });
-
-// The redesigned dashboard flows as one column, capped at a readable measure and
-// centered. Trends open it; each later section is set off by a hairline rule.
-const contentStyles = vstack({
-  alignItems: "stretch",
-  gap: 6,
-  marginInline: "auto",
-  maxInlineSize: "64rem",
-  width: "100%",
-});
-
-const sectionStyles = css({
-  borderBlockStart: "1px solid {colors.border}",
-  paddingBlockStart: 6,
-});
-
-const blockStyles = css({
-  alignItems: "stretch",
-  display: "flex",
-  flexDirection: "column",
-  gap: 6,
-});
-
-const copyStyles = css({
-  color: "muted",
-  fontSize: "sm",
-  maxInlineSize: "40rem",
-});

@@ -34,16 +34,18 @@ const exercises = [
   ),
 ];
 
+const loaded = { isLoading: false as const, value: { exercises, names } };
+
 describe(PrescriptionGrid, () => {
   it("renders each exercise with its scheme and load", () => {
-    render(<PrescriptionGrid exercises={exercises} names={names} />);
+    render(<PrescriptionGrid load={loaded} />);
     const squat = screen.getByRole("row", { name: /Back Squat/ });
     expect(squat).toHaveTextContent("5×5");
     expect(squat).toHaveTextContent("225 lb");
   });
 
   it("marks the primary lift and only the primary lift", () => {
-    render(<PrescriptionGrid exercises={exercises} names={names} />);
+    render(<PrescriptionGrid load={loaded} />);
     expect(screen.getByRole("row", { name: /Back Squat/ })).toHaveTextContent(
       "Primary",
     );
@@ -53,20 +55,33 @@ describe(PrescriptionGrid, () => {
   });
 
   it("defaults the load column header to Load", () => {
-    render(<PrescriptionGrid exercises={exercises} names={names} />);
+    render(<PrescriptionGrid load={loaded} />);
     expect(screen.getByRole("columnheader", { name: "Load" })).toBeDefined();
   });
 
   it("uses a projected-load header when asked", () => {
     render(
       <PrescriptionGrid
-        exercises={exercises}
-        loadHeader="Projected load"
-        names={names}
+        load={{
+          isLoading: false,
+          value: { exercises, loadHeader: "Projected load", names },
+        }}
       />,
     );
     expect(
       screen.getByRole("columnheader", { name: "Projected load" }),
     ).toBeDefined();
+  });
+
+  it("fills the ledger with placeholder rows while loading", () => {
+    const { container } = render(
+      <PrescriptionGrid load={{ isLoading: true }} />,
+    );
+    // Header defaults to "Load" and no real exercise text renders.
+    expect(screen.getByRole("columnheader", { name: "Load" })).toBeDefined();
+    expect(screen.queryByText("Back Squat")).toBeNull();
+    expect(
+      container.querySelectorAll("[data-skeleton]").length,
+    ).toBeGreaterThan(0);
   });
 });
