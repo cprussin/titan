@@ -3,6 +3,7 @@
 import { CaretLeftIcon } from "@phosphor-icons/react/dist/ssr/CaretLeft";
 import { CaretRightIcon } from "@phosphor-icons/react/dist/ssr/CaretRight";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import {
   useCallback,
   useEffect,
@@ -22,6 +23,7 @@ import {
   dayDiff,
   initialLeftOffset,
   pageLeftOffset,
+  resizeLeftOffset,
   swipeDirection,
   visibleDayCount,
 } from "./week-ribbon-window";
@@ -106,10 +108,14 @@ const defaultMeasureVisibleDays = ({
   viewport: HTMLElement;
 }): number => {
   const rootFontSize = rootFontSizePx();
+  const gap = GAP_REM * rootFontSize;
   return visibleDayCount({
-    containerWidth: viewport.clientWidth,
+    // `clientWidth` includes the viewport's inline padding (half a gap on each
+    // side, so the edge cells' borders clear the clip); the cells fill only the
+    // content box, so drop a whole gap before fitting.
+    containerWidth: viewport.clientWidth - gap,
     dayCount,
-    gap: GAP_REM * rootFontSize,
+    gap,
     minCellWidth: MIN_CELL_REM * rootFontSize,
   });
 };
@@ -175,6 +181,18 @@ export const WeekRibbon = ({
       ? 0
       : dayDiff(today, lastDate);
   const leftIndex = leftOffset - minLoadedOffset;
+  const selectedOffset =
+    today === undefined || selectedDate === undefined
+      ? undefined
+      : dayDiff(today, selectedDate);
+
+  // The window state a resize needs, mirrored into a ref so the resize listener
+  // (subscribed once) always reads the current fit and position without
+  // re-subscribing on every page.
+  const resizeStateRef = useRef({ leftOffset, selectedOffset, visibleDays });
+  useEffect(() => {
+    resizeStateRef.current = { leftOffset, selectedOffset, visibleDays };
+  });
 
   const dayCountRef = useRef(cells.length);
   useEffect(() => {
@@ -203,14 +221,30 @@ export const WeekRibbon = ({
     }
   }, [measure]);
 
-  // A real resize re-fits the strip; it snaps (no slide) and keeps the window
-  // where it is rather than re-centring.
+  // A real resize re-fits the strip; it snaps (no slide) and holds the selected
+  // day at its place in the window, so shrinking the viewport re-flows around
+  // the selection instead of pinning the left edge and cutting it off.
   useEffect(() => {
     const onResize = () => {
       const measured = measure();
       if (measured !== undefined) {
+        const {
+          leftOffset: prevLeft,
+          selectedOffset: prevSelected,
+          visibleDays: prevVisible,
+        } = resizeStateRef.current;
         setAnimate(false);
         setVisibleDays(measured);
+        if (prevSelected !== undefined) {
+          setLeftOffset(
+            resizeLeftOffset({
+              fromVisibleDays: prevVisible,
+              leftOffset: prevLeft,
+              selectedOffset: prevSelected,
+              toVisibleDays: measured,
+            }),
+          );
+        }
       }
     };
     window.addEventListener("resize", onResize);
@@ -333,8 +367,12 @@ export const WeekRibbon = ({
         <div
           className={trackStyles}
           data-animate={animate ? "true" : "false"}
+          data-loaded={load.isLoading ? undefined : ""}
           data-strip-track=""
           ref={trackRef}
+          // Feeds the breakpoint-driven `--left-index` so the first paint opens
+          // centred on today before the fit effect takes over (see trackStyles).
+          style={{ "--min-loaded-offset": minLoadedOffset } as CSSProperties}
         >
           {load.isLoading
             ? PLACEHOLDER_DAYS.map((cell) => <SkeletonCell key={cell} />)
@@ -457,11 +495,19 @@ const arrowStyles = css({
 
 // The window between the arrows: exactly the visible days show; the rest of the
 // track is clipped, and the strip is paged by transform rather than scrolled.
-// `touch-action: pan-y` leaves vertical page scrolling to the browser while the
-// horizontal drag is handled as a swipe.
+// A half-gap of inline padding keeps the edge cells' borders (and a hair of
+// block padding the bottom border) clear of the clip; the padded-out slivers of
+// the off-screen neighbours fall inside the inter-cell gaps, so nothing peeks.
+// `container-type: inline-size` lets the track fit its cells to this width via
+// breakpoints before hydration. `touch-action: pan-y` leaves vertical page
+// scrolling to the browser while the horizontal drag is handled as a swipe.
 const viewportStyles = css({
+  containerName: "week-strip",
+  containerType: "inline-size",
   flex: 1,
   overflow: "hidden",
+  paddingBlock: 0.5,
+  paddingInline: 1,
   position: "relative",
   touchAction: "pan-y",
 });
@@ -471,8 +517,28 @@ const viewportStyles = css({
 // the indexed cell flush at the start. It slides only when `data-animate` is on
 // — user paging — and snaps otherwise.
 const trackStyles = css({
+  // Before hydration there is no measurement, so container breakpoints fit a
+  // whole number of cells to the viewport — matching the JS fit — instead of
+  // flashing a single full-width cell. Each threshold is `n · 8.5rem +
+  // (n − 1) · 0.5rem`, the width at which the nth cell (MIN_CELL_REM wide, a
+  // GAP_REM gap between) first clears. The fit effect overrides `--visible-days`
+  // inline once mounted.
+  "@container week-strip (min-width: 17.5rem)": { "--visible-days": "2" },
+  "@container week-strip (min-width: 26.5rem)": { "--visible-days": "3" },
+  "@container week-strip (min-width: 35.5rem)": { "--visible-days": "4" },
+  "@container week-strip (min-width: 44.5rem)": { "--visible-days": "5" },
+  "@container week-strip (min-width: 53.5rem)": { "--visible-days": "6" },
+  "@container week-strip (min-width: 62.5rem)": { "--visible-days": "7" },
   "&[data-animate='true']": {
-    transition: "transform {durations.normal} {easings.out}",
+    transition: "transform {durations.slower} {easings.out}",
+  },
+  // Open centred on today: today sits at index `⌊(visibleDays − 1) / 2⌋` from
+  // the left edge, and `--min-loaded-offset` maps that to a loaded-array index.
+  // Loaded cells only — the skeleton track has no real offsets and opens flush
+  // at the start.
+  "&[data-loaded]": {
+    "--left-index":
+      "calc(-1 * round(down, (var(--visible-days, 1) - 1) / 2, 1) - var(--min-loaded-offset, 0))",
   },
   display: "flex",
   gap: 2,

@@ -4,6 +4,7 @@ import {
   dayDiff,
   initialLeftOffset,
   pageLeftOffset,
+  resizeLeftOffset,
   swipeDirection,
   visibleDayCount,
 } from "./week-ribbon-window";
@@ -103,6 +104,55 @@ describe(pageLeftOffset, () => {
   it("retreats a whole screenful of days into the past", () => {
     expect(pageLeftOffset(5, 6, "earlier")).toBe(-1);
     expect(pageLeftOffset(0, 3, "earlier")).toBe(-3);
+  });
+});
+
+describe(resizeLeftOffset, () => {
+  it("keeps a centred day centred as the window shrinks", () => {
+    // Five days centred on today (left edge −2) become three still centred on
+    // it (left edge −1), rather than leaving the left edge at −2 and pushing
+    // today to the right.
+    expect(
+      resizeLeftOffset({
+        fromVisibleDays: 5,
+        leftOffset: -2,
+        selectedOffset: 0,
+        toVisibleDays: 3,
+      }),
+    ).toBe(-1);
+  });
+
+  it("keeps a centred day centred as the window grows", () => {
+    expect(
+      resizeLeftOffset({
+        fromVisibleDays: 5,
+        leftOffset: -2,
+        selectedOffset: 0,
+        toVisibleDays: 7,
+      }),
+    ).toBe(-3);
+  });
+
+  it("preserves a selection sitting at the left edge", () => {
+    expect(
+      resizeLeftOffset({
+        fromVisibleDays: 4,
+        leftOffset: 2,
+        selectedOffset: 2,
+        toVisibleDays: 2,
+      }),
+    ).toBe(2);
+  });
+
+  it("leaves the offset untouched when the fit is unchanged", () => {
+    expect(
+      resizeLeftOffset({
+        fromVisibleDays: 3,
+        leftOffset: 5,
+        selectedOffset: 6,
+        toVisibleDays: 3,
+      }),
+    ).toBe(5);
   });
 });
 
