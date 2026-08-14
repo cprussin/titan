@@ -16,14 +16,14 @@ export type Alarm = {
  *  out so it lands as a mellow two-note bell rather than a flat square beep. */
 const CHIME_HZ = [880, 1318.51];
 const CHIME_NOTE_SEC = 0.18;
-const CHIME_GAIN = 0.18;
+const CHIME_GAIN = 0.4;
 const CHIME_INTERVAL_MS = 1200;
 
 /** The last-ten-seconds countdown blip: one short, quiet tick that reads as a
  *  metronome without competing with the chime that follows it. */
 const TICK_HZ = 660;
 const TICK_SEC = 0.06;
-const TICK_GAIN = 0.08;
+const TICK_GAIN = 0.2;
 
 /** A single sine note with a short attack/release so it never clicks. `gain`
  *  ramps from silence up to its peak and back down across the note's life. */
