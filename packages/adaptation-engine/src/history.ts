@@ -52,6 +52,18 @@ export const metRepTarget = (result: ExerciseResult): boolean => {
   }
 };
 
+/**
+ * The number of completed sets that reached at least `reps` reps. Unlike
+ * {@link metRepTarget}, the threshold is supplied by the caller rather than read
+ * from the prescription snapshot — AMRAP judges each set against the policy's
+ * rep cap, not the (lower) working prescription it was measured against.
+ */
+export const countSetsReaching = (
+  result: ExerciseResult,
+  reps: number,
+): number =>
+  result.sets.filter((set) => set.completed && (set.reps ?? 0) >= reps).length;
+
 /** Whether every prescribed set of a timed-hold result met its hold duration. */
 export const metHoldTarget = (result: ExerciseResult): boolean => {
   const { prescription, sets } = result;
