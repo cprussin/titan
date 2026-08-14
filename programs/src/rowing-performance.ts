@@ -36,13 +36,13 @@ const heavyLower: SessionTemplate = {
         rpeTarget: 8,
         sets: 5,
         unit: "kg",
-        weight: 102.5,
+        weight: 102,
       }),
       exerciseId: "back-squat",
       generateWarmup: true,
       id: "rowing-heavy-lower-back-squat",
       progression: ProgressionPolicy.Linear({
-        increment: 2.5,
+        increment: 2,
         missesBeforeDeload: 2,
         reps: 5,
         retainOnDeload: 0.9,
@@ -57,7 +57,7 @@ const heavyLower: SessionTemplate = {
       generateWarmup: true,
       id: "rowing-heavy-lower-romanian-deadlift",
       progression: ProgressionPolicy.Double({
-        increment: 2.5,
+        increment: 2,
         maxReps: 10,
         minReps: 8,
         rpeCap: 8,
@@ -120,7 +120,7 @@ const upperStrength: SessionTemplate = {
       generateWarmup: true,
       id: "rowing-upper-strength-bench-press",
       progression: ProgressionPolicy.Linear({
-        increment: 2.5,
+        increment: 2,
         missesBeforeDeload: 2,
         reps: 5,
         retainOnDeload: 0.9,
@@ -135,7 +135,7 @@ const upperStrength: SessionTemplate = {
       generateWarmup: true,
       id: "rowing-upper-strength-barbell-row",
       progression: ProgressionPolicy.Double({
-        increment: 2.5,
+        increment: 2,
         maxReps: 10,
         minReps: 8,
         rpeCap: 8,

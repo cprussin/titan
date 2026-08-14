@@ -29,35 +29,35 @@ import { ProgressionPolicy } from "@titan/domain/progression-policy";
  * bigger jumps when the final set is easy, holds when it is hard or unrecorded.
  */
 
-/** Weeks 1–2 barbell compound step: +5 kg when the final set is ≤6, +2.5 kg
+/** Weeks 1–2 barbell compound step: +5 kg when the final set is ≤6, +2 kg
  *  through 7.5, hold above — deliberately conservative reintroduction. */
 const reintroCompound = (sets: number, reps: number): ProgressionPolicy =>
   ProgressionPolicy.RpeBanded({
     bands: [
       { increment: 5, maxRpe: 6 },
-      { increment: 2.5, maxRpe: 7.5 },
+      { increment: 2, maxRpe: 7.5 },
     ],
     reps,
     sets,
   });
 
 /** Week 3–4 barbell compound step (the global reentry table): +5 kg when the
- *  final set is ≤6, +2.5 kg through 8, hold above. */
+ *  final set is ≤6, +2 kg through 8, hold above. */
 const mixedCompound = (sets: number, reps: number): ProgressionPolicy =>
   ProgressionPolicy.RpeBanded({
     bands: [
       { increment: 5, maxRpe: 6 },
-      { increment: 2.5, maxRpe: 8 },
+      { increment: 2, maxRpe: 8 },
     ],
     reps,
     sets,
   });
 
-/** Secondary / assistance barbell step: +2.5 kg when the final set is ≤7, hold
+/** Secondary / assistance barbell step: +2 kg when the final set is ≤7, hold
  *  above. */
 const rpe7Step = (sets: number, reps: number): ProgressionPolicy =>
   ProgressionPolicy.RpeBanded({
-    bands: [{ increment: 2.5, maxRpe: 7 }],
+    bands: [{ increment: 2, maxRpe: 7 }],
     reps,
     sets,
   });
@@ -110,7 +110,7 @@ const fullBodyA: readonly ExerciseSlot[] = [
       rpeTarget: 6,
       sets: 3,
       unit: "kg",
-      weight: 52.5,
+      weight: 52,
     }),
     exerciseId: "bench-press",
     generateWarmup: true,
@@ -119,7 +119,7 @@ const fullBodyA: readonly ExerciseSlot[] = [
     role: "secondary",
   },
   {
-    base: Prescription.Strength({ reps: 8, sets: 2, unit: "kg", weight: 42.5 }),
+    base: Prescription.Strength({ reps: 8, sets: 2, unit: "kg", weight: 42 }),
     exerciseId: "romanian-deadlift",
     generateWarmup: true,
     id: "ahf-romanian-deadlift",
@@ -177,7 +177,7 @@ const fullBodyB: readonly ExerciseSlot[] = [
     role: "secondary",
   },
   {
-    base: Prescription.Strength({ reps: 8, sets: 3, unit: "kg", weight: 42.5 }),
+    base: Prescription.Strength({ reps: 8, sets: 3, unit: "kg", weight: 42 }),
     exerciseId: "barbell-row",
     generateWarmup: true,
     id: "ahf-barbell-row",
@@ -225,7 +225,7 @@ const fullBodyAWeek3: readonly ExerciseSlot[] = [
       rpeTarget: 8,
       sets: 4,
       unit: "kg",
-      weight: 57.5,
+      weight: 57,
     }),
     exerciseId: "bench-press",
     generateWarmup: true,
@@ -239,7 +239,7 @@ const fullBodyAWeek3: readonly ExerciseSlot[] = [
       rpeTarget: 7,
       sets: 3,
       unit: "kg",
-      weight: 47.5,
+      weight: 47,
     }),
     exerciseId: "romanian-deadlift",
     generateWarmup: true,
@@ -278,7 +278,7 @@ const fullBodyBWeek3: readonly ExerciseSlot[] = [
       rpeTarget: 8,
       sets: 3,
       unit: "kg",
-      weight: 92.5,
+      weight: 92,
     }),
     exerciseId: "deadlift",
     generateWarmup: true,
@@ -287,7 +287,7 @@ const fullBodyBWeek3: readonly ExerciseSlot[] = [
     role: "primary",
   },
   {
-    base: Prescription.Strength({ reps: 5, sets: 3, unit: "kg", weight: 37.5 }),
+    base: Prescription.Strength({ reps: 5, sets: 3, unit: "kg", weight: 37 }),
     exerciseId: "overhead-press",
     generateWarmup: true,
     id: "ahf-overhead-press",
@@ -295,7 +295,7 @@ const fullBodyBWeek3: readonly ExerciseSlot[] = [
     role: "secondary",
   },
   {
-    base: Prescription.Strength({ reps: 8, sets: 3, unit: "kg", weight: 47.5 }),
+    base: Prescription.Strength({ reps: 8, sets: 3, unit: "kg", weight: 47 }),
     exerciseId: "barbell-row",
     generateWarmup: true,
     id: "ahf-barbell-row",
@@ -342,7 +342,7 @@ const week4Lower: readonly ExerciseSlot[] = [
       rpeTarget: 7,
       sets: 3,
       unit: "kg",
-      weight: 52.5,
+      weight: 52,
     }),
     exerciseId: "romanian-deadlift",
     generateWarmup: true,
@@ -415,7 +415,7 @@ const week4Upper: readonly ExerciseSlot[] = [
     role: "secondary",
   },
   {
-    base: Prescription.Strength({ reps: 8, sets: 3, unit: "kg", weight: 37.5 }),
+    base: Prescription.Strength({ reps: 8, sets: 3, unit: "kg", weight: 37 }),
     exerciseId: "overhead-press",
     generateWarmup: true,
     id: "ahf-overhead-press",
@@ -423,7 +423,7 @@ const week4Upper: readonly ExerciseSlot[] = [
     role: "secondary",
   },
   {
-    base: Prescription.Strength({ reps: 8, sets: 3, unit: "kg", weight: 47.5 }),
+    base: Prescription.Strength({ reps: 8, sets: 3, unit: "kg", weight: 47 }),
     exerciseId: "barbell-row",
     generateWarmup: true,
     id: "ahf-barbell-row",
@@ -456,7 +456,7 @@ const week4Athletic: readonly ExerciseSlot[] = [
       rpeTarget: 7,
       sets: 3,
       unit: "kg",
-      weight: 92.5,
+      weight: 92,
     }),
     exerciseId: "deadlift",
     generateWarmup: true,
@@ -471,7 +471,7 @@ const week4Athletic: readonly ExerciseSlot[] = [
       rpeTarget: 7,
       sets: 4,
       unit: "kg",
-      weight: 42.5,
+      weight: 42,
     }),
     exerciseId: "push-press",
     generateWarmup: true,
