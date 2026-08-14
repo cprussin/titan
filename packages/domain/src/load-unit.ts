@@ -27,8 +27,20 @@ export const lbToKg = (lb: number): number => lb * KG_PER_LB;
 export const kgToLb = (kg: number): number => kg / KG_PER_LB;
 
 /** The smallest plate-pair increment a load rounds to, in its own unit: 2.5 kg
- *  (a pair of 1.25 kg plates) for metric loading, 5 lb for imperial. */
+ *  (a pair of 1.25 kg plates) for metric loading, 5 lb for imperial. Used by the
+ *  engines to keep prescribed and rounded loads on a plate-achievable grid. */
 export const loadStep = (unit: LoadUnit): number => (unit === "kg" ? 2.5 : 5);
+
+/** The coarse adjustment on the set logger's primary +/- controls: one common
+ *  plate pair per side — 5 in either unit (a pair of 2.5 kg or 2.5 lb plates).
+ *  Deliberately larger than {@link loadStep}: 2.5 kg per press would ask the
+ *  athlete to load 1.25 kg a side, which most gyms' plate sets can't make. */
+export const coarseLoadStep = 5;
+
+/** The fine adjustment on the logger's smaller +/- controls: a micro-plate bump
+ *  of 1 kg (a pair of 0.5 kg plates) for metric loading, 2.5 lb for imperial. */
+export const fineLoadStep = (unit: LoadUnit): number =>
+  unit === "kg" ? 1 : 2.5;
 
 /** The weight of an empty barbell in its unit: the 20 kg / 45 lb standard bar. */
 export const barWeight = (unit: LoadUnit): number => (unit === "kg" ? 20 : 45);

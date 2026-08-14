@@ -2,7 +2,7 @@
 
 import { MinusIcon } from "@phosphor-icons/react/dist/ssr/Minus";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
-import { loadStep } from "@titan/domain/load-unit";
+import { coarseLoadStep, fineLoadStep } from "@titan/domain/load-unit";
 import type { Prescription } from "@titan/domain/prescription";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
@@ -153,9 +153,10 @@ export const StrengthLogger = ({
             <>
               {unit !== undefined && (
                 <Stepper
+                  fineStep={fineLoadStep(unit)}
                   label={`Weight (${unit})`}
                   onChange={setWeight}
-                  step={loadStep(unit)}
+                  step={coarseLoadStep}
                   value={weight}
                 />
               )}
@@ -249,7 +250,7 @@ const LoggedSetRow = ({
           <MiniStepper
             label={`Set ${index + 1} weight`}
             onChange={(value) => onEditSet(index, { ...set, weight: value })}
-            step={unit === "kg" ? 2.5 : 5}
+            step={coarseLoadStep}
             suffix={unit}
             value={set.weight ?? 0}
           />
@@ -266,36 +267,89 @@ const LoggedSetRow = ({
 );
 
 type StepperProps = {
+  /** When set, renders a second, smaller pair of +/- controls that nudge the
+   *  value by this amount — the fine adjustment alongside the coarse `step`. */
+  fineStep?: number | undefined;
   label: string;
   onChange: (value: number) => void;
   step: number;
   value: number;
 };
 
-const Stepper = ({ label, onChange, step, value }: StepperProps) => (
-  <div className={vstack({ alignItems: "stretch", gap: 1 })}>
-    <span className={fieldLabelStyles}>{label}</span>
-    <div className={hstack({ gap: 2, justifyContent: "space-between" })}>
-      <Button
-        label={`Decrease ${label}`}
-        onClick={() => onChange(Math.max(0, value - step))}
-        size="lg"
-        variant="outline"
-      >
-        <MinusIcon size={18} />
-      </Button>
-      <span className={stepperValueStyles}>{value}</span>
-      <Button
-        label={`Increase ${label}`}
-        onClick={() => onChange(value + step)}
-        size="lg"
-        variant="outline"
-      >
-        <PlusIcon size={18} />
-      </Button>
+const Stepper = ({ fineStep, label, onChange, step, value }: StepperProps) => {
+  // The glowing value doubles as a text field so the athlete can type an exact
+  // load or rep count. `draft` holds the raw text while editing; `seenValue`
+  // tracks the numeric value we last emitted so an incoming `value` we *didn't*
+  // originate (a +/- press, or the parent re-seeding for a new set) re-seeds the
+  // field, while a mid-typed "12." the athlete is still completing is left be.
+  const [draft, setDraft] = useState(() => String(value));
+  const [seenValue, setSeenValue] = useState(value);
+  if (seenValue !== value) {
+    setSeenValue(value);
+    setDraft(String(value));
+  }
+
+  const edit = (raw: string) => {
+    setDraft(raw);
+    const parsed = parseFieldValue(raw);
+    if (parsed !== undefined) {
+      onChange(parsed);
+      setSeenValue(parsed);
+    }
+  };
+
+  return (
+    <div className={vstack({ alignItems: "stretch", gap: 1 })}>
+      <span className={fieldLabelStyles}>{label}</span>
+      <div className={hstack({ gap: 2, justifyContent: "space-between" })}>
+        <Button
+          label={`Decrease ${label}`}
+          onClick={() => onChange(Math.max(0, value - step))}
+          size="lg"
+          variant="outline"
+        >
+          <MinusIcon size={18} />
+        </Button>
+        {fineStep !== undefined && (
+          <Button
+            label={`Fine decrease ${label}`}
+            onClick={() => onChange(Math.max(0, value - fineStep))}
+            size="xs"
+            variant="outline"
+          >
+            <MinusIcon size={14} />
+          </Button>
+        )}
+        <input
+          aria-label={label}
+          className={stepperInputStyles}
+          inputMode="decimal"
+          onBlur={() => setDraft(String(value))}
+          onChange={(event) => edit(event.target.value)}
+          value={draft}
+        />
+        {fineStep !== undefined && (
+          <Button
+            label={`Fine increase ${label}`}
+            onClick={() => onChange(value + fineStep)}
+            size="xs"
+            variant="outline"
+          >
+            <PlusIcon size={14} />
+          </Button>
+        )}
+        <Button
+          label={`Increase ${label}`}
+          onClick={() => onChange(value + step)}
+          size="lg"
+          variant="outline"
+        >
+          <PlusIcon size={18} />
+        </Button>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 type MiniStepperProps = {
   label: string;
@@ -338,6 +392,18 @@ const MiniStepper = ({
   </div>
 );
 
+/** Parse the stepper field's text into a non-negative number, or `undefined`
+ *  while it holds an entry not yet worth committing — empty, a lone sign or
+ *  decimal point, or otherwise non-numeric — so those transient keystrokes
+ *  don't push a bogus value up as the athlete types. */
+const parseFieldValue = (raw: string): number | undefined => {
+  const trimmed = raw.trim();
+  const parsed = Number(trimmed);
+  return trimmed !== "" && Number.isFinite(parsed) && parsed >= 0
+    ? parsed
+    : undefined;
+};
+
 const setCountStyles = css({
   color: "muted",
   fontSize: "sm",
@@ -379,15 +445,24 @@ const miniValueStyles = css({
 });
 
 // The one glowing element in the product: the number under your thumb mid-set,
-// read at arm's length. `shadows.glow` appears here and nowhere else.
-const stepperValueStyles = css({
+// read at arm's length, and editable in place so an exact load can be typed.
+// `shadows.glow` appears here and nowhere else.
+const stepperInputStyles = css({
+  backgroundColor: "transparent",
+  borderStyle: "none",
   color: "accent",
+  flexGrow: 1,
   fontFamily: "condensed",
   fontSize: "5xl",
   fontVariantNumeric: "tabular-nums",
   fontWeight: "bold",
+  inlineSize: "100%",
   letterSpacing: "tight",
   lineHeight: "condensed",
+  minInlineSize: 0,
+  outlineStyle: "none",
+  padding: 0,
+  textAlign: "center",
   textShadow: "glow",
 });
 
