@@ -35,16 +35,20 @@ const prescribed: PrescribedExercise = {
 
 const noop = () => undefined;
 
+type StrengthPrescription = ReturnType<typeof Prescription.Strength>;
+
 type Overrides = {
   logged?: readonly SetResult[];
   onComplete?: (result: unknown) => void;
   onEditSet?: (index: number, set: SetResult) => void;
   onLogSet?: (set: SetResult) => void;
   onUndoLastSet?: () => void;
+  prescription?: StrengthPrescription;
 };
 
-const renderLogger = (overrides: Overrides = {}) =>
-  render(
+const renderLogger = (overrides: Overrides = {}) => {
+  const rx = overrides.prescription ?? prescription;
+  return render(
     <StrengthLogger
       busy={false}
       logged={overrides.logged ?? []}
@@ -52,10 +56,11 @@ const renderLogger = (overrides: Overrides = {}) =>
       onEditSet={overrides.onEditSet ?? noop}
       onLogSet={overrides.onLogSet ?? noop}
       onUndoLastSet={overrides.onUndoLastSet ?? noop}
-      prescribed={prescribed}
-      prescription={prescription}
+      prescribed={{ ...prescribed, prescription: rx }}
+      prescription={rx}
     />,
   );
+};
 
 const loggedSet = (fields: Partial<SetResult>): SetResult => ({
   completed: true,
@@ -94,6 +99,73 @@ describe(StrengthLogger, () => {
       setIndex: 0,
       weight: 100,
     });
+  });
+
+  it("logs a weight typed directly into the field", async () => {
+    const set = await new Promise<SetResult>((resolve) => {
+      renderLogger({ onLogSet: resolve });
+      fireEvent.change(screen.getByRole("textbox", { name: "Weight (lb)" }), {
+        target: { value: "137.5" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+    });
+    expect(set).toMatchObject({ setIndex: 0, weight: 137.5 });
+  });
+
+  it("logs reps typed directly into the field", async () => {
+    const set = await new Promise<SetResult>((resolve) => {
+      renderLogger({ onLogSet: resolve });
+      fireEvent.change(screen.getByRole("textbox", { name: "Reps" }), {
+        target: { value: "8" },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+    });
+    expect(set).toMatchObject({ reps: 8, setIndex: 0 });
+  });
+
+  it("keeps a half-typed decimal in the field instead of snapping it to an integer", () => {
+    renderLogger();
+    const field = screen.getByRole<HTMLInputElement>("textbox", {
+      name: "Weight (lb)",
+    });
+    // Typing "102." commits 102 upward, but the trailing dot must survive so the
+    // athlete can go on to type "102.5".
+    fireEvent.change(field, { target: { value: "102." } });
+    expect(field.value).toBe("102.");
+  });
+
+  it("bumps a barbell weight by a 5 kg coarse step", async () => {
+    const kg = Prescription.Strength({
+      reps: 5,
+      sets: 3,
+      unit: "kg",
+      weight: 100,
+    });
+    const set = await new Promise<SetResult>((resolve) => {
+      renderLogger({ onLogSet: resolve, prescription: kg });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Increase Weight (kg)" }),
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+    });
+    expect(set).toMatchObject({ setIndex: 0, weight: 105 });
+  });
+
+  it("bumps a barbell weight by a 1 kg fine step", async () => {
+    const kg = Prescription.Strength({
+      reps: 5,
+      sets: 3,
+      unit: "kg",
+      weight: 100,
+    });
+    const set = await new Promise<SetResult>((resolve) => {
+      renderLogger({ onLogSet: resolve, prescription: kg });
+      fireEvent.click(
+        screen.getByRole("button", { name: "Fine increase Weight (kg)" }),
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+    });
+    expect(set).toMatchObject({ setIndex: 0, weight: 101 });
   });
 
   it("prefills a later set's weight from the last logged set while resetting reps to prescribed", async () => {

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "bun:test";
 import {
   barWeight,
+  coarseLoadStep,
+  fineLoadStep,
   kgToLb,
   lbToKg,
   loadStep,
@@ -38,5 +40,17 @@ describe("loadStep / barWeight", () => {
   it("uses imperial plate math for pounds", () => {
     expect(loadStep("lb")).toBe(5);
     expect(barWeight("lb")).toBe(45);
+  });
+});
+
+describe("coarseLoadStep / fineLoadStep", () => {
+  it("offers a 5 kg coarse and 1 kg fine adjustment for kilograms", () => {
+    expect(coarseLoadStep).toBe(5);
+    expect(fineLoadStep("kg")).toBe(1);
+  });
+
+  it("offers a 5 lb coarse and 2.5 lb fine adjustment for pounds", () => {
+    expect(coarseLoadStep).toBe(5);
+    expect(fineLoadStep("lb")).toBe(2.5);
   });
 });
