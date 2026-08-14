@@ -1,7 +1,7 @@
 import type { Prescription } from "@titan/domain/prescription";
 import type { AmrapPolicy } from "@titan/domain/progression-policy";
 import type { ExerciseResult } from "@titan/domain/result";
-import { metRepTarget, mostRecent } from "./history";
+import { countSetsReaching, mostRecent } from "./history";
 import type { AdaptationOutcome } from "./outcome";
 
 /**
@@ -17,7 +17,9 @@ export const progressAmrap = (
 ): AdaptationOutcome => {
   if (base.type === "bodyweight") {
     const last = mostRecent(priorResults);
-    const cappedOut = last !== undefined && metRepTarget(last);
+    const cappedOut =
+      last !== undefined &&
+      countSetsReaching(last, policy.repCap) >= policy.sets;
     return {
       action: "maintain",
       details: { repCap: policy.repCap },
