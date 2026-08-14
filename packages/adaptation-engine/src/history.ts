@@ -14,6 +14,28 @@ export const mostRecent = (
 ): ExerciseResult | undefined => priorResults.at(-1);
 
 /**
+ * The load actually worked on a strength session, in the exercise's unit (kg
+ * for barbell, else lb). Each set's recorded `weight` is what the athlete truly
+ * lifted; an absent set weight means that set was taken at its prescribed load,
+ * resolved from the result's prescription snapshot. The session's worked load is
+ * the lightest working set — the load carried across every set — so progression
+ * builds on what was actually completed: a heavier-than-prescribed session
+ * overrides the prescription, and a lighter one holds it back. Throws when the
+ * snapshot isn't a strength prescription (a policy/prescription mismatch).
+ */
+export const completedWeight = (result: ExerciseResult): number => {
+  const { prescription, sets } = result;
+  if (prescription.type === "strength") {
+    const worked = sets.map((set) => set.weight ?? prescription.weight);
+    return worked.length === 0 ? prescription.weight : Math.min(...worked);
+  } else {
+    throw new Error(
+      `completedWeight expects a strength prescription, got ${prescription.type}`,
+    );
+  }
+};
+
+/**
  * The RPE logged on the final working set (the highest `setIndex`), or
  * `undefined` when that set logged none. RPE-banded progression gates on the
  * final set specifically — the last set is where effort is judged — so this is

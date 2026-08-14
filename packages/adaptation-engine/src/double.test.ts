@@ -15,7 +15,7 @@ const policy = ProgressionPolicy.Double({
 const strengthResult = (
   weight: number,
   reps: number,
-  opts: { rpe?: number; completedReps?: number } = {},
+  opts: { completedReps?: number; lifted?: number; rpe?: number } = {},
 ): ExerciseResult => ({
   exerciseId: "rdl",
   id: `r-${weight}-${reps}`,
@@ -25,6 +25,7 @@ const strengthResult = (
     reps: opts.completedReps ?? reps,
     rpe: opts.rpe,
     setIndex,
+    ...(opts.lifted === undefined ? {} : { weight: opts.lifted }),
   })),
   slotId: "slot-rdl",
 });
@@ -64,6 +65,14 @@ describe("progressDouble", () => {
     ]);
     expect(outcome.action).toBe("repeat");
     expect(outcome.prescription).toMatchObject({ reps: 8, weight: 185 });
+  });
+
+  it("adds weight off the load actually lifted when it exceeds the prescription", () => {
+    const outcome = progressDouble(policy, base, [
+      strengthResult(185, 10, { lifted: 195, rpe: 7 }),
+    ]);
+    expect(outcome.action).toBe("increase-load");
+    expect(outcome.prescription).toMatchObject({ reps: 8, weight: 200 });
   });
 
   it("adds bodyweight load once a weighted-bodyweight ceiling is reached", () => {

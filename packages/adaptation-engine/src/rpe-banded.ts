@@ -6,7 +6,12 @@ import type {
   RpeBandedPolicy,
 } from "@titan/domain/progression-policy";
 import type { ExerciseResult } from "@titan/domain/result";
-import { finalSetRpe, metRepTarget, mostRecent } from "./history";
+import {
+  completedWeight,
+  finalSetRpe,
+  metRepTarget,
+  mostRecent,
+} from "./history";
 import type { AdaptationOutcome } from "./outcome";
 
 /**
@@ -51,7 +56,7 @@ const decideFromLast = (
   unit: LoadUnit,
   last: ExerciseResult,
 ): AdaptationOutcome => {
-  const lastWeight = lastStrengthWeight(last);
+  const lastWeight = completedWeight(last);
   const at = (weight: number): Prescription =>
     Rx.Strength({ reps: policy.reps, sets: policy.sets, unit, weight });
   if (metRepTarget(last)) {
@@ -119,15 +124,5 @@ const selectBand = (
           : tightest,
       undefined,
     );
-
-const lastStrengthWeight = (result: ExerciseResult): number => {
-  if (result.prescription.type === "strength") {
-    return result.prescription.weight;
-  } else {
-    throw new Error(
-      `rpe-banded history expects strength prescriptions, got ${result.prescription.type}`,
-    );
-  }
-};
 
 const round1 = (value: number): number => Math.round(value * 10) / 10;

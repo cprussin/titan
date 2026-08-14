@@ -5,6 +5,7 @@ import type { LinearPolicy } from "@titan/domain/progression-policy";
 import type { ExerciseResult } from "@titan/domain/result";
 import {
   averageRpe,
+  completedWeight,
   metRepTarget,
   mostRecent,
   trailingMissStreak,
@@ -50,7 +51,7 @@ const decideFromLast = (
   last: ExerciseResult,
   priorResults: readonly ExerciseResult[],
 ): AdaptationOutcome => {
-  const lastWeight = lastStrengthWeight(last);
+  const lastWeight = completedWeight(last);
   const rpe = averageRpe(last);
   const at = (weight: number): Prescription =>
     Rx.Strength({
@@ -122,16 +123,6 @@ const decideMiss = (
       explanation: `Repeat ${lastWeight} ${unit}: reps missed last session (${misses} in a row), holding before a deload.`,
       prescription: at(lastWeight),
     };
-  }
-};
-
-const lastStrengthWeight = (result: ExerciseResult): number => {
-  if (result.prescription.type === "strength") {
-    return result.prescription.weight;
-  } else {
-    throw new Error(
-      `linear history expects strength prescriptions, got ${result.prescription.type}`,
-    );
   }
 };
 

@@ -2,7 +2,12 @@ import type { Prescription } from "@titan/domain/prescription";
 import { Prescription as Rx } from "@titan/domain/prescription";
 import type { DoublePolicy } from "@titan/domain/progression-policy";
 import type { ExerciseResult } from "@titan/domain/result";
-import { averageRpe, metRepTarget, mostRecent } from "./history";
+import {
+  averageRpe,
+  completedWeight,
+  metRepTarget,
+  mostRecent,
+} from "./history";
 import type { AdaptationOutcome } from "./outcome";
 
 /** The prescription types double progression operates on — the base always
@@ -89,7 +94,7 @@ const readLoad = (result: ExerciseResult): Load => {
   const { prescription } = result;
   switch (prescription.type) {
     case "strength": {
-      return { load: prescription.weight, reps: prescription.reps };
+      return { load: completedWeight(result), reps: prescription.reps };
     }
     case "bodyweight": {
       return { load: prescription.addedWeightLb ?? 0, reps: prescription.reps };

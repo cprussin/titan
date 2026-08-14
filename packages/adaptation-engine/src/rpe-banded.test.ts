@@ -35,7 +35,7 @@ const rpeForSet = (
 /** A recorded session at `weight`. `reps` below the target marks a miss. */
 const session = (
   weight: number,
-  opts: { finalRpe?: number; reps?: number },
+  opts: { finalRpe?: number; lifted?: number; reps?: number },
 ): ExerciseResult => ({
   exerciseId: "back-squat",
   id: `r-${weight}-${opts.finalRpe ?? "na"}`,
@@ -47,6 +47,7 @@ const session = (
       reps: opts.reps ?? 5,
       setIndex,
       ...(rpe === undefined ? {} : { rpe }),
+      ...(opts.lifted === undefined ? {} : { weight: opts.lifted }),
     };
   }),
   slotId: "slot-squat",
@@ -108,6 +109,15 @@ describe("progressRpeBanded", () => {
       session(155, { finalRpe: 5 }),
     ]);
     expect(outcome.prescription).toMatchObject({ reps: 5, sets: 3 });
+  });
+
+  it("adds the band increment off the load actually lifted, not the prescription", () => {
+    const outcome = progressRpeBanded(policy, base, [
+      session(155, { finalRpe: 5, lifted: 165 }),
+    ]);
+    expect(outcome.action).toBe("increase-load");
+    expect(outcome.prescription).toMatchObject({ weight: 175 });
+    expect(outcome.explanation).toContain("165 lb to 175 lb");
   });
 
   it("throws when the base is not a strength movement", () => {
