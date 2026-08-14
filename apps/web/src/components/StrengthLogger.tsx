@@ -14,6 +14,7 @@ import { Button } from "../ui";
 import { EffortTimer } from "./EffortTimer";
 import { nextSetReps, nextSetWeight } from "./next-set-defaults";
 import { RpePicker } from "./RpePicker";
+import { WorkoutActionBar } from "./WorkoutActionBar";
 
 /** The strength/bodyweight/timed-hold prescription shapes this logger drives. */
 type StrengthLikePrescription = Extract<
@@ -121,7 +122,7 @@ export const StrengthLogger = ({
   };
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 3 })}>
+    <div className={rootStyles}>
       {logged.length > 0 && (
         <LoggedSets
           isHold={isHold}
@@ -169,7 +170,7 @@ export const StrengthLogger = ({
       {/* Back, log, and finish actions pin to the bottom of the screen so the
           primary controls stay under the thumb while the logged sets scroll
           above. Stacked on phones, shared evenly across a row on desktop. */}
-      <div className={actionRowStyles}>
+      <WorkoutActionBar>
         {done > 0 && (
           <Button onClick={back} size="lg" variant="outline">
             Back
@@ -189,7 +190,7 @@ export const StrengthLogger = ({
         >
           {done >= sets ? "Complete exercise" : "Finish early"}
         </Button>
-      </div>
+      </WorkoutActionBar>
     </div>
   );
 };
@@ -466,23 +467,13 @@ const stepperInputStyles = css({
   textShadow: "glow",
 });
 
-// Back / log / finish actions, pinned to the bottom of the screen as a sticky
-// bar (an opaque background and a hairline top rule cover the sets scrolling
-// under it) so the primary controls stay reachable. Stacked on phones, shared
-// evenly across a row on desktop where there's width for them side by side.
-const actionRowStyles = css({
-  backgroundColor: "background",
-  borderBlockStart: "1px solid {colors.border}",
+// Fills the viewport-height work column below `lg` (see WorkoutScreenLayout) so
+// the action bar's `margin-block-start: auto` can carry it to the bottom of the
+// screen; at `lg` the column is content-height and the bar sits inline.
+const rootStyles = css({
+  alignItems: "stretch",
   display: "flex",
   flexDirection: "column",
+  flexGrow: 1,
   gap: 3,
-  insetBlockEnd: 0,
-  lg: {
-    "& > *": { flex: 1 },
-    flexDirection: "row",
-  },
-  paddingBlockEnd: "max({spacing.3}, env(safe-area-inset-bottom))",
-  paddingBlockStart: 3,
-  position: "sticky",
-  zIndex: 5,
 });
