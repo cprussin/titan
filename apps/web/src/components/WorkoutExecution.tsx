@@ -1,6 +1,5 @@
 "use client";
 
-import type { LoadUnit } from "@titan/domain/load-unit";
 import type { Modality } from "@titan/domain/movement";
 import type { Prescription } from "@titan/domain/prescription";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
@@ -9,13 +8,13 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { css } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
-import { formatWeight } from "../format";
 import { describePrescription } from "../prescription-text";
 import { roleTone } from "../role-tone";
 import { Badge } from "../ui";
 import { CancelWorkoutButton } from "./CancelWorkoutButton";
 import { CardioLogger } from "./CardioLogger";
 import { PrescriptionTarget } from "./PrescriptionTarget";
+import { describePreviousPerformance } from "./previous-performance";
 import { RestTimer } from "./RestTimer";
 import { StrengthLogger } from "./StrengthLogger";
 import { WorkoutScreenLayout } from "./WorkoutScreenLayout";
@@ -313,21 +312,12 @@ const PreviousPerformance = ({
 }: {
   previous: ExerciseResult | undefined;
 }) => {
-  const best = previous === undefined ? undefined : topSet(previous);
-  return best === undefined ? undefined : (
-    <p className={previousStyles}>
-      Last time: {best.reps === undefined ? "" : `${best.reps} × `}
-      {best.weight === undefined
-        ? ""
-        : formatWeight(best.weight, resultUnit(previous))}
-    </p>
+  const summary =
+    previous === undefined ? undefined : describePreviousPerformance(previous);
+  return summary === undefined ? undefined : (
+    <p className={previousStyles}>Last time: {summary}</p>
   );
 };
-
-/** The load unit a recorded exercise was logged in — its snapshot prescription
- *  carries it for strength work; everything else is pounds. */
-const resultUnit = (result: ExerciseResult | undefined): LoadUnit =>
-  result?.prescription.type === "strength" ? result.prescription.unit : "lb";
 
 // The engine's reason for today's target, one step dimmer than "Last time":
 // a hairline `border` rule (not accent) and tertiary text, so it reads as a
@@ -377,13 +367,6 @@ const persist = async (
     throw new Error(`save failed: ${response.status}`);
   }
 };
-
-const topSet = (result: ExerciseResult): SetResult | undefined =>
-  result.sets.reduce<SetResult | undefined>(
-    (best, set) =>
-      best === undefined || (set.weight ?? 0) > (best.weight ?? 0) ? set : best,
-    undefined,
-  );
 
 const restSeconds = (prescribed: PrescribedExercise): number =>
   prescribed.role === "primary" ? 150 : 90;
