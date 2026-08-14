@@ -22,7 +22,7 @@ const base = Prescription.Strength({
 
 const session = (
   weight: number,
-  opts: { reps?: number; rpe?: number },
+  opts: { lifted?: number; reps?: number; rpe?: number },
 ): ExerciseResult => ({
   exerciseId: "back-squat",
   id: `r-${weight}-${opts.reps ?? 5}`,
@@ -32,6 +32,7 @@ const session = (
     reps: opts.reps ?? 5,
     rpe: opts.rpe,
     setIndex,
+    ...(opts.lifted === undefined ? {} : { weight: opts.lifted }),
   })),
   slotId: "slot-squat",
 });
@@ -81,6 +82,31 @@ describe("progressLinear", () => {
     // 225 × 0.9 = 202.5 → nearest 5 lb = 205
     expect(outcome.prescription).toMatchObject({ weight: 205 });
     expect(outcome.explanation).toContain("Deload");
+  });
+
+  it("progresses from the load actually lifted when it exceeds the prescription", () => {
+    const outcome = progressLinear(policy, base, [
+      session(225, { lifted: 235, rpe: 7.8 }),
+    ]);
+    expect(outcome.action).toBe("increase-load");
+    expect(outcome.prescription).toMatchObject({ weight: 240 });
+    expect(outcome.explanation).toContain("235 lb to 240 lb");
+  });
+
+  it("progresses from a lighter load when the athlete lifted under the prescription", () => {
+    const outcome = progressLinear(policy, base, [
+      session(225, { lifted: 205, rpe: 7 }),
+    ]);
+    expect(outcome.action).toBe("increase-load");
+    expect(outcome.prescription).toMatchObject({ weight: 210 });
+  });
+
+  it("repeats the lifted load, not the prescription, on a missed heavier session", () => {
+    const outcome = progressLinear(policy, base, [
+      session(225, { lifted: 235, reps: 3 }),
+    ]);
+    expect(outcome.action).toBe("repeat");
+    expect(outcome.prescription).toMatchObject({ weight: 235 });
   });
 
   it("keeps a metric barbell in kilograms through progression", () => {
