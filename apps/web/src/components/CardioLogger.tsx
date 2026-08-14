@@ -5,7 +5,7 @@ import type { Modality } from "@titan/domain/movement";
 import type { ExerciseResult } from "@titan/domain/result";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
 import { useCallback, useState } from "react";
-import { vstack } from "../../styled-system/patterns";
+import { css } from "../../styled-system/css";
 import { buildImportResult } from "../build-import-result";
 import { checkConcept2Match } from "../check-concept2-match";
 import { formatClock, formatDuration, parseDuration } from "../format";
@@ -13,6 +13,7 @@ import type { ScheduleTick } from "../tick-scheduler";
 import { Button, Field, Input } from "../ui";
 import { Concept2Check } from "./Concept2Check";
 import { EffortTimer } from "./EffortTimer";
+import { WorkoutActionBar } from "./WorkoutActionBar";
 
 type CardioLoggerProps = {
   busy: boolean;
@@ -79,7 +80,7 @@ export const CardioLogger = ({
   };
 
   return (
-    <div className={vstack({ alignItems: "stretch", gap: 3 })}>
+    <div className={rootStyles}>
       {modality === "rower" && concept2Connected && (
         <Concept2Check check={checkConcept2} onFound={logImport} />
       )}
@@ -103,12 +104,25 @@ export const CardioLogger = ({
         onChange={setAvgHr}
         value={avgHr}
       />
-      <Button loading={busy} onClick={complete} size="xl" variant="success">
-        Complete
-      </Button>
+      <WorkoutActionBar>
+        <Button loading={busy} onClick={complete} size="xl" variant="success">
+          Complete
+        </Button>
+      </WorkoutActionBar>
     </div>
   );
 };
+
+// Fills the viewport-height work column below `lg` (see WorkoutScreenLayout) so
+// the action bar can drop to the bottom of the screen while the fields stay at
+// the top; at `lg` the column is content-height and the bar sits inline.
+const rootStyles = css({
+  alignItems: "stretch",
+  display: "flex",
+  flexDirection: "column",
+  flexGrow: 1,
+  gap: 3,
+});
 
 type NumberFieldProps = {
   label: string;

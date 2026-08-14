@@ -143,6 +143,16 @@ export const WorkoutExecution = ({
 
             <AdaptationNote explanation={explanations[current.exerciseId]} />
 
+            {/* The "up next" hint stands in for the outline on phones. It sits
+                above the logger so the logger stays the last child and its
+                action bar can drop to the bottom of the screen. */}
+            {next !== undefined && (
+              <p className={nextStyles}>
+                Next: {exerciseNames[next.exerciseId] ?? next.exerciseId} ·{" "}
+                {describePrescription(next.prescription)}
+              </p>
+            )}
+
             {resting ? (
               <RestTimer
                 initialSeconds={restSeconds(current)}
@@ -175,14 +185,6 @@ export const WorkoutExecution = ({
                 prescribed={current}
                 sessionId={sessionId}
               />
-            )}
-
-            {/* The "up next" hint stands in for the outline on phones. */}
-            {next !== undefined && (
-              <p className={nextStyles}>
-                Next: {exerciseNames[next.exerciseId] ?? next.exerciseId} ·{" "}
-                {describePrescription(next.prescription)}
-              </p>
             )}
           </>
         }
