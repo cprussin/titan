@@ -44,6 +44,10 @@ type Props = {
  * target), the sets already logged shown above it with inline edit controls, and
  * a Back affordance that undoes the last set and hands its values back for
  * re-logging.
+ *
+ * RPE is mandatory: unlike the load and rep inputs there is nothing sensible to
+ * prefill an effort rating with, so it re-seeds to unset for every set and the
+ * "Log set" action stays disabled until the athlete rates the one just done.
  */
 export const StrengthLogger = ({
   busy,
@@ -83,13 +87,19 @@ export const StrengthLogger = ({
   }
 
   const logSet = () => {
-    onLogSet({
-      completed: true,
-      setIndex: done,
-      ...(isHold ? { holdSec } : { reps, weight }),
-      ...(rpe === undefined ? {} : { rpe }),
-    });
-    setRpe(undefined);
+    // The action is disabled until the set is rated, so an unrated set reaching
+    // here is a broken invariant rather than a set to log without an RPE.
+    if (rpe === undefined) {
+      throw new Error("Log set pressed before the set was rated");
+    } else {
+      onLogSet({
+        completed: true,
+        rpe,
+        setIndex: done,
+        ...(isHold ? { holdSec } : { reps, weight }),
+      });
+      setRpe(undefined);
+    }
   };
 
   const back = () => {
@@ -177,7 +187,12 @@ export const StrengthLogger = ({
           </Button>
         )}
         {done < sets && (
-          <Button onClick={logSet} size="lg" variant="accent">
+          <Button
+            disabled={rpe === undefined}
+            onClick={logSet}
+            size="lg"
+            variant="accent"
+          >
             Log set
           </Button>
         )}

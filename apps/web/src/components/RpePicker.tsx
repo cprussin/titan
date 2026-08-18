@@ -13,17 +13,18 @@ const RPE_ITEMS = Array.from({ length: RPE_MAX - RPE_MIN + 1 }, (_, index) => {
 });
 
 type Props = {
-  onChange: (value: number | undefined) => void;
+  onChange: (value: number) => void;
   value: number | undefined;
 };
 
 /**
- * The optional RPE (rate of perceived exertion) entry for a logged set: a 1–10
- * toggle group with a live numeric readout. A toggle group beats a slider on
- * phones, where dragging a thumb to a precise value one-handed is fiddly — here
- * every value is a direct tap. The value stays unset — shown as an em dash —
- * until the athlete taps a button, so an untouched set records no RPE; tapping
- * the selected button again clears it back to unset.
+ * The RPE (rate of perceived exertion) entry for a logged set: a 1–10 toggle
+ * group with a live numeric readout. A toggle group beats a slider on phones,
+ * where dragging a thumb to a precise value one-handed is fiddly — here every
+ * value is a direct tap. RPE is mandatory, so the value starts unset — shown as
+ * an em dash, with the caller withholding the log action until it is chosen —
+ * and there is no way back to unset: re-tapping the pressed button reports
+ * nothing rather than clearing the rating.
  *
  * The readout rides on the field's label row (as an `aria-hidden` adornment so
  * it never pollutes the group's accessible name — the selection is already
@@ -33,7 +34,7 @@ export const RpePicker = ({ onChange, value }: Props) => (
   <Field
     label={
       <span className={labelRowStyles}>
-        <span>RPE (optional)</span>
+        <span>RPE</span>
         <span aria-hidden className={valueStyles}>
           {value ?? "—"}
         </span>
@@ -41,12 +42,15 @@ export const RpePicker = ({ onChange, value }: Props) => (
     }
   >
     <ToggleGroup
-      aria-label="RPE (optional)"
+      aria-label="RPE"
       items={RPE_ITEMS}
       onValueChange={([selected]) => {
         // Single-select: `selected` is the tapped value, or `undefined` when the
-        // athlete taps the pressed button to clear it back to unset.
-        onChange(selected === undefined ? undefined : Number(selected));
+        // athlete taps the pressed button — base-ui's clear-on-re-tap, which a
+        // mandatory rating has no state to clear to, so it is dropped.
+        if (selected !== undefined) {
+          onChange(Number(selected));
+        }
       }}
       value={value === undefined ? [] : [String(value)]}
     />

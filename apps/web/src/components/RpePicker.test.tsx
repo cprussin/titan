@@ -8,7 +8,7 @@ const RPE_LABELS = Array.from({ length: 10 }, (_, index) => String(index + 1));
 describe(RpePicker, () => {
   it("offers a 1-10 toggle button for each effort within a named group", () => {
     render(<RpePicker onChange={() => undefined} value={undefined} />);
-    const group = screen.getByRole("group", { name: "RPE (optional)" });
+    const group = screen.getByRole("group", { name: "RPE" });
     for (const label of RPE_LABELS) {
       expect(
         within(group).getByRole("button", { name: label }),
@@ -20,7 +20,7 @@ describe(RpePicker, () => {
     // Scope the readout assertions to the field's <label>; the toggle buttons
     // carry the same digits, so an unscoped getByText("8") would be ambiguous.
     const readout = () => {
-      const label = screen.getByText("RPE (optional)").closest("label");
+      const label = screen.getByText("RPE").closest("label");
       if (label === null) {
         throw new Error("RPE field label did not render as a <label>");
       }
@@ -48,18 +48,26 @@ describe(RpePicker, () => {
   });
 
   it("reports the chosen effort when a button is pressed", async () => {
-    const chosen = await new Promise<number | undefined>((resolve) => {
+    const chosen = await new Promise<number>((resolve) => {
       render(<RpePicker onChange={resolve} value={undefined} />);
       fireEvent.click(screen.getByRole("button", { name: "6" }));
     });
     expect(chosen).toBe(6);
   });
 
-  it("clears the effort when the selected button is tapped again", async () => {
-    const chosen = await new Promise<number | undefined>((resolve) => {
-      render(<RpePicker onChange={resolve} value={6} />);
-      fireEvent.click(screen.getByRole("button", { name: "6" }));
-    });
-    expect(chosen).toBeUndefined();
+  it("keeps the effort when the selected button is tapped again", () => {
+    // RPE is mandatory, so the group has no "unset" state to fall back to once
+    // a value is chosen: re-tapping the pressed button reports nothing.
+    const reported: number[] = [];
+    render(
+      <RpePicker
+        onChange={(value) => {
+          reported.push(value);
+        }}
+        value={6}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "6" }));
+    expect(reported).toStrictEqual([]);
   });
 });
