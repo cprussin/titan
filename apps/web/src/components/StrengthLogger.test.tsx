@@ -35,6 +35,12 @@ const prescribed: PrescribedExercise = {
 
 const noop = () => undefined;
 
+/** Rate the set in progress. RPE is mandatory, so every log-a-set flow taps an
+ *  effort before the "Log set" action becomes available. */
+const pickRpe = (value: number) => {
+  fireEvent.click(screen.getByRole("button", { name: String(value) }));
+};
+
 type StrengthPrescription = ReturnType<typeof Prescription.Strength>;
 
 type Overrides = {
@@ -88,9 +94,33 @@ const exerciseProps = (
 };
 
 describe(StrengthLogger, () => {
+  it("withholds the log action until the set is rated", () => {
+    renderLogger();
+    expect(screen.getByRole("button", { name: "Log set" })).toBeDisabled();
+    pickRpe(8);
+    expect(screen.getByRole("button", { name: "Log set" })).toBeEnabled();
+  });
+
+  it("logs the rated effort with the set", async () => {
+    const set = await new Promise<SetResult>((resolve) => {
+      renderLogger({ onLogSet: resolve });
+      pickRpe(7);
+      fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+    });
+    expect(set).toMatchObject({ rpe: 7, setIndex: 0 });
+  });
+
+  it("requires a fresh rating for the next set", () => {
+    renderLogger();
+    pickRpe(8);
+    fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+    expect(screen.getByRole("button", { name: "Log set" })).toBeDisabled();
+  });
+
   it("logs the first set at the prescribed weight and reps", async () => {
     const set = await new Promise<SetResult>((resolve) => {
       renderLogger({ onLogSet: resolve });
+      pickRpe(8);
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(set).toMatchObject({
@@ -107,6 +137,7 @@ describe(StrengthLogger, () => {
       fireEvent.change(screen.getByRole("textbox", { name: "Weight (lb)" }), {
         target: { value: "137.5" },
       });
+      pickRpe(8);
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(set).toMatchObject({ setIndex: 0, weight: 137.5 });
@@ -118,6 +149,7 @@ describe(StrengthLogger, () => {
       fireEvent.change(screen.getByRole("textbox", { name: "Reps" }), {
         target: { value: "8" },
       });
+      pickRpe(9);
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(set).toMatchObject({ reps: 8, setIndex: 0 });
@@ -146,6 +178,7 @@ describe(StrengthLogger, () => {
       fireEvent.click(
         screen.getByRole("button", { name: "Increase Weight (kg)" }),
       );
+      pickRpe(8);
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(set).toMatchObject({ setIndex: 0, weight: 105 });
@@ -163,6 +196,7 @@ describe(StrengthLogger, () => {
       fireEvent.click(
         screen.getByRole("button", { name: "Fine increase Weight (kg)" }),
       );
+      pickRpe(8);
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(set).toMatchObject({ setIndex: 0, weight: 101 });
@@ -174,6 +208,7 @@ describe(StrengthLogger, () => {
         logged: [loggedSet({ reps: 3, weight: 115 })],
         onLogSet: resolve,
       });
+      pickRpe(8);
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(set).toMatchObject({ reps: 5, setIndex: 1, weight: 115 });
@@ -213,6 +248,7 @@ describe(StrengthLogger, () => {
         },
       });
       fireEvent.click(screen.getByRole("button", { name: "Back" }));
+      pickRpe(8);
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(undoCalled).toBe(true);
@@ -235,6 +271,7 @@ describe(StrengthLogger, () => {
       // first set must default to its own prescribed weight, not carry the
       // previous movement's 140 lb forward.
       rerender(<StrengthLogger {...exerciseProps("s2", 50, [], resolve)} />);
+      pickRpe(8);
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(set).toMatchObject({ reps: 5, setIndex: 0, weight: 50 });
@@ -285,6 +322,7 @@ describe(StrengthLogger, () => {
       }
       fireEvent.click(screen.getByRole("button", { name: "Stop" }));
       fireEvent.click(screen.getByRole("button", { name: "Use time" }));
+      pickRpe(8);
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(set).toMatchObject({ holdSec: 10, setIndex: 0 });

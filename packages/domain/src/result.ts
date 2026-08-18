@@ -16,7 +16,10 @@ export const setResultSchema = z.object({
   /** For timed holds (plank). */
   holdSec: z.number().nonnegative().optional(),
   reps: z.number().int().nonnegative().optional(),
-  /** Rate of perceived exertion, 1–10. */
+  /** Rate of perceived exertion, 1–10. Mandatory when logging: the logger will
+   *  not record a set until the athlete rates it. Optional here only because
+   *  sets logged before the rating was required carry none, and those results
+   *  still have to parse. */
   rpe: z.number().positive().max(10).optional(),
   setIndex: z.number().int().nonnegative(),
   /** The load lifted, in the enclosing exercise's unit (kg for barbell, else
