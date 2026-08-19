@@ -19,7 +19,8 @@ import { formatWeight } from "../format";
  * it would show a load the athlete never lifted.
  *
  * Returns `undefined` when there is nothing meaningful to show — an empty
- * history, or a cardio-style result with no per-set metric.
+ * history, a cardio-style result with no per-set metric, or a strength result
+ * whose sets never recorded the load they were lifted at.
  */
 export const describePreviousPerformance = (
   result: ExerciseResult,
@@ -49,14 +50,27 @@ const strengthLine = (
   prescription: StrengthPrescription,
 ): string | undefined => {
   const top = topBy(
-    sets,
-    (set) => set.weight ?? 0,
-    (set) => set.reps ?? 0,
+    recordedSets(sets),
+    (set) => set.weight,
+    (set) => set.reps,
   );
   return top === undefined
     ? undefined
-    : `${top.reps ?? prescription.reps} × ${formatWeight(top.weight ?? prescription.weight, prescription.unit)}`;
+    : `${top.reps} × ${formatWeight(top.weight, prescription.unit)}`;
 };
+
+/** The sets that recorded both figures a strength line reports. A set missing
+ *  either one is passed over rather than completed from the prescription: the
+ *  prescription is what was asked for, and reporting it as what was done would
+ *  hand the athlete a number nobody lifted. */
+const recordedSets = (
+  sets: readonly SetResult[],
+): readonly (SetResult & { reps: number; weight: number })[] =>
+  sets.flatMap((set) =>
+    set.reps === undefined || set.weight === undefined
+      ? []
+      : [{ ...set, reps: set.reps, weight: set.weight }],
+  );
 
 const bodyweightLine = (
   sets: readonly SetResult[],
@@ -89,12 +103,12 @@ const addedLoad = (addedWeightLb: number | undefined): string =>
  * The best set by a primary metric, breaking ties with an optional secondary
  * metric (both "higher is better"). Returns `undefined` for an empty list.
  */
-const topBy = (
-  sets: readonly SetResult[],
-  primary: (set: SetResult) => number,
-  secondary: (set: SetResult) => number = () => 0,
-): SetResult | undefined =>
-  sets.reduce<SetResult | undefined>(
+const topBy = <T extends SetResult>(
+  sets: readonly T[],
+  primary: (set: T) => number,
+  secondary: (set: T) => number = () => 0,
+): T | undefined =>
+  sets.reduce<T | undefined>(
     (best, set) =>
       best === undefined ||
       primary(set) > primary(best) ||
