@@ -62,9 +62,20 @@ describe("describePreviousPerformance", () => {
       ).toBe("5 × 62.5 kg");
     });
 
-    it("falls back to the prescribed load when a set logged no weight", () => {
+    it("shows nothing when no set recorded a load", () => {
       expect(
         describePreviousPerformance(result(strength, [set({ reps: 5 })])),
+      ).toBeUndefined();
+    });
+
+    it("passes over a set missing a figure rather than borrowing the prescription", () => {
+      expect(
+        describePreviousPerformance(
+          result(strength, [
+            set({ reps: 5, setIndex: 0, weight: 100 }),
+            set({ setIndex: 1, weight: 115 }),
+          ]),
+        ),
       ).toBe("5 × 100 lb");
     });
   });
