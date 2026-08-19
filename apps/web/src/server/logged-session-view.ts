@@ -1,10 +1,17 @@
+import type { StrengthPrescription } from "@titan/domain/prescription";
 import type {
   CardioResult,
   ExerciseResult,
   SetResult,
 } from "@titan/domain/result";
 import type { WorkoutSession } from "@titan/domain/workout-session";
-import { formatDistance, formatSplit } from "../format";
+import {
+  formatDistance,
+  formatSplit,
+  formatWeight,
+  formatWeightRange,
+  snapWeight,
+} from "../format";
 import { describePrescription } from "../prescription-text";
 import { sessionDurationMin } from "../session-duration";
 
@@ -32,6 +39,9 @@ export type LoggedSessionView = {
     totalSets: number;
   };
 };
+
+/** What was done for one exercise, before {@link describeDone} ticks it. */
+type DoneOutcome = { body: string; isAsPrescribed: boolean };
 
 /**
  * Reconstruct a completed session for the past/completed-day views: prescribed
@@ -70,14 +80,23 @@ export const loggedSessionView = (
   };
 };
 
-/** The done column and whether it met the prescription, dispatched on the
- *  prescription type the result was measured against. */
+/** The done column and whether it met the prescription: the outcome for the
+ *  shape the result was measured against, ticked when it met its target. */
 const describeDone = (
   result: ExerciseResult,
-): { done: string; isAsPrescribed: boolean } => {
+): Pick<LoggedExercise, "done" | "isAsPrescribed"> => {
+  const { body, isAsPrescribed } = doneOutcome(result);
+  return { done: isAsPrescribed ? `${body} ✓` : body, isAsPrescribed };
+};
+
+/** Dispatch the done figure on the prescription type the result was measured
+ *  against. */
+const doneOutcome = (result: ExerciseResult): DoneOutcome => {
   const { prescription, sets } = result;
   switch (prescription.type) {
-    case "strength":
+    case "strength": {
+      return strengthDone(prescription, sets);
+    }
     case "bodyweight": {
       return repDone(prescription.sets, prescription.reps, sets);
     }
@@ -87,19 +106,72 @@ const describeDone = (
     case "distance-cardio": {
       return cardioDone(result.cardio, prescription.distanceMeters);
     }
-    default: {
-      return { done: `${completedCount(sets)} sets ✓`, isAsPrescribed: true };
+    case "timed-cardio":
+    case "intervals":
+    case "circuit": {
+      return { body: `${completedCount(sets)} sets`, isAsPrescribed: true };
     }
   }
 };
 
-/** Rep-based done: `5×5 ✓` when uniform and on target, else the per-set list
- *  (`3×10, 10, 8`) with a tick only when every set met its target. */
+/** Strength done: the rep grammar, plus the load actually lifted whenever it
+ *  differed from the prescribed weight — the prescribed column carries the
+ *  target, so the done column only repeats a load that tells a different story.
+ *  Lifting under the target misses it the same way short reps do; at or above
+ *  it counts as met — judged on the same snapped figures the columns print, so
+ *  the tone can never disagree with the load shown. */
+const strengthDone = (
+  prescription: StrengthPrescription,
+  sets: readonly SetResult[],
+): DoneOutcome => {
+  const reps = repDone(prescription.sets, prescription.reps, sets);
+  const weights = recordedWeights(sets);
+  const load = loadDone(weights, prescription);
+  return {
+    body: load === undefined ? reps.body : `${reps.body} @ ${load}`,
+    isAsPrescribed:
+      reps.isAsPrescribed &&
+      weights.every(
+        (weight) => snapWeight(weight) >= snapWeight(prescription.weight),
+      ),
+  };
+};
+
+/** The loads the athlete actually lifted. Sets recorded before loads were
+ *  tracked carry none and drop out rather than standing in at the prescribed
+ *  weight: a figure nobody lifted has no place in what was done. */
+const recordedWeights = (sets: readonly SetResult[]): readonly number[] =>
+  sets.flatMap((entry) => (entry.weight === undefined ? [] : [entry.weight]));
+
+/** The load to show beside the reps: the span the sets were lifted over, or
+ *  `undefined` when nothing was recorded to show, or when the span reads
+ *  exactly as the prescribed load the prescribed column already carries. That
+ *  last comparison is on the rendered figures, so the two columns can never
+ *  print the same text twice. */
+const loadDone = (
+  weights: readonly number[],
+  prescription: StrengthPrescription,
+): string | undefined => {
+  if (weights.length === 0) {
+    return undefined;
+  } else {
+    const load = formatWeightRange(
+      Math.min(...weights),
+      Math.max(...weights),
+      prescription.unit,
+    );
+    const prescribed = formatWeight(prescription.weight, prescription.unit);
+    return load === prescribed ? undefined : load;
+  }
+};
+
+/** Rep-based done: `5×5` when uniform and on target, else the per-set list
+ *  (`3×10, 10, 8`), met only when every set reached its target. */
 const repDone = (
   targetSets: number,
   targetReps: number,
   sets: readonly SetResult[],
-): { done: string; isAsPrescribed: boolean } => {
+): DoneOutcome => {
   const reps = sets.map((entry) => entry.reps ?? 0);
   const isAsPrescribed =
     sets.length >= targetSets &&
@@ -110,15 +182,15 @@ const repDone = (
   const body = uniform
     ? `${targetSets}×${targetReps}`
     : `${sets.length}×${reps.join(", ")}`;
-  return { done: isAsPrescribed ? `${body} ✓` : body, isAsPrescribed };
+  return { body, isAsPrescribed };
 };
 
-/** Timed-hold done: `3× 45s ✓` when every hold met its target. */
+/** Timed-hold done: `3× 45s` when every hold met its target. */
 const holdDone = (
   targetSets: number,
   targetHoldSec: number,
   sets: readonly SetResult[],
-): { done: string; isAsPrescribed: boolean } => {
+): DoneOutcome => {
   const holds = sets.map((entry) => entry.holdSec ?? 0);
   const isAsPrescribed =
     sets.length >= targetSets &&
@@ -129,7 +201,7 @@ const holdDone = (
   const body = uniform
     ? `${targetSets}× ${targetHoldSec}s`
     : `${sets.length}× ${holds.join(", ")}s`;
-  return { done: isAsPrescribed ? `${body} ✓` : body, isAsPrescribed };
+  return { body, isAsPrescribed };
 };
 
 /** Cardio done: the logged distance and split, ticked when the distance met the
@@ -137,17 +209,19 @@ const holdDone = (
 const cardioDone = (
   cardio: CardioResult | undefined,
   targetMeters: number,
-): { done: string; isAsPrescribed: boolean } => {
+): DoneOutcome => {
   if (cardio === undefined || cardio.distanceMeters === undefined) {
-    return { done: "Logged", isAsPrescribed: false };
+    return { body: "Logged", isAsPrescribed: false };
   } else {
     const split =
       cardio.splitSecPer500 === undefined
         ? ""
         : ` @ ${formatSplit(cardio.splitSecPer500)}`;
     const isAsPrescribed = cardio.distanceMeters >= targetMeters;
-    const body = `${formatDistance(cardio.distanceMeters)}${split}`;
-    return { done: isAsPrescribed ? `${body} ✓` : body, isAsPrescribed };
+    return {
+      body: `${formatDistance(cardio.distanceMeters)}${split}`,
+      isAsPrescribed,
+    };
   }
 };
 
