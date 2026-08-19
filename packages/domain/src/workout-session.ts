@@ -3,7 +3,7 @@ import { idSchema } from "./ids";
 import { prescriptionSchema } from "./prescription";
 import { slotRoleSchema } from "./program";
 import { progressionPolicySchema } from "./progression-policy";
-import { exerciseResultSchema } from "./result";
+import { exerciseResultSchema, setResultSchema } from "./result";
 
 /**
  * The **workout session**: a scheduled instance of a session template, carrying
@@ -37,6 +37,16 @@ export const prescribedExerciseSchema = z.object({
 
 export type PrescribedExercise = z.infer<typeof prescribedExerciseSchema>;
 
+/** The exercise the athlete is partway through: the sets logged so far against a
+ *  slot that has no result yet. Written as each set is logged, so a reload — or
+ *  a switch to another device — resumes mid-exercise. */
+export const inProgressExerciseSchema = z.object({
+  sets: z.array(setResultSchema),
+  slotId: idSchema,
+});
+
+export type InProgressExercise = z.infer<typeof inProgressExerciseSchema>;
+
 export const workoutStatusSchema = z.enum([
   "scheduled",
   "in-progress",
@@ -53,6 +63,9 @@ export const workoutSessionSchema = z.object({
   dayOfWeek: z.number().int().min(1).max(7),
   estimatedDurationMin: z.number().int().positive(),
   id: idSchema,
+  /** The exercise underway, absent between exercises and on a finished session:
+   *  its sets move into `results` as it is recorded. */
+  inProgress: inProgressExerciseSchema.optional(),
   prescribedExercises: z.array(prescribedExerciseSchema),
   programVersionId: idSchema,
   readinessId: idSchema.optional(),

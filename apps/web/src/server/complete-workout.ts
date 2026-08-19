@@ -7,9 +7,9 @@ import type { Db } from "@titan/db/client";
 import { upsertPersonalRecord } from "@titan/db/personal-records";
 import { getProgramVersion } from "@titan/db/program-versions";
 import {
-  getWorkoutSession,
+  getWorkoutSession as defaultGetSession,
+  updateInProgressWorkoutSession as defaultUpdateSession,
   listWorkoutSessions,
-  upsertWorkoutSession,
 } from "@titan/db/workout-sessions";
 import type { AdaptationDecision } from "@titan/domain/adaptation-decision";
 import { estimateOneRepMax } from "@titan/domain/one-rep-max";
@@ -17,49 +17,77 @@ import type { PersonalRecord } from "@titan/domain/personal-record";
 import type { ExerciseResult } from "@titan/domain/result";
 import type { WorkoutSession } from "@titan/domain/workout-session";
 import { detectPersonalRecords } from "./detect-personal-records";
-import { stampResultTimes } from "./stamp-result-times";
+import { finishWorkoutSession } from "./finish-workout-session";
 
-export type CompletionResult = {
-  personalRecords: readonly PersonalRecord[];
+export enum CompletionOutcome {
+  Completed,
+  SessionClosed,
+}
+
+export const CompletionResult = {
+  /** The session was finished by this call, with whatever personal records it
+   *  set. */
+  Completed: (personalRecords: readonly PersonalRecord[]) => ({
+    outcome: CompletionOutcome.Completed as const,
+    personalRecords,
+  }),
+  /** The session was no longer open when the write landed — finished on another
+   *  device, or cancelled — so nothing was stored and nothing derived from it
+   *  ran. */
+  SessionClosed: () => ({ outcome: CompletionOutcome.SessionClosed as const }),
 };
+
+export type CompletionResult = ReturnType<
+  (typeof CompletionResult)[keyof typeof CompletionResult]
+>;
 
 /**
  * Finalize a session: store its results, detect personal records, and — if it
  * was the last scheduled day of the week — run weekly adaptation and advance the
- * athlete's position. Returns the PRs for the completion screen.
+ * athlete's position. Everything that follows from the completion runs only once
+ * the write has claimed the session — against the very row this call read — so a
+ * second device finishing the same workout, or one that recorded an exercise
+ * between this call's read and its write, mints no duplicate records and
+ * advances no week twice. The db
+ * reads/writes that decide it are injected so the outcome is unit-testable (see
+ * TESTING.md).
  */
 export const completeWorkout = async (
   db: Db,
   userId: string,
   sessionId: string,
-  results: readonly ExerciseResult[],
+  recorded: ExerciseResult,
+  getWorkoutSession: typeof defaultGetSession = defaultGetSession,
+  updateInProgressWorkoutSession: typeof defaultUpdateSession = defaultUpdateSession,
 ): Promise<CompletionResult> => {
   const session = await getWorkoutSession(db, sessionId);
   if (session === undefined) {
-    throw new Error(`workout session ${sessionId} not found`);
+    return CompletionResult.SessionClosed();
   } else {
     const completedAt = new Date().toISOString();
-    const completed: WorkoutSession = {
-      ...session,
-      completedAt,
-      results: stampResultTimes(session.results, results, completedAt),
-      status: "completed",
-    };
-    await upsertWorkoutSession(db, completed);
-
-    const priorBest = await priorOneRepMaxByExercise(db, userId, sessionId);
-    const personalRecords = detectPersonalRecords({
-      achievedAt: completedAt,
-      newId: randomUUID,
-      priorBestByExercise: priorBest,
-      session: completed,
-    });
-    await Promise.all(
-      personalRecords.map((record) => upsertPersonalRecord(db, record)),
+    const completed = finishWorkoutSession(session, recorded, completedAt);
+    const stored = await updateInProgressWorkoutSession(
+      db,
+      completed,
+      session.results.length,
     );
+    if (stored) {
+      const priorBest = await priorOneRepMaxByExercise(db, userId, sessionId);
+      const personalRecords = detectPersonalRecords({
+        achievedAt: completedAt,
+        newId: randomUUID,
+        priorBestByExercise: priorBest,
+        session: completed,
+      });
+      await Promise.all(
+        personalRecords.map((record) => upsertPersonalRecord(db, record)),
+      );
 
-    await maybeAdvanceWeek(db, userId, completed);
-    return { personalRecords };
+      await maybeAdvanceWeek(db, userId, completed);
+      return CompletionResult.Completed(personalRecords);
+    } else {
+      return CompletionResult.SessionClosed();
+    }
   }
 };
 

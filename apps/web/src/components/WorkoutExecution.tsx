@@ -10,8 +10,14 @@ import { css } from "../../styled-system/css";
 import { flex, hstack, vstack } from "../../styled-system/patterns";
 import { describePrescription } from "../prescription-text";
 import { roleTone } from "../role-tone";
+import {
+  saveWorkoutProgress,
+  WorkoutSaveOutcome,
+} from "../save-workout-progress";
+import type { ResumePoint } from "../server/resume-workout";
 import { sessionOverview } from "../session-overview";
 import { Badge } from "../ui";
+import { WorkoutProgressRequest } from "../workout-progress-request";
 import { CancelWorkoutButton } from "./CancelWorkoutButton";
 import { CardioLogger } from "./CardioLogger";
 import { PrescriptionTarget } from "./PrescriptionTarget";
@@ -35,6 +41,11 @@ type Props = {
    *  {@link PrescribedExercise}, which is persisted verbatim). */
   explanations: Record<string, string>;
   prescribedExercises: readonly PrescribedExercise[];
+  /** Where the stored session leaves off, so a reload or a second device carries
+   *  on from the last logged set rather than starting the workout over. */
+  resume: ResumePoint;
+  /** Persists progress; injected in tests, defaults to the real endpoint call. */
+  save?: typeof saveWorkoutProgress;
   sessionId: string;
 };
 
@@ -68,12 +79,14 @@ export const WorkoutExecution = ({
   exerciseNames,
   explanations,
   prescribedExercises,
+  resume,
+  save = saveWorkoutProgress,
   sessionId,
 }: Props) => {
   const router = useRouter();
-  const [index, setIndex] = useState(0);
-  const [results, setResults] = useState<ExerciseResult[]>([]);
-  const [logged, setLogged] = useState<SetResult[]>([]);
+  const [index, setIndex] = useState(resume.index);
+  const [results, setResults] = useState<ExerciseResult[]>([...resume.results]);
+  const [logged, setLogged] = useState<SetResult[]>([...resume.logged]);
   const [resting, setResting] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -87,14 +100,32 @@ export const WorkoutExecution = ({
     results,
   });
 
+  // The server refused the save: the session is finished, cancelled, or simply
+  // ahead of this screen because another device got there first. Which one it is
+  // only the server knows, so re-render the page and let it place the athlete —
+  // the finished workout, a "not found" if the session is gone, or a re-seeded
+  // screen at the position the session actually reached. The save is over either
+  // way, so the screen comes back to life rather than sitting on a spinner.
+  const closed = useCallback(() => {
+    setBusy(false);
+    router.refresh();
+  }, [router]);
+
   const advance = useCallback(
     (exerciseResult: ExerciseResult) => {
       const nextResults = [...results, exerciseResult];
       const isLast = index + 1 >= prescribedExercises.length;
       setBusy(true);
-      persist(sessionId, nextResults, isLast)
-        .then(() => {
-          if (isLast) {
+      save(
+        sessionId,
+        isLast
+          ? WorkoutProgressRequest.Finished(exerciseResult)
+          : WorkoutProgressRequest.Recorded(exerciseResult),
+      )
+        .then((outcome) => {
+          if (outcome === WorkoutSaveOutcome.SessionClosed) {
+            closed();
+          } else if (isLast) {
             router.push(`/workout/${sessionId}/complete`);
             // Refresh so the app-wide workout action (resolved in the
             // persistent (app) layout) drops the now-completed session rather
@@ -114,7 +145,39 @@ export const WorkoutExecution = ({
           console.error("Failed to save workout progress", error);
         });
     },
-    [index, prescribedExercises.length, results, router, sessionId],
+    [
+      closed,
+      index,
+      prescribedExercises.length,
+      results,
+      router,
+      save,
+      sessionId,
+    ],
+  );
+
+  // Every logged set is persisted as it happens, in the background: the athlete
+  // is already resting by the time the write lands, so the screen never waits on
+  // it. An edit or an undo restates the sets underway just as a new set does —
+  // and only those, so a save issued from a stale snapshot (an edit made while
+  // the exercise is being recorded, say) can never rewrite the recorded results.
+  // A set the server won't take is not dropped quietly: the screen follows the
+  // session wherever it now stands.
+  const recordLogged = useCallback(
+    (sets: SetResult[], slotId: string) => {
+      setLogged(sets);
+      save(sessionId, WorkoutProgressRequest.Sets({ sets, slotId }))
+        .then((outcome) => {
+          if (outcome === WorkoutSaveOutcome.SessionClosed) {
+            closed();
+          }
+        })
+        .catch((error: unknown) => {
+          // biome-ignore lint/suspicious/noConsole: surface a save failure
+          console.error("Failed to save workout progress", error);
+        });
+    },
+    [closed, save, sessionId],
   );
 
   const finishRest = useCallback(() => {
@@ -177,21 +240,22 @@ export const WorkoutExecution = ({
                 modality={exerciseModalities[current.exerciseId]}
                 onComplete={advance}
                 onEditSet={(setIndex, set) => {
-                  setLogged((sets) =>
-                    sets.map((existing, position) =>
+                  recordLogged(
+                    logged.map((existing, position) =>
                       position === setIndex ? set : existing,
                     ),
+                    current.slotId,
                   );
                 }}
                 onLogSet={(set) => {
                   const nowLogged = [...logged, set];
-                  setLogged(nowLogged);
+                  recordLogged(nowLogged, current.slotId);
                   if (nowLogged.length < totalSets(current.prescription)) {
                     setResting(true);
                   }
                 }}
                 onUndoLastSet={() => {
-                  setLogged((sets) => sets.slice(0, -1));
+                  recordLogged(logged.slice(0, -1), current.slotId);
                 }}
                 prescribed={current}
                 sessionId={sessionId}
@@ -309,21 +373,6 @@ const ProgressBar = ({
     ))}
   </div>
 );
-
-const persist = async (
-  sessionId: string,
-  results: readonly ExerciseResult[],
-  complete: boolean,
-): Promise<void> => {
-  const response = await fetch(`/api/workouts/${sessionId}`, {
-    body: JSON.stringify({ complete, results }),
-    headers: { "content-type": "application/json" },
-    method: "PATCH",
-  });
-  if (!response.ok) {
-    throw new Error(`save failed: ${response.status}`);
-  }
-};
 
 const restSeconds = (prescribed: PrescribedExercise): number =>
   prescribed.role === "primary" ? 150 : 90;
