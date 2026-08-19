@@ -6,14 +6,34 @@ import { loggedSessionView } from "./logged-session-view";
 
 const set = (reps: number, rpe?: number) => ({ completed: true, reps, rpe });
 
-const strengthResult = (): ExerciseResult =>
+const BARBELL_SQUAT = Prescription.Strength({
+  reps: 5,
+  sets: 5,
+  unit: "kg",
+  weight: 100,
+});
+
+const strengthAt = (
+  sets: readonly { reps?: number; rpe?: number; weight?: number }[],
+  prescription = Prescription.Strength({ reps: 5, sets: 5, weight: 225 }),
+): ExerciseResult =>
   ({
     exerciseId: "squat-ex",
-    prescription: Prescription.Strength({ reps: 5, sets: 5, weight: 225 }),
+    prescription,
     role: "primary",
-    sets: [set(5, 7.8), set(5, 7.8), set(5), set(5), set(5)],
+    sets: sets.map(({ reps = 5, rpe, weight }) => ({
+      completed: true,
+      reps,
+      rpe,
+      weight,
+    })),
     slotId: "squat-slot",
   }) as unknown as ExerciseResult;
+
+const strengthResult = (): ExerciseResult =>
+  strengthAt([{ rpe: 7.8 }, { rpe: 7.8 }, {}, {}, {}]);
+
+const at = (weight: number) => ({ weight });
 
 const partialBodyweight = (): ExerciseResult =>
   ({
@@ -85,6 +105,114 @@ describe("loggedSessionView", () => {
       prescribed: "5×5 @ 225 lb",
     });
     expect(squat?.avgRpe).toBe("7.8");
+  });
+
+  it("leaves the done column bare when every set matched the prescribed load", () => {
+    const view = loggedSessionView(
+      session([strengthAt([225, 225, 225, 225, 225].map(at))]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "5×5 ✓",
+      isAsPrescribed: true,
+      prescribed: "5×5 @ 225 lb",
+    });
+  });
+
+  it("shows the load lifted when it went above the prescribed weight", () => {
+    const view = loggedSessionView(
+      session([strengthAt([235, 235, 235, 235, 235].map(at))]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "5×5 @ 235 lb ✓",
+      isAsPrescribed: true,
+    });
+  });
+
+  it("shows a lift under the prescribed weight as short of its target", () => {
+    const view = loggedSessionView(
+      session([strengthAt([205, 205, 205, 205, 205].map(at))]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "5×5 @ 205 lb",
+      isAsPrescribed: false,
+    });
+  });
+
+  it("spans the loads lifted when they varied within the exercise", () => {
+    const view = loggedSessionView(
+      session([strengthAt([225, 225, 235, 235, 235].map(at))]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "5×5 @ 225–235 lb ✓",
+      isAsPrescribed: true,
+    });
+  });
+
+  it("keeps the reps and the loads legible when both fell off the plan", () => {
+    const view = loggedSessionView(
+      session([
+        strengthAt([
+          { reps: 5, weight: 235 },
+          { reps: 4, weight: 225 },
+          { reps: 3, weight: 205 },
+        ]),
+      ]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "3×5, 4, 3 @ 205–235 lb",
+      isAsPrescribed: false,
+    });
+  });
+
+  it("spans only the loads actually recorded, never the prescribed stand-in", () => {
+    const view = loggedSessionView(
+      session([strengthAt([{}, { weight: 235 }, { weight: 235 }])]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "3×5, 5, 5 @ 235 lb",
+      isAsPrescribed: false,
+    });
+  });
+
+  it("reports a barbell load in the kilograms it was prescribed in", () => {
+    const view = loggedSessionView(
+      session([
+        strengthAt([102.5, 102.5, 102.5, 102.5, 102.5].map(at), BARBELL_SQUAT),
+      ]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "5×5 @ 102.5 kg ✓",
+      isAsPrescribed: true,
+      prescribed: "5×5 @ 100 kg",
+    });
+  });
+
+  it("reads a load off the display grid as the figure it prints", () => {
+    const view = loggedSessionView(
+      session([
+        strengthAt([99.8, 99.8, 99.8, 99.8, 99.8].map(at), BARBELL_SQUAT),
+      ]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "5×5 ✓",
+      isAsPrescribed: true,
+    });
   });
 
   it("lists the per-set reps of a partial effort without a tick", () => {

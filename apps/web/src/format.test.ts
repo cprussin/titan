@@ -8,7 +8,9 @@ import {
   formatSplit,
   formatSplitClock,
   formatWeight,
+  formatWeightRange,
   parseDuration,
+  snapWeight,
 } from "./format";
 
 describe("formatters", () => {
@@ -28,6 +30,18 @@ describe("formatters", () => {
     expect(formatWeight(100, "kg")).toBe("100 kg");
     expect(formatWeight(92.5, "kg")).toBe("92.5 kg");
     expect(formatWeight(230, "lb")).toBe("230 lb");
+  });
+
+  it("formats a range of loads, collapsing a single load to one figure", () => {
+    expect(formatWeightRange(225, 225, "lb")).toBe("225 lb");
+    expect(formatWeightRange(225, 232.5, "lb")).toBe("225–232.5 lb");
+    expect(formatWeightRange(100, 102.5, "kg")).toBe("100–102.5 kg");
+  });
+
+  it("snaps a load to the half the display grid works in", () => {
+    expect(snapWeight(99.8)).toBe(100);
+    expect(snapWeight(102.4)).toBe(102.5);
+    expect(snapWeight(225)).toBe(225);
   });
 
   it("formats a rest clock as m:ss", () => {

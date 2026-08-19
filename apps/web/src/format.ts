@@ -3,9 +3,15 @@ import type { LoadUnit } from "@titan/domain/load-unit";
 /** Formatters (and the inverse duration parser) for the training units the UI
  *  shows. Pure. */
 
-/** Round to the nearest half and drop a trailing `.0`. */
+/** The half-unit grid loads live on: plates come in halves and the logger's
+ *  increments land on them, so two loads that snap together are the same load
+ *  as far as the athlete is concerned. */
+export const snapWeight = (weight: number): number =>
+  Math.round(weight * 2) / 2;
+
+/** Snap to the display grid and drop a trailing `.0`. */
 const tidy = (value: number): string => {
-  const rounded = Math.round(value * 2) / 2;
+  const rounded = snapWeight(value);
   return Number.isInteger(rounded) ? `${rounded}` : rounded.toFixed(1);
 };
 
@@ -14,6 +20,17 @@ const tidy = (value: number): string => {
  *  for imperial callers). */
 export const formatWeight = (weight: number, unit: LoadUnit = "lb"): string =>
   `${tidy(weight)} ${unit}`;
+
+/** The span a set of loads covered — `225–235 lb`, collapsing to a single
+ *  `225 lb` when every load in it reads the same. */
+export const formatWeightRange = (
+  low: number,
+  high: number,
+  unit: LoadUnit,
+): string =>
+  tidy(low) === tidy(high)
+    ? formatWeight(low, unit)
+    : `${tidy(low)}–${tidy(high)} ${unit}`;
 
 /** A logged body weight, kept to the tenth of a pound a scale reads and
  *  dropping a trailing `.0`. Unlike {@link formatWeight}, it isn't snapped to
