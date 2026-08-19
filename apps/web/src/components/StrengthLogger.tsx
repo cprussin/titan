@@ -135,6 +135,7 @@ export const StrengthLogger = ({
     <div className={rootStyles}>
       {logged.length > 0 && (
         <LoggedSets
+          busy={busy}
           isHold={isHold}
           onEditSet={onEditSet}
           sets={logged}
@@ -179,16 +180,19 @@ export const StrengthLogger = ({
       )}
       {/* Back, log, and finish actions pin to the bottom of the screen so the
           primary controls stay under the thumb while the logged sets scroll
-          above. Stacked on phones, shared evenly across a row on desktop. */}
+          above. Stacked on phones, shared evenly across a row on desktop.
+          While the exercise is being recorded, every control that would change
+          the sets stands down: the save reports them as they stood when it was
+          issued, so a change made behind it would be lost. */}
       <WorkoutActionBar>
         {done > 0 && (
-          <Button onClick={back} size="lg" variant="outline">
+          <Button disabled={busy} onClick={back} size="lg" variant="outline">
             Back
           </Button>
         )}
         {done < sets && (
           <Button
-            disabled={rpe === undefined}
+            disabled={busy || rpe === undefined}
             onClick={logSet}
             size="lg"
             variant="accent"
@@ -211,6 +215,9 @@ export const StrengthLogger = ({
 };
 
 type LoggedSetsProps = {
+  /** Whether the exercise is being recorded — see the action bar above, where
+   *  every control that changes the sets stands down until the save settles. */
+  busy: boolean;
   isHold: boolean;
   onEditSet: (index: number, set: SetResult) => void;
   sets: readonly SetResult[];
@@ -219,11 +226,18 @@ type LoggedSetsProps = {
 
 /** The sets logged so far, each editable in place so a mistake on an earlier
  *  set can be corrected without re-doing the exercise. */
-const LoggedSets = ({ isHold, onEditSet, sets, unit }: LoggedSetsProps) => (
+const LoggedSets = ({
+  busy,
+  isHold,
+  onEditSet,
+  sets,
+  unit,
+}: LoggedSetsProps) => (
   <div className={vstack({ alignItems: "stretch", gap: 2 })}>
     <span className={loggedTitleStyles}>Logged</span>
     {sets.map((set, index) => (
       <LoggedSetRow
+        busy={busy}
         index={index}
         isHold={isHold}
         key={set.setIndex}
@@ -236,6 +250,7 @@ const LoggedSets = ({ isHold, onEditSet, sets, unit }: LoggedSetsProps) => (
 );
 
 type LoggedSetRowProps = {
+  busy: boolean;
   index: number;
   isHold: boolean;
   onEditSet: (index: number, set: SetResult) => void;
@@ -244,6 +259,7 @@ type LoggedSetRowProps = {
 };
 
 const LoggedSetRow = ({
+  busy,
   index,
   isHold,
   onEditSet,
@@ -255,6 +271,7 @@ const LoggedSetRow = ({
     <div className={hstack({ gap: 3 })}>
       {isHold ? (
         <MiniStepper
+          disabled={busy}
           label={`Set ${index + 1} hold`}
           onChange={(value) => onEditSet(index, { ...set, holdSec: value })}
           step={5}
@@ -264,6 +281,7 @@ const LoggedSetRow = ({
       ) : (
         <>
           <MiniStepper
+            disabled={busy}
             label={`Set ${index + 1} weight`}
             onChange={(value) => onEditSet(index, { ...set, weight: value })}
             step={coarseLoadStep}
@@ -271,6 +289,7 @@ const LoggedSetRow = ({
             value={set.weight ?? 0}
           />
           <MiniStepper
+            disabled={busy}
             label={`Set ${index + 1} reps`}
             onChange={(value) => onEditSet(index, { ...set, reps: value })}
             step={1}
@@ -368,6 +387,7 @@ const Stepper = ({ fineStep, label, onChange, step, value }: StepperProps) => {
 };
 
 type MiniStepperProps = {
+  disabled: boolean;
   label: string;
   onChange: (value: number) => void;
   step: number;
@@ -378,6 +398,7 @@ type MiniStepperProps = {
 /** A compact +/- control for editing an already-logged set inline, sized to sit
  *  quietly above the primary set input rather than compete with it. */
 const MiniStepper = ({
+  disabled,
   label,
   onChange,
   step,
@@ -386,6 +407,7 @@ const MiniStepper = ({
 }: MiniStepperProps) => (
   <div className={hstack({ gap: 1 })}>
     <Button
+      disabled={disabled}
       label={`Decrease ${label}`}
       onClick={() => onChange(Math.max(0, value - step))}
       size="xs"
@@ -398,6 +420,7 @@ const MiniStepper = ({
       {suffix === undefined ? "" : ` ${suffix}`}
     </span>
     <Button
+      disabled={disabled}
       label={`Increase ${label}`}
       onClick={() => onChange(value + step)}
       size="xs"

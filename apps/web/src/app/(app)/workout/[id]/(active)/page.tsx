@@ -8,6 +8,7 @@ import { WorkoutExecution } from "../../../../../components/WorkoutExecution";
 import { db } from "../../../../../db";
 import { exerciseModalities } from "../../../../../server/exercise-modalities";
 import { exerciseNames } from "../../../../../server/exercise-names";
+import { resumeWorkout } from "../../../../../server/resume-workout";
 import { USER_ID } from "../../../../../user";
 
 export const metadata: Metadata = {
@@ -20,25 +21,48 @@ const WorkoutPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const session = await getWorkoutSession(db, id);
   if (session === undefined) {
     notFound();
-  } else if (session.status === "completed") {
-    redirect(`/workout/${id}/complete`);
   } else {
-    const [names, modalities, decisions, connection] = await Promise.all([
-      exerciseNames(db),
-      exerciseModalities(db),
-      listAdaptationDecisionsBySession(db, id),
-      getConnection(db, USER_ID, "concept2"),
-    ]);
-    return (
-      <WorkoutExecution
-        concept2Connected={connection !== undefined}
-        exerciseModalities={Object.fromEntries(modalities)}
-        exerciseNames={Object.fromEntries(names)}
-        explanations={explanationsByExercise(decisions)}
-        prescribedExercises={session.prescribedExercises}
-        sessionId={id}
-      />
-    );
+    switch (session.status) {
+      case "completed": {
+        // `redirect` and `notFound` never return; returning their call keeps
+        // that visible to the linter, which reads a bare call as fallthrough.
+        return redirect(`/workout/${id}/complete`);
+      }
+      case "in-progress": {
+        const [names, modalities, decisions, connection] = await Promise.all([
+          exerciseNames(db),
+          exerciseModalities(db),
+          listAdaptationDecisionsBySession(db, id),
+          getConnection(db, USER_ID, "concept2"),
+        ]);
+        const resume = resumeWorkout(session);
+        return (
+          // The screen seeds its state from `resume` once, on mount. Keying it
+          // to the exercise the session has reached means a refresh that finds
+          // the workout moved on — recorded from another device — re-seeds it
+          // there instead of leaving the athlete on a position that is gone.
+          <WorkoutExecution
+            concept2Connected={connection !== undefined}
+            exerciseModalities={Object.fromEntries(modalities)}
+            exerciseNames={Object.fromEntries(names)}
+            explanations={explanationsByExercise(decisions)}
+            key={resume.index}
+            prescribedExercises={session.prescribedExercises}
+            resume={resume}
+            sessionId={id}
+          />
+        );
+      }
+      // Every save the screen issues writes conditionally on the session being
+      // in progress, so a session in any other state would render a logger that
+      // records nothing: the page's precondition is the write's precondition.
+      // Switching without a `default` means a new status has to be placed here
+      // deliberately rather than silently landing on the execution screen.
+      case "scheduled":
+      case "skipped": {
+        return notFound();
+      }
+    }
   }
 };
 

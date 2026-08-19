@@ -44,6 +44,7 @@ const pickRpe = (value: number) => {
 type StrengthPrescription = ReturnType<typeof Prescription.Strength>;
 
 type Overrides = {
+  busy?: boolean;
   logged?: readonly SetResult[];
   onComplete?: (result: unknown) => void;
   onEditSet?: (index: number, set: SetResult) => void;
@@ -56,7 +57,7 @@ const renderLogger = (overrides: Overrides = {}) => {
   const rx = overrides.prescription ?? prescription;
   return render(
     <StrengthLogger
-      busy={false}
+      busy={overrides.busy ?? false}
       logged={overrides.logged ?? []}
       onComplete={overrides.onComplete ?? noop}
       onEditSet={overrides.onEditSet ?? noop}
@@ -343,5 +344,21 @@ describe(StrengthLogger, () => {
       },
     );
     expect(result.sets).toEqual(logged);
+  });
+
+  it("withholds the controls that change logged sets while the exercise is being recorded", () => {
+    renderLogger({
+      busy: true,
+      logged: [loggedSet({ reps: 5, setIndex: 0, weight: 100 })],
+    });
+    expect(screen.getByRole("button", { name: "Back" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Increase Set 1 reps" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Decrease Set 1 weight" }),
+    ).toBeDisabled();
+    pickRpe(8);
+    expect(screen.getByRole("button", { name: "Log set" })).toBeDisabled();
   });
 });
