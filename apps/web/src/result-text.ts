@@ -18,6 +18,14 @@ export type LoggedLine = {
   value: string;
 };
 
+/** The parts of an {@link ExerciseResult} a recap reads: the prescription the
+ *  work was measured against and the work itself. Kept narrower than the whole
+ *  result so a session still in progress — which has logged sets but no result
+ *  yet — can be described the same way. */
+export type LoggedWork = Pick<ExerciseResult, "cardio" | "prescription"> & {
+  sets: readonly SetResult[];
+};
+
 /**
  * The recap lines for one logged exercise — a labelled line per set for
  * strength, bodyweight, and timed-hold work, or a single effort summary for a
@@ -25,25 +33,25 @@ export type LoggedLine = {
  * lines. Branches on the result's snapshot prescription so a bodyweight set's
  * placeholder zero load reads as reps rather than "× 0 lb".
  */
-export const loggedExerciseLines = (result: ExerciseResult): LoggedLine[] => {
-  const { prescription } = result;
+export const loggedExerciseLines = (work: LoggedWork): LoggedLine[] => {
+  const { prescription } = work;
   switch (prescription.type) {
     case "strength": {
-      return setLines(result.sets, (each) =>
+      return setLines(work.sets, (each) =>
         strengthSet(each, prescription.unit),
       );
     }
     case "bodyweight": {
-      return setLines(result.sets, repSet);
+      return setLines(work.sets, repSet);
     }
     case "timed-hold": {
-      return setLines(result.sets, holdSet);
+      return setLines(work.sets, holdSet);
     }
     case "timed-cardio":
     case "distance-cardio":
     case "intervals":
     case "circuit": {
-      return [{ label: "", value: cardioSummary(result.cardio) }];
+      return [{ label: "", value: cardioSummary(work.cardio) }];
     }
   }
 };

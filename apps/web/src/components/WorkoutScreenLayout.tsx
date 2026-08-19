@@ -98,7 +98,9 @@ const mainColStyles = css({
 });
 
 // The outline pane: hidden on phones, and on desktop it sticks in view while
-// the work area scrolls through sets.
+// the work area scrolls through sets. It carries the logged sets too, so it
+// scrolls within the viewport rather than running off the bottom on a long
+// session.
 const asideStyles = css({
   display: "none",
   lg: {
@@ -106,6 +108,8 @@ const asideStyles = css({
     flexDirection: "column",
     gap: 4,
     insetBlockStart: 8,
+    maxBlockSize: "calc(100dvh - {spacing.16})",
+    overflowY: "auto",
     position: "sticky",
   },
 });

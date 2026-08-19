@@ -7,9 +7,10 @@ import type { PrescribedExercise } from "@titan/domain/workout-session";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { css } from "../../styled-system/css";
-import { hstack, vstack } from "../../styled-system/patterns";
+import { flex, hstack, vstack } from "../../styled-system/patterns";
 import { describePrescription } from "../prescription-text";
 import { roleTone } from "../role-tone";
+import { sessionOverview } from "../session-overview";
 import { Badge } from "../ui";
 import { CancelWorkoutButton } from "./CancelWorkoutButton";
 import { CardioLogger } from "./CardioLogger";
@@ -17,6 +18,7 @@ import { PrescriptionTarget } from "./PrescriptionTarget";
 import { describePreviousPerformance } from "./previous-performance";
 import { RestTimer } from "./RestTimer";
 import { StrengthLogger } from "./StrengthLogger";
+import { WorkoutOverview, WorkoutOverviewDialog } from "./WorkoutOverview";
 import { WorkoutScreenLayout } from "./WorkoutScreenLayout";
 
 type Props = {
@@ -77,6 +79,13 @@ export const WorkoutExecution = ({
 
   const current = prescribedExercises[index];
   const next = prescribedExercises[index + 1];
+  const overview = sessionOverview({
+    currentIndex: index,
+    exerciseNames,
+    logged,
+    prescribedExercises,
+    results,
+  });
 
   const advance = useCallback(
     (exerciseResult: ExerciseResult) => {
@@ -119,11 +128,10 @@ export const WorkoutExecution = ({
       <WorkoutScreenLayout
         actions={<CancelWorkoutButton sessionId={sessionId} size="sm" />}
         aside={
-          <SessionOutline
-            currentIndex={index}
-            exerciseNames={exerciseNames}
-            prescribedExercises={prescribedExercises}
-          />
+          <div className={outlineStyles}>
+            <span className={outlineTitleStyles}>Session</span>
+            <WorkoutOverview exercises={overview} />
+          </div>
         }
         main={
           <>
@@ -142,15 +150,19 @@ export const WorkoutExecution = ({
 
             <AdaptationNote explanation={explanations[current.exerciseId]} />
 
-            {/* The "up next" hint stands in for the outline on phones. It sits
-                above the logger so the logger stays the last child and its
-                action bar can drop to the bottom of the screen. */}
-            {next !== undefined && (
-              <p className={nextStyles}>
-                Next: {exerciseNames[next.exerciseId] ?? next.exerciseId} ·{" "}
-                {describePrescription(next.prescription)}
-              </p>
-            )}
+            {/* The phone stand-in for the outline rail: the "up next" hint
+                beside the control that opens the whole session. It sits above
+                the logger so the logger stays the last child and its action bar
+                can drop to the bottom of the screen. */}
+            <div className={upNextStyles}>
+              {next !== undefined && (
+                <p className={nextStyles}>
+                  Next: {exerciseNames[next.exerciseId] ?? next.exerciseId} ·{" "}
+                  {describePrescription(next.prescription)}
+                </p>
+              )}
+              <WorkoutOverviewDialog exercises={overview} />
+            </div>
 
             {resting ? (
               <RestTimer
@@ -195,63 +207,6 @@ export const WorkoutExecution = ({
         }
       />
     );
-  }
-};
-
-/**
- * The full session at a glance — every exercise with the current one
- * highlighted, done ones dimmed, upcoming ones muted. Shown in the desktop
- * side pane where there's room for standing context; on phones the compact
- * "Next:" line stands in for it instead.
- */
-const SessionOutline = ({
-  currentIndex,
-  exerciseNames,
-  prescribedExercises,
-}: {
-  currentIndex: number;
-  exerciseNames: Record<string, string>;
-  prescribedExercises: readonly PrescribedExercise[];
-}) => (
-  <div className={outlineStyles}>
-    <span className={outlineTitleStyles}>Session</span>
-    <ol className={outlineListStyles}>
-      {prescribedExercises.map((exercise, position) => (
-        <li
-          className={outlineRowStyles}
-          data-state={outlineState(position, currentIndex)}
-          key={exercise.slotId}
-        >
-          <span className={outlineBadgeStyles}>{position + 1}</span>
-          <span className={outlineTextStyles}>
-            <span className={outlineNameStyles}>
-              {exerciseNames[exercise.exerciseId] ?? exercise.exerciseId}
-            </span>
-            <span className={outlineTargetStyles}>
-              {describePrescription(exercise.prescription)}
-            </span>
-          </span>
-        </li>
-      ))}
-    </ol>
-  </div>
-);
-
-/** Where an exercise sits relative to the one in progress, for outline styling. */
-const outlineState = (
-  position: number,
-  currentIndex: number,
-): "current" | "done" | "upcoming" => {
-  switch (Math.sign(position - currentIndex)) {
-    case -1: {
-      return "done";
-    }
-    case 0: {
-      return "current";
-    }
-    default: {
-      return "upcoming";
-    }
   }
 };
 
@@ -387,44 +342,6 @@ const outlineTitleStyles = css({
   textTransform: "uppercase",
 });
 
-const outlineListStyles = css({
-  display: "flex",
-  flexDirection: "column",
-  gap: 2.5,
-  listStyleType: "none",
-  margin: 0,
-  padding: 0,
-});
-
-const outlineRowStyles = css({
-  "&[data-state='current']": { color: "accent" },
-  "&[data-state='done']": { color: "textTertiary" },
-  alignItems: "baseline",
-  color: "muted",
-  display: "flex",
-  gap: 2.5,
-});
-
-const outlineBadgeStyles = css({
-  fontFamily: "mono",
-  fontSize: "xs",
-  fontVariantNumeric: "tabular-nums",
-  fontWeight: "bold",
-  minInlineSize: 4,
-  textAlign: "end",
-});
-
-const outlineTextStyles = css({
-  display: "flex",
-  flexDirection: "column",
-  gap: 0.5,
-  minInlineSize: 0,
-});
-
-const outlineNameStyles = css({ fontSize: "sm", fontWeight: "medium" });
-
-const outlineTargetStyles = css({ color: "textTertiary", fontSize: "xs" });
-
 const nameStyles = css({
   fontFamily: "condensed",
   fontSize: "3xl",
@@ -450,12 +367,17 @@ const adaptationStyles = css({
   paddingInlineStart: 3,
 });
 
-const nextStyles = css({
-  color: "textTertiary",
-  fontSize: "sm",
+// Hidden from `lg` up, where the standing outline rail carries the same ground
+// in full. Wraps to its own line when the hint and the control won't share one.
+const upNextStyles = flex({
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: 2,
+  justifyContent: "center",
   lg: { display: "none" },
-  textAlign: "center",
 });
+
+const nextStyles = css({ color: "textTertiary", fontSize: "sm" });
 
 const mutedStyles = css({ color: "muted" });
 
