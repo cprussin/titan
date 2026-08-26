@@ -29,9 +29,16 @@ const barStyles = css({
   gap: 3,
   // Lands right on top of AppNav's phone tab bar rather than under it. That bar
   // is `paddingBlockStart 2 + item 14 + paddingBlockEnd max(2, safe-area)` tall,
-  // i.e. `max(18, safe-area + 16)`; the workout screen reserves the same band in
-  // its fill height (see WorkoutScreenLayout) so the pinned and scrolled
-  // positions agree.
+  // i.e. `max(18, safe-area + 16)` — plus its own 1px `borderBlockStart`, which
+  // this band deliberately doesn't count. The bar's bottom edge lands 1px inside
+  // the nav as a result, but the bar has no rule on that edge, and the nav paints
+  // its hairline over the bar's last pixel of fill from the higher layer
+  // (`zIndex` 10 vs 5), so the seam still reads as a single hairline. The workout
+  // screen reserves the same band both in its fill height and at the end of its
+  // scroll column (see WorkoutScreenLayout) so the pinned and scrolled positions
+  // agree — without the latter, the bar would still be pinned a band up at the
+  // bottom of the scroll and would sit over content the athlete could no longer
+  // reach.
   insetBlockEnd:
     "max({spacing.18}, calc(env(safe-area-inset-bottom) + {spacing.16}))",
   lg: {
