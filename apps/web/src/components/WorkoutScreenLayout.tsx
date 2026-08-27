@@ -45,7 +45,7 @@ export const WorkoutScreenLayout = ({
 // into the work area plus a standing session outline. Below `lg` it also fills
 // the viewport height: the workout FAB is hidden on this route (see
 // WorkoutActionButton), so reclaim main's FAB-clearance bottom padding with a
-// matching negative margin and stretch down to just above the bottom tab bar.
+// negative margin and stretch down to just above the bottom tab bar.
 // `dvh` accounts for mobile browser chrome; the reserved tab-bar band matches
 // AppNav's height so the pinned action bar lands on top of the bar, not under
 // it. This gives the action bar the room to drop all the way to the bottom of
@@ -61,7 +61,17 @@ const rootStyles = css({
     marginBlockEnd: 0,
     minBlockSize: "auto",
   },
-  marginBlockEnd: "calc(-1 * (env(safe-area-inset-bottom) + {spacing.53}))",
+  // Reclaim main's FAB clearance, but leave the tab-bar band standing at the end
+  // of the column rather than taking all of it. The action bar pins that band
+  // above the viewport floor (see WorkoutActionBar); a column ending flush with
+  // the page would put the bar's resting place a band *below* where it pins, so
+  // at the very bottom of the scroll it still floats over the last band's worth
+  // of content — the RPE picker, on a long set — with no scroll left to bring
+  // that content out from under it. Ending the column a band short puts the
+  // bar's resting place exactly where it pins to, so the set inputs clear it.
+  // Same band as the fill height below, so short and long columns agree.
+  marginBlockEnd:
+    "calc(max({spacing.18}, calc(env(safe-area-inset-bottom) + {spacing.16})) - env(safe-area-inset-bottom) - {spacing.53})",
   md: {
     // The `mdToLg` window drops the phone tab bar (nav is an off-canvas drawer)
     // and steps main's block-start padding to 6 and its FAB clearance to 33.
