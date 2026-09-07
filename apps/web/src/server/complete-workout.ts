@@ -14,10 +14,12 @@ import {
 import type { AdaptationDecision } from "@titan/domain/adaptation-decision";
 import { estimateOneRepMax } from "@titan/domain/one-rep-max";
 import type { PersonalRecord } from "@titan/domain/personal-record";
+import type { ProgramVersion } from "@titan/domain/program";
 import type { ExerciseResult } from "@titan/domain/result";
 import type { WorkoutSession } from "@titan/domain/workout-session";
 import { detectPersonalRecords } from "./detect-personal-records";
 import { finishWorkoutSession } from "./finish-workout-session";
+import { repeatWeekPlacement } from "./repeat-week-placement";
 
 export enum CompletionOutcome {
   Completed,
@@ -43,14 +45,14 @@ export type CompletionResult = ReturnType<
 
 /**
  * Finalize a session: store its results, detect personal records, and — if it
- * was the last scheduled day of the week — run weekly adaptation and advance the
- * athlete's position. Everything that follows from the completion runs only once
- * the write has claimed the session — against the very row this call read — so a
- * second device finishing the same workout, or one that recorded an exercise
- * between this call's read and its write, mints no duplicate records and
- * advances no week twice. The db
- * reads/writes that decide it are injected so the outcome is unit-testable (see
- * TESTING.md).
+ * was the last scheduled day of the week — run weekly adaptation, which re-places
+ * the athlete when the week has to be repeated (their position otherwise moves on
+ * with the weeks they train; see `absoluteWeekFor`). Everything that follows from
+ * the completion runs only once the write has claimed the session — against the
+ * very row this call read — so a second device finishing the same workout, or one
+ * that recorded an exercise between this call's read and its write, mints no
+ * duplicate records and reviews no week twice. The db reads/writes that decide it
+ * are injected so the outcome is unit-testable (see TESTING.md).
  */
 export const completeWorkout = async (
   db: Db,
@@ -83,7 +85,7 @@ export const completeWorkout = async (
         personalRecords.map((record) => upsertPersonalRecord(db, record)),
       );
 
-      await maybeAdvanceWeek(db, userId, completed);
+      await maybeReviewWeek(db, userId, completed);
       return CompletionResult.Completed(personalRecords);
     } else {
       return CompletionResult.SessionClosed();
@@ -123,7 +125,9 @@ const priorOneRepMaxByExercise = async (
   return best;
 };
 
-const maybeAdvanceWeek = async (
+/** Weekly adaptation runs once the week's last scheduled day is logged, on the
+ *  week that day belongs to. */
+const maybeReviewWeek = async (
   db: Db,
   userId: string,
   session: WorkoutSession,
@@ -132,23 +136,27 @@ const maybeAdvanceWeek = async (
   const block = programVersion?.blocks.find(
     (entry) => entry.id === session.blockId,
   );
-  const lastScheduledDay =
-    block === undefined
-      ? undefined
-      : Math.max(...block.weekTemplate.days.map((day) => day.dayOfWeek));
   if (
+    programVersion !== undefined &&
     block !== undefined &&
-    lastScheduledDay !== undefined &&
-    session.dayOfWeek === lastScheduledDay
+    session.dayOfWeek ===
+      Math.max(...block.weekTemplate.days.map((day) => day.dayOfWeek))
   ) {
-    await advanceWeek(db, userId, session, block.deloadEveryWeeks);
+    await reviewWeek(
+      db,
+      userId,
+      session,
+      programVersion,
+      block.deloadEveryWeeks,
+    );
   }
 };
 
-const advanceWeek = async (
+const reviewWeek = async (
   db: Db,
   userId: string,
   session: WorkoutSession,
+  programVersion: ProgramVersion,
   deloadEveryWeeks: number | undefined,
 ): Promise<void> => {
   const weekSessions = await listWorkoutSessions(db, userId, 100);
@@ -165,16 +173,29 @@ const advanceWeek = async (
     ...(note.details === undefined ? {} : { details: note.details }),
   };
   await insertAdaptationDecisions(db, [decision]);
+  if (note.action === "repeat-week") {
+    await repeatWeek(db, userId, session, programVersion);
+  }
+};
+
+/** Re-place the athlete so the coming week runs the one they just trained. */
+const repeatWeek = async (
+  db: Db,
+  userId: string,
+  session: WorkoutSession,
+  programVersion: ProgramVersion,
+): Promise<void> => {
   const state = await getAthleteState(db, userId);
   if (state !== undefined) {
-    await setAthleteState(db, {
-      ...state,
-      absoluteWeek:
-        note.action === "repeat-week"
-          ? state.absoluteWeek
-          : state.absoluteWeek + 1,
-      updatedAt: new Date().toISOString(),
-    });
+    await setAthleteState(
+      db,
+      repeatWeekPlacement(
+        state,
+        programVersion,
+        session,
+        new Date().toISOString(),
+      ),
+    );
   }
 };
 

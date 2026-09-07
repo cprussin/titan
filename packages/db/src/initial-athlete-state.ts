@@ -17,6 +17,7 @@ export const initialAthleteState = (
   } else {
     return {
       absoluteWeek: 1,
+      placedOn: now.slice(0, 10),
       programVersionId: firstProgramVersionId,
       updatedAt: now,
       userId,

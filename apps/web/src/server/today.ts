@@ -1,12 +1,14 @@
 import { getAthleteState } from "@titan/db/athlete-state";
 import type { Db } from "@titan/db/client";
 import { getProgramVersion } from "@titan/db/program-versions";
+import { listCompletedWorkoutDates } from "@titan/db/workout-sessions";
 import type { ProgramVersion, SessionTemplate } from "@titan/domain/program";
 import type { ResolvedSession } from "@titan/program-engine/resolve-session";
 import { resolveSession } from "@titan/program-engine/resolve-session";
 import type { ProgramPosition } from "@titan/program-engine/schedule";
 import { resolvePosition } from "@titan/program-engine/schedule";
 import { isoDayOfWeek } from "../date";
+import { athleteAbsoluteWeek } from "./athlete-absolute-week";
 import { buildSlotHistory, historyLookup } from "./slot-history";
 
 /** What the athlete faces on a given day: a resolved workout, a rest day, or a
@@ -26,19 +28,33 @@ export type Today =
   | { kind: "no-program" };
 
 /**
- * Resolve the athlete's day from their current program position and history.
- * Pure of side effects beyond reads; the resolution itself is deterministic
- * (see the program engine).
+ * Resolve the athlete's day — `scheduledDate` is today — from the program week
+ * their training history puts them in, and that history. Pure of side effects
+ * beyond reads; the resolution itself is deterministic (see the program
+ * engine).
  */
 export const resolveToday = async (
   db: Db,
   userId: string,
   scheduledDate: string,
 ): Promise<Today> => {
-  const state = await getAthleteState(db, userId);
+  const [state, completedDates] = await Promise.all([
+    getAthleteState(db, userId),
+    listCompletedWorkoutDates(db, userId),
+  ]);
   return state === undefined
     ? { kind: "no-program" }
-    : resolveScheduledDay(db, userId, state.absoluteWeek, scheduledDate);
+    : resolveScheduledDay(
+        db,
+        userId,
+        athleteAbsoluteWeek(
+          state,
+          completedDates,
+          scheduledDate,
+          scheduledDate,
+        ),
+        scheduledDate,
+      );
 };
 
 /**

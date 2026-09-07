@@ -1,11 +1,12 @@
-import { getAthleteState } from "@titan/db/athlete-state";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { BlockContent } from "../../../../../../components/BlockContent";
 import { db } from "../../../../../../db";
 import { isActiveBlock } from "../../../../../../server/active-block";
+import { athletePosition } from "../../../../../../server/athlete-position";
 import { exerciseNames } from "../../../../../../server/exercise-names";
+import { todayIso } from "../../../../../../server/local-date";
 import { findBlockContext } from "../../../../../../server/program-explorer";
 import { USER_ID } from "../../../../../../user";
 
@@ -20,11 +21,12 @@ const BlockPage = async ({
   params: Promise<{ blockId: string; versionId: string }>;
 }) => {
   const { blockId, versionId } = await params;
-  const [programs, versions, names, state] = await Promise.all([
+  const today = await todayIso();
+  const [programs, versions, names, position] = await Promise.all([
     listPrograms(db),
     listProgramVersions(db),
     exerciseNames(db),
-    getAthleteState(db, USER_ID),
+    athletePosition(db, USER_ID, today),
   ]);
   const context = findBlockContext(programs, versions, versionId, blockId);
   if (context === undefined) {
@@ -35,7 +37,7 @@ const BlockPage = async ({
         load={{
           isLoading: false,
           value: {
-            active: isActiveBlock(state, context.version, blockId),
+            active: isActiveBlock(position, context.version, blockId),
             context,
             names,
           },

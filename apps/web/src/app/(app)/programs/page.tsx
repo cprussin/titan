@@ -1,5 +1,3 @@
-import type { AthleteState } from "@titan/db/athlete-state";
-import { getAthleteState } from "@titan/db/athlete-state";
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
 import type { Metadata } from "next";
@@ -7,6 +5,9 @@ import type { ProgramCardData } from "../../../components/ProgramsContent";
 import { ProgramsContent } from "../../../components/ProgramsContent";
 import { db } from "../../../db";
 import { isActiveBlock } from "../../../server/active-block";
+import type { AthletePosition } from "../../../server/athlete-position";
+import { athletePosition } from "../../../server/athlete-position";
+import { todayIso } from "../../../server/local-date";
 import type { ProgramWithVersion } from "../../../server/program-explorer";
 import { latestPrograms } from "../../../server/program-explorer";
 import { USER_ID } from "../../../user";
@@ -17,14 +18,15 @@ export const metadata: Metadata = {
 };
 
 const ProgramsPage = async () => {
-  const [programs, versions, state] = await Promise.all([
+  const today = await todayIso();
+  const [programs, versions, position] = await Promise.all([
     listPrograms(db),
     listProgramVersions(db),
-    getAthleteState(db, USER_ID),
+    athletePosition(db, USER_ID, today),
   ]);
   const entries = latestPrograms(programs, versions);
   const activeEntry = entries.find(
-    (entry) => entry.version.id === state?.programVersionId,
+    (entry) => entry.version.id === position?.programVersionId,
   );
   const others = entries.filter((entry) => entry !== activeEntry);
 
@@ -36,8 +38,8 @@ const ProgramsPage = async () => {
           active:
             activeEntry === undefined
               ? undefined
-              : programCard(activeEntry, state),
-          others: others.map((entry) => programCard(entry, state)),
+              : programCard(activeEntry, position),
+          others: others.map((entry) => programCard(entry, position)),
         },
       }}
     />
@@ -50,10 +52,10 @@ export default ProgramsPage;
  *  carrying the summary line and whether it is the athlete's active block. */
 const programCard = (
   { program, version }: ProgramWithVersion,
-  state: AthleteState | undefined,
+  position: AthletePosition | undefined,
 ): ProgramCardData => ({
   blocks: version.blocks.map((block) => ({
-    active: isActiveBlock(state, version, block.id),
+    active: isActiveBlock(position, version, block.id),
     id: block.id,
     meta: describeBlock(block),
     name: block.name,

@@ -5,6 +5,7 @@ import { listExternalWorkouts } from "@titan/db/external-workouts";
 import { getProgramVersion, listPrograms } from "@titan/db/program-versions";
 import {
   getWorkoutSessionByDate,
+  listCompletedWorkoutDates,
   listWorkoutSessions,
 } from "@titan/db/workout-sessions";
 import type { Metadata } from "next";
@@ -13,6 +14,7 @@ import type { DashboardData } from "../../components/DashboardContent";
 import { DashboardContent } from "../../components/DashboardContent";
 import { db } from "../../db";
 import { programName } from "../../program-name";
+import { athleteAbsoluteWeek } from "../../server/athlete-absolute-week";
 import { dashboardView } from "../../server/dashboard-view";
 import { exerciseNames } from "../../server/exercise-names";
 import { todayIso } from "../../server/local-date";
@@ -21,7 +23,7 @@ import { buildSlotHistory, historyLookup } from "../../server/slot-history";
 import type { Today } from "../../server/today";
 import { resolveScheduledDay } from "../../server/today";
 import { trendsSummary } from "../../server/trends-summary";
-import { dayLabel, weekDates } from "../../server/week-dates";
+import { dayLabel, offsetWeekStart, weekDates } from "../../server/week-dates";
 import {
   completedSessionsByDate,
   weekSchedule,
@@ -48,22 +50,36 @@ const DashboardPage = async ({
   const weekOffset = selectWeek(params.week);
   const selectedDate = selectDate(params.date, today);
 
-  const [state, names, programs, sessions, metrics, externals, historyMap] =
-    await Promise.all([
-      getAthleteState(db, USER_ID),
-      exerciseNames(db),
-      listPrograms(db),
-      listWorkoutSessions(db, USER_ID, 100),
-      listBodyMetrics(db, USER_ID, 60),
-      listExternalWorkouts(db, USER_ID, 100),
-      buildSlotHistory(db, USER_ID),
-    ]);
+  const [
+    state,
+    names,
+    programs,
+    sessions,
+    metrics,
+    externals,
+    historyMap,
+    completedDates,
+  ] = await Promise.all([
+    getAthleteState(db, USER_ID),
+    exerciseNames(db),
+    listPrograms(db),
+    listWorkoutSessions(db, USER_ID, 100),
+    listBodyMetrics(db, USER_ID, 60),
+    listExternalWorkouts(db, USER_ID, 100),
+    buildSlotHistory(db, USER_ID),
+    listCompletedWorkoutDates(db, USER_ID),
+  ]);
 
   const programVersion =
     state === undefined
       ? undefined
       : await getProgramVersion(db, state.programVersionId);
-  const absoluteWeek = (state?.absoluteWeek ?? 1) + weekOffset;
+  const absoluteWeek = athleteAbsoluteWeek(
+    state,
+    completedDates,
+    today,
+    offsetWeekStart(today, weekOffset),
+  );
 
   const selected = await resolveScheduledDay(
     db,

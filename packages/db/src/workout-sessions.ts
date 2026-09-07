@@ -3,8 +3,20 @@ import type {
   WorkoutSession,
 } from "@titan/domain/workout-session";
 import { workoutSessionSchema } from "@titan/domain/workout-session";
+import { z } from "zod";
 import type { Db } from "./client";
 import { parseDataRows, parseFirstDataRow } from "./parse-rows";
+
+const completedWorkoutDateSchema = z.object({
+  programVersionId: z.string(),
+  scheduledDate: z.string(),
+});
+
+const completedWorkoutDatesSchema = z.array(completedWorkoutDateSchema);
+
+/** A day the athlete completed a session on, and the program version it was
+ *  prescribed from. */
+export type CompletedWorkoutDate = z.infer<typeof completedWorkoutDateSchema>;
 
 export const getWorkoutSession = async (
   db: Db,
@@ -27,6 +39,31 @@ export const getWorkoutSessionByDate = async (
     ORDER BY status DESC LIMIT 1
   `;
   return parseFirstDataRow(workoutSessionSchema, rows);
+};
+
+/**
+ * The days the athlete completed a session on, oldest first. Read unwindowed —
+ * the athlete's program week is counted from the calendar weeks they trained, so
+ * dropping the oldest of them would rewind their position — and so it selects
+ * the two columns that counting needs rather than whole session documents.
+ */
+export const listCompletedWorkoutDates = async (
+  db: Db,
+  userId: string,
+): Promise<readonly CompletedWorkoutDate[]> => {
+  const rows = await db<
+    { program_version_id: string; scheduled_date: string }[]
+  >`
+    SELECT DISTINCT program_version_id, scheduled_date FROM workout_sessions
+    WHERE user_id = ${userId} AND status = 'completed'
+    ORDER BY scheduled_date
+  `;
+  return completedWorkoutDatesSchema.parse(
+    rows.map((row) => ({
+      programVersionId: row.program_version_id,
+      scheduledDate: row.scheduled_date,
+    })),
+  );
 };
 
 export const listWorkoutSessions = async (

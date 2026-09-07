@@ -1,3 +1,4 @@
+import { weekStart } from "@titan/program-engine/calendar-week";
 import { isoDayOfWeek } from "../date";
 
 /** Uppercase ISO-weekday abbreviations, indexed by `isoDayOfWeek - 1`. */
@@ -23,14 +24,22 @@ const addDays = (date: string, offset: number): string => {
 };
 
 /**
+ * The Monday that opens the week `weekOffset` weeks from the one containing
+ * `date` — 0 is that week, 1 the next, −1 the previous. The week the picker is
+ * showing is what the athlete's absolute week is resolved from, so the caret
+ * offset resolves to a date rather than being counted in weeks.
+ */
+export const offsetWeekStart = (date: string, weekOffset = 0): string =>
+  addDays(weekStart(date), weekOffset * 7);
+
+/**
  * The seven `YYYY-MM-DD` dates of an ISO week (Monday → Sunday). `weekOffset`
- * pages whole weeks off the week containing `date` — 0 is that week, 1 the next,
- * −1 the previous — so the picker's carets can move beyond the current week. A
- * program week shares a single absolute-week index, so each returned week reads
- * left-to-right as one week.
+ * pages whole weeks off the week containing `date`, as
+ * {@link offsetWeekStart} does. A program week shares a single absolute-week
+ * index, so each returned week reads left-to-right as one week.
  */
 export const weekDates = (date: string, weekOffset = 0): readonly string[] => {
-  const monday = addDays(date, -(isoDayOfWeek(date) - 1) + weekOffset * 7);
+  const monday = offsetWeekStart(date, weekOffset);
   return Array.from({ length: 7 }, (_, offset) => addDays(monday, offset));
 };
 
