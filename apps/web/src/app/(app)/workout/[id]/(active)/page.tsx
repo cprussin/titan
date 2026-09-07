@@ -4,6 +4,7 @@ import { getWorkoutSession } from "@titan/db/workout-sessions";
 import type { AdaptationDecision } from "@titan/domain/adaptation-decision";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
+import { requireAuth } from "../../../../../auth/session";
 import { WorkoutExecution } from "../../../../../components/WorkoutExecution";
 import { db } from "../../../../../db";
 import { exerciseModalities } from "../../../../../server/exercise-modalities";
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
 };
 
 const WorkoutPage = async ({ params }: { params: Promise<{ id: string }> }) => {
+  await requireAuth();
   const { id } = await params;
   const session = await getWorkoutSession(db, id);
   if (session === undefined) {

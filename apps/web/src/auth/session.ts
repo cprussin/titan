@@ -24,9 +24,14 @@ export const getSession = async (): Promise<SessionUser | undefined> => {
     : verifySession(env.AUTH_SESSION_SECRET, token);
 };
 
-/** Redirect to the login screen unless the request is authenticated, otherwise
- *  return the signed-in user. Call at the top of every protected server
- *  component / page. */
+/**
+ * Redirect to the login screen unless the request is authenticated, otherwise
+ * return the signed-in user. Await it at the top of every protected server
+ * component / page, before any database work — a page renders in parallel with
+ * its layout, so the layout's call orders nothing for the page, and the schema
+ * is brought up to date on first use ({@link ensureDbReady}). A query issued
+ * beside this one can therefore reach a database a deploy has not migrated yet.
+ */
 export const requireAuth = async (): Promise<SessionUser> => {
   // The auth check reads cookies first, which marks the route dynamic (and, at
   // build time, bails out of prerendering) before any database work runs.

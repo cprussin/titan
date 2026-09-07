@@ -1,6 +1,7 @@
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { requireAuth } from "../../../../../../auth/session";
 import { BlockContent } from "../../../../../../components/BlockContent";
 import { db } from "../../../../../../db";
 import { isActiveBlock } from "../../../../../../server/active-block";
@@ -20,6 +21,7 @@ const BlockPage = async ({
 }: {
   params: Promise<{ blockId: string; versionId: string }>;
 }) => {
+  await requireAuth();
   const { blockId, versionId } = await params;
   const today = await todayIso();
   const [programs, versions, names, position] = await Promise.all([

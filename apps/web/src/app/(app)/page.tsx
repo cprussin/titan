@@ -10,6 +10,7 @@ import {
 } from "@titan/db/workout-sessions";
 import type { Metadata } from "next";
 import { z } from "zod";
+import { requireAuth } from "../../auth/session";
 import type { DashboardData } from "../../components/DashboardContent";
 import { DashboardContent } from "../../components/DashboardContent";
 import { db } from "../../db";
@@ -45,6 +46,7 @@ const DashboardPage = async ({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) => {
+  await requireAuth();
   const today = await todayIso();
   const params = await searchParams;
   const weekOffset = selectWeek(params.week);

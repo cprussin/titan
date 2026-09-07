@@ -1,6 +1,7 @@
 import { listPrograms, listProgramVersions } from "@titan/db/program-versions";
 import type { TrainingBlock } from "@titan/domain/program";
 import type { Metadata } from "next";
+import { requireAuth } from "../../../auth/session";
 import type { ProgramCardData } from "../../../components/ProgramsContent";
 import { ProgramsContent } from "../../../components/ProgramsContent";
 import { db } from "../../../db";
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
 };
 
 const ProgramsPage = async () => {
+  await requireAuth();
   const today = await todayIso();
   const [programs, versions, position] = await Promise.all([
     listPrograms(db),

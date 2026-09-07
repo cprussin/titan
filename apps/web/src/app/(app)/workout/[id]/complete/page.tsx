@@ -2,6 +2,7 @@ import { listPersonalRecords } from "@titan/db/personal-records";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { requireAuth } from "../../../../../auth/session";
 import type { CompleteData } from "../../../../../components/CompleteContent";
 import { CompleteContent } from "../../../../../components/CompleteContent";
 import { db } from "../../../../../db";
@@ -20,6 +21,7 @@ const CompletePage = async ({
 }: {
   params: Promise<{ id: string }>;
 }) => {
+  await requireAuth();
   const { id } = await params;
   const session = await getWorkoutSession(db, id);
   if (session === undefined) {

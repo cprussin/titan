@@ -1,6 +1,7 @@
 import { listWorkoutSessions } from "@titan/db/workout-sessions";
 import type { WorkoutSession } from "@titan/domain/workout-session";
 import type { Metadata } from "next";
+import { requireAuth } from "../../../auth/session";
 import type { HistoryRow } from "../../../components/HistoryContent";
 import { HistoryContent } from "../../../components/HistoryContent";
 import { db } from "../../../db";
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 const HistoryPage = async () => {
+  await requireAuth();
   const [sessions, names] = await Promise.all([
     listWorkoutSessions(db, USER_ID, 60),
     templateNames(db),
