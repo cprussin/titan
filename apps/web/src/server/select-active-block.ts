@@ -5,15 +5,17 @@ import { blockStartWeek } from "./active-block";
 
 /**
  * Make a program block the athlete's active position: point their state at the
- * block's version and reset their absolute week to that block's first week.
- * Selecting a program is selecting its opening block. The db reads/writes are
- * injected so the orchestration is unit-testable (see TESTING.md).
+ * block's version, at that block's first week, placed in the calendar week
+ * containing `today`. Selecting a program is selecting its opening block. The db
+ * reads/writes are injected so the orchestration is unit-testable (see
+ * TESTING.md).
  */
 export const selectActiveBlock = async (
   db: Db,
   userId: string,
   versionId: string,
   blockId: string,
+  today: string,
   getProgramVersion: typeof defaultGetProgramVersion = defaultGetProgramVersion,
   setAthleteState: typeof defaultSetAthleteState = defaultSetAthleteState,
   now: () => string = () => new Date().toISOString(),
@@ -24,6 +26,7 @@ export const selectActiveBlock = async (
   } else {
     await setAthleteState(db, {
       absoluteWeek: blockStartWeek(version, blockId),
+      placedOn: today,
       programVersionId: versionId,
       updatedAt: now(),
       userId,

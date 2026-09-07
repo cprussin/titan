@@ -1,13 +1,17 @@
 import { getAthleteState as defaultGetAthleteState } from "@titan/db/athlete-state";
 import type { Db } from "@titan/db/client";
 import { getProgramVersion as defaultGetProgramVersion } from "@titan/db/program-versions";
-import { listWorkoutSessions as defaultListWorkoutSessions } from "@titan/db/workout-sessions";
+import {
+  listCompletedWorkoutDates as defaultListCompletedWorkoutDates,
+  listWorkoutSessions as defaultListWorkoutSessions,
+} from "@titan/db/workout-sessions";
+import { athleteAbsoluteWeek } from "./athlete-absolute-week";
 import { exerciseNames as defaultExerciseNames } from "./exercise-names";
 import {
   buildSlotHistory as defaultBuildSlotHistory,
   historyLookup,
 } from "./slot-history";
-import { weekDates } from "./week-dates";
+import { offsetWeekStart, weekDates } from "./week-dates";
 import type { WeekDay } from "./week-day";
 import { completedSessionsByDate, weekSchedule } from "./week-schedule";
 
@@ -32,19 +36,27 @@ export const loadWeekSchedule = async (
   listWorkoutSessions: typeof defaultListWorkoutSessions = defaultListWorkoutSessions,
   exerciseNames: typeof defaultExerciseNames = defaultExerciseNames,
   buildSlotHistory: typeof defaultBuildSlotHistory = defaultBuildSlotHistory,
+  listCompletedWorkoutDates: typeof defaultListCompletedWorkoutDates = defaultListCompletedWorkoutDates,
 ): Promise<readonly WeekDay[]> => {
-  const [state, names, sessions, historyMap] = await Promise.all([
-    getAthleteState(db, userId),
-    exerciseNames(db),
-    listWorkoutSessions(db, userId, SESSION_WINDOW),
-    buildSlotHistory(db, userId),
-  ]);
+  const [state, names, sessions, historyMap, completedDates] =
+    await Promise.all([
+      getAthleteState(db, userId),
+      exerciseNames(db),
+      listWorkoutSessions(db, userId, SESSION_WINDOW),
+      buildSlotHistory(db, userId),
+      listCompletedWorkoutDates(db, userId),
+    ]);
   const programVersion =
     state === undefined
       ? undefined
       : await getProgramVersion(db, state.programVersionId);
   return weekSchedule({
-    absoluteWeek: (state?.absoluteWeek ?? 1) + weekOffset,
+    absoluteWeek: athleteAbsoluteWeek(
+      state,
+      completedDates,
+      today,
+      offsetWeekStart(today, weekOffset),
+    ),
     historyBySlot: historyLookup(historyMap),
     loggedByDate: completedSessionsByDate(sessions),
     names,

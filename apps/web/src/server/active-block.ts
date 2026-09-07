@@ -41,10 +41,10 @@ export const activeBlockId = (
  * active version is this one and their absolute week falls within this block.
  */
 export const isActiveBlock = (
-  state: { absoluteWeek: number; programVersionId: string } | undefined,
+  position: { absoluteWeek: number; programVersionId: string } | undefined,
   version: ProgramVersion,
   blockId: string,
 ): boolean =>
-  state !== undefined &&
-  state.programVersionId === version.id &&
-  activeBlockId(version, state.absoluteWeek) === blockId;
+  position !== undefined &&
+  position.programVersionId === version.id &&
+  activeBlockId(version, position.absoluteWeek) === blockId;

@@ -9,6 +9,8 @@
     "typescript": "catalog:"
   },
   "exports": {
+    "./absolute-week": "./src/absolute-week.ts",
+    "./calendar-week": "./src/calendar-week.ts",
     "./next-adaptations": "./src/next-adaptations.ts",
     "./resolve-session": "./src/resolve-session.ts",
     "./schedule": "./src/schedule.ts",

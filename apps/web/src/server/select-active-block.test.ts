@@ -30,6 +30,7 @@ describe("selectActiveBlock", () => {
       "u1",
       "v1",
       "build",
+      "2026-08-09",
       () => Promise.resolve(version),
       (_db, state) => {
         saved.push(state);
@@ -40,6 +41,7 @@ describe("selectActiveBlock", () => {
     expect(saved).toEqual([
       {
         absoluteWeek: 5,
+        placedOn: "2026-08-09",
         programVersionId: "v1",
         updatedAt: "2026-08-09T00:00:00.000Z",
         userId: "u1",
@@ -54,6 +56,7 @@ describe("selectActiveBlock", () => {
         "u1",
         "missing",
         "build",
+        "2026-08-09",
         () => Promise.resolve(undefined),
         () => Promise.resolve(),
       ),

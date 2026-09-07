@@ -20,6 +20,7 @@ describe("initialAthleteState", () => {
       ),
     ).toEqual({
       absoluteWeek: 1,
+      placedOn: "2026-01-01",
       programVersionId: "athletic-health-foundation-v1",
       updatedAt: "2026-01-01T00:00:00.000Z",
       userId: "default",

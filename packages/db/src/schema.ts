@@ -36,8 +36,10 @@ CREATE TABLE IF NOT EXISTS athlete_state (
   user_id text PRIMARY KEY,
   program_version_id text NOT NULL,
   absolute_week integer NOT NULL,
+  placed_on text,
   updated_at text NOT NULL
 );
+ALTER TABLE athlete_state ADD COLUMN IF NOT EXISTS placed_on text;
 
 CREATE TABLE IF NOT EXISTS workout_sessions (
   id text PRIMARY KEY,
