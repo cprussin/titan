@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 };
 
 const SettingsPage = async () => {
-  const [user, connection, externals] = await Promise.all([
-    requireAuth(),
+  const user = await requireAuth();
+  const [connection, externals] = await Promise.all([
     getConnection(db, USER_ID, "concept2"),
     listExternalWorkouts(db, USER_ID, 100),
   ]);
