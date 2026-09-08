@@ -90,6 +90,8 @@ export const TrendsBand = ({ load }: Props) => {
 const extrasRegionId = "trends-band-extras";
 
 type TrendColumnData = {
+  /** Renders one point of the series in the column's own unit. */
+  format: (value: number) => string;
   label: string;
   value: string;
   values: readonly number[];
@@ -111,34 +113,52 @@ const renderColumn = (
   );
 };
 
-/** One non-editable trend column: label, latest value, sparkline — each a
- *  skeleton while loading. */
+/** One non-editable trend column: label, value, sparkline — each a skeleton
+ *  while loading. The value follows the point being read off the sparkline,
+ *  falling back to the series' latest once the reading ends. */
 const TrendColumn = ({
   load,
   slot,
 }: {
   load: Loadable<TrendColumnData>;
   slot: ColumnSlot;
-}) => (
-  <div className={columnStyles({ slot })}>
-    {load.isLoading ? (
-      <>
-        <Skeleton height="0.875rem" width="7rem" />
-        <Skeleton height="1.875rem" radius="md" width="4.5rem" />
-        <SparklineSkeleton />
-      </>
-    ) : (
-      <>
-        <span className={labelStyles}>{load.value.label}</span>
-        <span className={valueStyles}>{load.value.value}</span>
-        <Sparkline
-          label={`${load.value.label} trend`}
-          values={load.value.values}
-        />
-      </>
-    )}
-  </div>
-);
+}) => {
+  const [activeIndex, setActiveIndex] = useState<number>();
+  return (
+    <div className={columnStyles({ slot })}>
+      {load.isLoading ? (
+        <>
+          <Skeleton height="0.875rem" width="7rem" />
+          <Skeleton height="1.875rem" radius="md" width="4.5rem" />
+          <SparklineSkeleton />
+        </>
+      ) : (
+        <>
+          <span className={labelStyles}>{load.value.label}</span>
+          <span className={valueStyles}>
+            {readValue(load.value, activeIndex)}
+          </span>
+          <Sparkline
+            activeIndex={activeIndex}
+            label={`${load.value.label} trend`}
+            onActiveIndexChange={setActiveIndex}
+            values={load.value.values}
+          />
+        </>
+      )}
+    </div>
+  );
+};
+
+/** A column's headline: the point being read, else the series' latest value. */
+const readValue = (
+  data: TrendColumnData,
+  activeIndex: number | undefined,
+): string => {
+  const point =
+    activeIndex === undefined ? undefined : data.values.at(activeIndex);
+  return point === undefined ? data.value : data.format(point);
+};
 
 /** The body-weight column's skeleton: label, accent numeral, sparkline. */
 const BodyWeightColumnSkeleton = () => (
@@ -170,6 +190,7 @@ const paceColumn = (data: TrendsBandData): TrendColumnData | undefined =>
   data.rowPace === undefined
     ? undefined
     : {
+        format: formatSplitClock,
         label: "Row pace · 500m split",
         value: formatSplitClock(data.rowPace.latestSplitSec),
         values: data.rowPace.values,
@@ -183,6 +204,7 @@ const strengthColumn = (
   series === undefined
     ? undefined
     : {
+        format: (value: number) => formatWeight(value, series.unit),
         label: strengthLabel(series, names),
         value: strengthValue(series),
         values: series.values,

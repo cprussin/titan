@@ -31,9 +31,10 @@ type Props = {
 };
 
 /** The trends band's body-weight column — its value the page's one accent
- *  number. It doubles as the weigh-in editor: when the shared weigh-in state is
- *  open (from the headline's "Weigh in" button), the numeral becomes an input,
- *  so the eye stays in place; Enter saves, Esc cancels. */
+ *  number, which follows the point being read off the trend line and falls back
+ *  to the latest weigh-in. It doubles as the weigh-in editor: when the shared
+ *  weigh-in state is open (from the headline's "Weigh in" button), the numeral
+ *  becomes an input, so the eye stays in place; Enter saves, Esc cancels. */
 export const BodyWeightTrendCard = ({
   latestWeightLb,
   save = saveBodyWeight,
@@ -43,6 +44,10 @@ export const BodyWeightTrendCard = ({
   const { close, weighingIn } = useWeighIn();
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  const [activeIndex, setActiveIndex] = useState<number>();
+  const shownWeightLb =
+    (activeIndex === undefined ? undefined : series.at(activeIndex)) ??
+    latestWeightLb;
 
   // Seed the input with the last weight each time entry opens.
   useEffect(() => {
@@ -100,13 +105,16 @@ export const BodyWeightTrendCard = ({
         </div>
       ) : (
         <span className={numeralStyles}>
-          {latestWeightLb === undefined
-            ? "—"
-            : formatBodyWeight(latestWeightLb)}
+          {shownWeightLb === undefined ? "—" : formatBodyWeight(shownWeightLb)}
         </span>
       )}
 
-      <Sparkline label="Body weight trend" values={series} />
+      <Sparkline
+        activeIndex={activeIndex}
+        label="Body weight trend"
+        onActiveIndexChange={setActiveIndex}
+        values={series}
+      />
 
       {weighingIn && (
         <div className={actionsStyles}>
