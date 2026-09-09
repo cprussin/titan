@@ -117,13 +117,12 @@ describe("matchWorkout", () => {
     expect(result).toEqual({ kind: MatchKind.Unmatched });
   });
 
-  it("is unmatched when the day's cardio target is nowhere near the row", () => {
-    const result = matchWorkout(rowing(2000), [
-      session(
-        "long-row",
-        "2024-01-15",
-        Rx.DistanceCardio({ distanceMeters: 10_000 }),
-      ),
+  it("is unmatched when the row misses the day's target", () => {
+    // The athlete dials the target into the erg, so the piece it logs hits it
+    // to the metre. Ten metres short is a different piece, not this one cut
+    // short.
+    const result = matchWorkout(rowing(1990), [
+      session("s-1", "2024-01-15", Rx.DistanceCardio({ distanceMeters: 2000 })),
     ]);
     expect(result).toEqual({ kind: MatchKind.Unmatched });
   });
@@ -134,18 +133,18 @@ describe("matchWorkout", () => {
     });
   });
 
-  it("breaks a same-day tie by the session whose target is closest", () => {
+  it("takes the session whose target the row hits", () => {
     const result = matchWorkout(rowing(2000), [
-      session("far", "2024-01-15", Rx.DistanceCardio({ distanceMeters: 5000 })),
       session(
-        "near",
+        "other",
         "2024-01-15",
-        Rx.DistanceCardio({ distanceMeters: 2100 }),
+        Rx.DistanceCardio({ distanceMeters: 5000 }),
       ),
+      session("hit", "2024-01-15", Rx.DistanceCardio({ distanceMeters: 2000 })),
     ]);
     expect(result).toEqual({
       kind: MatchKind.Matched,
-      workoutSessionId: "near",
+      workoutSessionId: "hit",
     });
   });
 });
@@ -154,7 +153,7 @@ describe("matchSlot", () => {
   const scheduledDate = "2024-01-15";
   const tenK = Rx.DistanceCardio({ distanceMeters: 10_000 });
 
-  it("claims the imported piece nearest the slot's distance target", () => {
+  it("claims the piece that hits the slot's distance target", () => {
     // The athlete rowed both a 10k and a 500m warm-up the same day; the 10k
     // slot must take the 10k, not whichever row was imported first.
     const tenKPiece = rowingFor(10_000, 2383);
@@ -165,22 +164,40 @@ describe("matchSlot", () => {
     expect(result).toEqual(tenKPiece);
   });
 
-  it("rejects a piece far outside the slot's target", () => {
-    // A lone 500m sits 95% short of a 10k slot — the slot stays unmatched
-    // rather than logging the warm-up as the piece.
+  it("rejects a piece that misses the slot's distance target", () => {
+    // Ten metres short of the dialled-in 10k: the erg would have logged 10,000
+    // exactly, so this is some other row.
     expect(
-      matchSlot(tenK, scheduledDate, [rowingFor(500, 150)]),
+      matchSlot(tenK, scheduledDate, [rowingFor(9990, 2383)]),
     ).toBeUndefined();
   });
 
-  it("ranks a timed slot by duration when it prescribes no distance", () => {
-    const longRow = Rx.TimedCardio({ durationSec: 2400 });
-    const recovery = Rx.TimedCardio({ durationSec: 1200 });
-    const longPiece = rowingFor(10_000, 2383);
-    const shortPiece = rowingFor(2000, 1180);
-    const pieces = [longPiece, shortPiece];
-    expect(matchSlot(longRow, scheduledDate, pieces)).toEqual(longPiece);
-    expect(matchSlot(recovery, scheduledDate, pieces)).toEqual(shortPiece);
+  it("judges a timed slot on duration alone", () => {
+    // A fixed-time piece covers whatever distance it covers, so only the clock
+    // identifies it — and it identifies it exactly.
+    const fortyFive = Rx.TimedCardio({ durationSec: 2700 });
+    const piece = rowingFor(9523, 2700);
+    expect(matchSlot(fortyFive, scheduledDate, [piece])).toEqual(piece);
+    expect(
+      matchSlot(fortyFive, scheduledDate, [rowingFor(9523, 2699)]),
+    ).toBeUndefined();
+  });
+
+  it("takes the earliest of several pieces that hit the target", () => {
+    // Two identical pieces in one day — a warm-up and a cool-down on the same
+    // prescription. The athlete works through the session in order, so the
+    // slot takes the first one rowed rather than whatever order the logbook
+    // happened to return.
+    const warmup = {
+      ...rowingFor(2000, 480),
+      workoutAt: "2024-01-15T08:30:00",
+    };
+    const cooldown = {
+      ...rowingFor(2000, 480),
+      workoutAt: "2024-01-15T09:45:00",
+    };
+    const twoK = Rx.DistanceCardio({ distanceMeters: 2000 });
+    expect(matchSlot(twoK, scheduledDate, [cooldown, warmup])).toEqual(warmup);
   });
 
   it("ignores a piece rowed on an adjacent day", () => {
@@ -226,11 +243,11 @@ describe("matchSlot", () => {
       ).toBeUndefined();
     });
 
-    it("rejects a piece whose intervals are the wrong size", () => {
-      // Six efforts totalling 3 km, but not six 500s — the worst interval
-      // disqualifies the piece.
+    it("rejects a piece with a single interval off the target", () => {
+      // Six efforts totalling 3 km, five of them dead on 500 — the odd one out
+      // disqualifies the whole piece.
       const uneven: NormalizedWorkout = {
-        intervals: [250, 750, 500, 500, 500, 500].map(
+        intervals: [498, 502, 500, 500, 500, 500].map(
           (distanceMeters, index) => ({
             distanceMeters,
             durationSec: 105,
@@ -246,15 +263,17 @@ describe("matchSlot", () => {
     });
 
     it("judges a time-based slot on each interval's duration", () => {
-      const fourByFour = Rx.Intervals({
-        count: 4,
-        recoverySec: 60,
-        workSec: 240,
+      // 12 × 30s: the erg holds each work interval to the dialled-in clock,
+      // and the distance covered varies with the effort.
+      const twelveByThirty = Rx.Intervals({
+        count: 12,
+        recoverySec: 90,
+        workSec: 30,
       });
-      const piece = intervalPiece(4, 1100, 240);
-      expect(matchSlot(fourByFour, scheduledDate, [piece])).toEqual(piece);
+      const piece = intervalPiece(12, 143, 30);
+      expect(matchSlot(twelveByThirty, scheduledDate, [piece])).toEqual(piece);
       expect(
-        matchSlot(fourByFour, scheduledDate, [intervalPiece(4, 1100, 120)]),
+        matchSlot(twelveByThirty, scheduledDate, [intervalPiece(12, 143, 29)]),
       ).toBeUndefined();
     });
   });
