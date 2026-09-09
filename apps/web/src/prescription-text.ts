@@ -1,3 +1,4 @@
+import type { LoadUnit } from "@titan/domain/load-unit";
 import type { Prescription } from "@titan/domain/prescription";
 import {
   formatClock,
@@ -31,22 +32,14 @@ export const prescriptionParts = (
       };
     }
     case "bodyweight": {
-      const added =
-        prescription.addedWeightLb === undefined ||
-        prescription.addedWeightLb === 0
-          ? ""
-          : ` +${prescription.addedWeightLb} lb`;
+      const added = addedLoad(prescription.addedWeight, prescription.unit);
       return {
         primary: `${prescription.sets}×${prescription.reps}${added}`,
         recovery: undefined,
       };
     }
     case "timed-hold": {
-      const added =
-        prescription.addedWeightLb === undefined ||
-        prescription.addedWeightLb === 0
-          ? ""
-          : ` +${prescription.addedWeightLb} lb`;
+      const added = addedLoad(prescription.addedWeightLb, "lb");
       return {
         primary: `${prescription.sets}× ${prescription.holdSec}s hold${added}`,
         recovery: undefined,
@@ -104,3 +97,8 @@ export const describePrescription = (prescription: Prescription): string => {
   const { primary, recovery } = prescriptionParts(prescription);
   return recovery === undefined ? primary : `${primary} · ${recovery}`;
 };
+
+/** The added-load suffix for a movement carrying extra weight (` +10 kg`), or
+ *  the empty string when it carries none. */
+const addedLoad = (added: number | undefined, unit: LoadUnit): string =>
+  added === undefined || added === 0 ? "" : ` +${added} ${unit}`;

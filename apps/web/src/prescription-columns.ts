@@ -1,3 +1,4 @@
+import type { LoadUnit } from "@titan/domain/load-unit";
 import type { Prescription } from "@titan/domain/prescription";
 import {
   formatDistance,
@@ -16,12 +17,10 @@ export type PrescriptionColumns = {
   scheme: string;
 };
 
-/** An optional added-load suffix (` +25 lb`), or the empty string when a
+/** An optional added-load suffix (` +10 kg`), or the empty string when a
  *  movement carries no extra weight. */
-const addedLoad = (addedWeightLb: number | undefined): string =>
-  addedWeightLb === undefined || addedWeightLb === 0
-    ? ""
-    : ` +${addedWeightLb} lb`;
+const addedLoad = (added: number | undefined, unit: LoadUnit): string =>
+  added === undefined || added === 0 ? "" : ` +${added} ${unit}`;
 
 /**
  * Split a prescription into the ledger grid's `scheme` and `load` columns. Pure
@@ -39,7 +38,7 @@ export const prescriptionColumns = (
       };
     }
     case "bodyweight": {
-      const added = addedLoad(prescription.addedWeightLb);
+      const added = addedLoad(prescription.addedWeight, prescription.unit);
       return {
         load: added === "" ? "Bodyweight" : added.trimStart(),
         scheme: `${prescription.sets}×${prescription.reps}`,
@@ -47,7 +46,7 @@ export const prescriptionColumns = (
     }
     case "timed-hold": {
       return {
-        load: `${prescription.holdSec}s hold${addedLoad(prescription.addedWeightLb)}`,
+        load: `${prescription.holdSec}s hold${addedLoad(prescription.addedWeightLb, "lb")}`,
         scheme: `${prescription.sets}×`,
       };
     }

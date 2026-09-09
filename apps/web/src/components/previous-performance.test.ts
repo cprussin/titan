@@ -111,13 +111,25 @@ describe("describePreviousPerformance", () => {
 
     it("appends the added load from the prescription for a weighted movement", () => {
       const weighted = Prescription.Bodyweight({
-        addedWeightLb: 25,
+        addedWeight: 25,
         reps: 6,
         sets: 4,
       });
       expect(
         describePreviousPerformance(result(weighted, [set({ reps: 6 })])),
       ).toBe("6 reps +25 lb");
+    });
+
+    it("reports a belt-loaded movement's added load in kilograms", () => {
+      const weighted = Prescription.Bodyweight({
+        addedWeight: 10,
+        reps: 6,
+        sets: 4,
+        unit: "kg",
+      });
+      expect(
+        describePreviousPerformance(result(weighted, [set({ reps: 6 })])),
+      ).toBe("6 reps +10 kg");
     });
   });
 

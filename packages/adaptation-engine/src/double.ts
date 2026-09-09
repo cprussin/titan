@@ -1,3 +1,4 @@
+import type { LoadUnit } from "@titan/domain/load-unit";
 import type { Prescription } from "@titan/domain/prescription";
 import { Prescription as Rx } from "@titan/domain/prescription";
 import type { DoublePolicy } from "@titan/domain/progression-policy";
@@ -22,8 +23,8 @@ type LoadedPrescription = Extract<
  * of the range is completed under the RPE cap, add weight and reset to the
  * bottom of the range. Works for both loaded (RDL) and bodyweight (weighted
  * pull-up) movements — the base prescription's type decides which dimension the
- * added load lives on. Loaded work stays in the base's unit (kg for barbell,
- * else lb); bodyweight added load is always lb.
+ * added load lives on. Either way the load stays in the base's unit: kg for
+ * barbell work and for belt-loaded bodyweight movements, else lb.
  */
 export const progressDouble = (
   policy: DoublePolicy,
@@ -97,7 +98,7 @@ const readLoad = (result: ExerciseResult): Load => {
       return { load: completedWeight(result), reps: prescription.reps };
     }
     case "bodyweight": {
-      return { load: prescription.addedWeightLb ?? 0, reps: prescription.reps };
+      return { load: prescription.addedWeight ?? 0, reps: prescription.reps };
     }
     default: {
       throw new Error(
@@ -122,20 +123,21 @@ const build = (
         weight: load,
       })
     : Rx.Bodyweight({
-        ...(load > 0 ? { addedWeightLb: load } : {}),
+        ...(load > 0 ? { addedWeight: load } : {}),
         reps,
         sets,
+        unit: base.unit,
       });
 
 const describeLoad = (base: LoadedPrescription): string =>
   base.type === "strength"
     ? `${base.weight} ${base.unit}`
-    : describeBodyweight(base.addedWeightLb ?? 0);
+    : describeBodyweight(base.addedWeight ?? 0, base.unit);
 
 const describeLoadValues = (base: LoadedPrescription, load: Load): string =>
   base.type === "strength"
     ? `${load.load} ${base.unit}`
-    : describeBodyweight(load.load);
+    : describeBodyweight(load.load, base.unit);
 
-const describeBodyweight = (addedLb: number): string =>
-  addedLb === 0 ? "bodyweight" : `bodyweight +${addedLb} lb`;
+const describeBodyweight = (added: number, unit: LoadUnit): string =>
+  added === 0 ? "bodyweight" : `bodyweight +${added} ${unit}`;

@@ -39,7 +39,7 @@ const partialBodyweight = (): ExerciseResult =>
   ({
     exerciseId: "split-ex",
     prescription: Prescription.Bodyweight({
-      addedWeightLb: 25,
+      addedWeight: 25,
       reps: 10,
       sets: 3,
     }),

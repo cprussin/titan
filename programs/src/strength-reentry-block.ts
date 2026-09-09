@@ -128,13 +128,13 @@ const fullBodyA: readonly ExerciseSlot[] = [
     role: "secondary",
   },
   {
-    base: Prescription.Bodyweight({ reps: 5, sets: 3 }),
+    base: Prescription.Bodyweight({ reps: 5, sets: 3, unit: "kg" }),
     exerciseId: "pullup",
     generateWarmup: false,
     id: "ahf-reentry-pullup",
     note: "Add reps within range before load; stay bodyweight through Weeks 1–2.",
     progression: ProgressionPolicy.Double({
-      increment: 5,
+      increment: 2,
       maxReps: 8,
       minReps: 5,
       rpeCap: 7,
@@ -248,12 +248,12 @@ const fullBodyAWeek3: readonly ExerciseSlot[] = [
     role: "secondary",
   },
   {
-    base: Prescription.Bodyweight({ reps: 6, sets: 3 }),
+    base: Prescription.Bodyweight({ reps: 6, sets: 3, unit: "kg" }),
     exerciseId: "pullup",
     generateWarmup: false,
     id: "ahf-reentry-pullup",
     progression: ProgressionPolicy.Double({
-      increment: 5,
+      increment: 2,
       maxReps: 10,
       minReps: 6,
       rpeCap: 7,
@@ -400,13 +400,13 @@ const week4Upper: readonly ExerciseSlot[] = [
     role: "primary",
   },
   {
-    base: Prescription.Bodyweight({ reps: 6, sets: 4 }),
+    base: Prescription.Bodyweight({ reps: 6, sets: 4, unit: "kg" }),
     exerciseId: "pullup",
     generateWarmup: false,
     id: "ahf-reentry-pullup",
     note: "Add weight only if bodyweight is clearly below target effort.",
     progression: ProgressionPolicy.Double({
-      increment: 5,
+      increment: 2,
       maxReps: 6,
       minReps: 6,
       rpeCap: 6,
@@ -431,7 +431,7 @@ const week4Upper: readonly ExerciseSlot[] = [
     role: "secondary",
   },
   {
-    base: Prescription.Bodyweight({ reps: 10, sets: 2 }),
+    base: Prescription.Bodyweight({ reps: 10, sets: 2, unit: "kg" }),
     exerciseId: "dips",
     generateWarmup: false,
     id: "ahf-reentry-dips",
@@ -489,12 +489,12 @@ const week4Athletic: readonly ExerciseSlot[] = [
     role: "accessory",
   },
   {
-    base: Prescription.Bodyweight({ reps: 6, sets: 2 }),
+    base: Prescription.Bodyweight({ reps: 6, sets: 2, unit: "kg" }),
     exerciseId: "pullup",
     generateWarmup: false,
     id: "ahf-reentry-pullup",
     progression: ProgressionPolicy.Double({
-      increment: 5,
+      increment: 2,
       maxReps: 6,
       minReps: 6,
       rpeCap: 6,

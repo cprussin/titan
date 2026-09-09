@@ -76,27 +76,64 @@ describe("progressDouble", () => {
   });
 
   it("adds bodyweight load once a weighted-bodyweight ceiling is reached", () => {
-    const bwBase = Prescription.Bodyweight({ reps: 6, sets: 3 });
-    const bwPolicy = ProgressionPolicy.Double({
-      increment: 5,
-      maxReps: 8,
-      minReps: 6,
-      rpeCap: 8,
-      sets: 3,
-    });
-    const last: ExerciseResult = {
-      exerciseId: "pullup",
-      id: "r-bw",
-      prescription: Prescription.Bodyweight({ reps: 8, sets: 3 }),
-      sets: Array.from({ length: 3 }, (_, setIndex) => ({
-        completed: true,
-        reps: 8,
-        setIndex,
-      })),
-      slotId: "slot-pullup",
-    };
-    const outcome = progressDouble(bwPolicy, bwBase, [last]);
+    const outcome = progressDouble(
+      bodyweightPolicy(5),
+      Prescription.Bodyweight({ reps: 6, sets: 3 }),
+      [bodyweightResult(Prescription.Bodyweight({ reps: 8, sets: 3 }))],
+    );
     expect(outcome.action).toBe("increase-load");
-    expect(outcome.prescription).toMatchObject({ addedWeightLb: 5, reps: 6 });
+    expect(outcome.prescription).toMatchObject({
+      addedWeight: 5,
+      reps: 6,
+      unit: "lb",
+    });
+    expect(outcome.explanation).toContain("bodyweight +5 lb");
   });
+
+  it("adds belt-loaded bodyweight load in the base's unit", () => {
+    const outcome = progressDouble(
+      bodyweightPolicy(2),
+      Prescription.Bodyweight({ reps: 6, sets: 3, unit: "kg" }),
+      [
+        bodyweightResult(
+          Prescription.Bodyweight({
+            addedWeight: 10,
+            reps: 8,
+            sets: 3,
+            unit: "kg",
+          }),
+        ),
+      ],
+    );
+    expect(outcome.action).toBe("increase-load");
+    expect(outcome.prescription).toMatchObject({
+      addedWeight: 12,
+      reps: 6,
+      unit: "kg",
+    });
+    expect(outcome.explanation).toContain("bodyweight +12 kg");
+  });
+});
+
+const bodyweightPolicy = (increment: number) =>
+  ProgressionPolicy.Double({
+    increment,
+    maxReps: 8,
+    minReps: 6,
+    rpeCap: 8,
+    sets: 3,
+  });
+
+const bodyweightResult = (
+  prescription: ReturnType<typeof Prescription.Bodyweight>,
+): ExerciseResult => ({
+  exerciseId: "pullup",
+  id: "r-bw",
+  prescription,
+  sets: Array.from({ length: 3 }, (_, setIndex) => ({
+    completed: true,
+    reps: prescription.reps,
+    setIndex,
+  })),
+  slotId: "slot-pullup",
 });

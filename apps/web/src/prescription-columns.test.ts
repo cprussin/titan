@@ -13,10 +13,22 @@ describe("prescriptionColumns", () => {
 
   it("shows a weighted bodyweight movement's added load", () => {
     const columns = prescriptionColumns(
-      Prescription.Bodyweight({ addedWeightLb: 25, reps: 10, sets: 3 }),
+      Prescription.Bodyweight({ addedWeight: 25, reps: 10, sets: 3 }),
     );
     expect(columns.scheme).toBe("3×10");
     expect(columns.load).toBe("+25 lb");
+  });
+
+  it("shows a belt-loaded bodyweight movement's added load in kilograms", () => {
+    const columns = prescriptionColumns(
+      Prescription.Bodyweight({
+        addedWeight: 10,
+        reps: 10,
+        sets: 3,
+        unit: "kg",
+      }),
+    );
+    expect(columns.load).toBe("+10 kg");
   });
 
   it("labels an unweighted bodyweight movement as bodyweight", () => {
