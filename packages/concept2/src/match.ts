@@ -21,6 +21,12 @@ import type { WorkoutSession } from "@titan/domain/workout-session";
  * (see `date.ts`), so the two are on one calendar and a piece belongs only to
  * the day it was rowed.
  *
+ * `matchSlot` can find more than one: two pieces rowed alike in one day (a
+ * warm-up and a cool-down on the same prescription) both hit the target, and
+ * nothing in the data says which one the athlete means. That is a
+ * {@link SlotMatchKind.Ambiguous} outcome the caller puts to them, not a guess
+ * dressed up as a match.
+ *
  * Within the day the test is **exact** ({@link isCardioMatch}), because the
  * prescription is what the athlete dials into the ergometer: a fixed-time piece
  * runs the prescribed clock to the tenth, a fixed-distance piece stops on the
@@ -32,9 +38,9 @@ import type { WorkoutSession } from "@titan/domain/workout-session";
  * split it was held at, the heart-rate zone it targeted) is not part of the
  * test.
  *
- * "No planned work" is an ordinary outcome, not a failure, so it is modelled as
- * a {@link MatchResult} variant / `undefined` the caller branches on rather than
- * a thrown error (see ERRORS.md).
+ * "No planned work" is an ordinary outcome, not a failure, so it is a variant of
+ * each direction's result union that the caller branches on rather than a thrown
+ * error (see ERRORS.md).
  */
 
 export enum MatchKind {
@@ -53,6 +59,26 @@ export const MatchResult = {
 export type MatchResult = ReturnType<
   (typeof MatchResult)[keyof typeof MatchResult]
 >;
+
+export enum SlotMatchKind {
+  Matched,
+  Ambiguous,
+  Unmatched,
+}
+
+export const SlotMatch = {
+  Ambiguous: (candidates: readonly NormalizedWorkout[]) => ({
+    candidates,
+    kind: SlotMatchKind.Ambiguous as const,
+  }),
+  Matched: (normalized: NormalizedWorkout) => ({
+    kind: SlotMatchKind.Matched as const,
+    normalized,
+  }),
+  Unmatched: () => ({ kind: SlotMatchKind.Unmatched as const }),
+};
+
+export type SlotMatch = ReturnType<(typeof SlotMatch)[keyof typeof SlotMatch]>;
 
 export const matchWorkout = (
   normalized: NormalizedWorkout,
@@ -73,32 +99,39 @@ export const matchWorkout = (
 
 /**
  * The imported row that is `prescription` scheduled on `scheduledDate`, among
- * `candidates` rowed that day — or `undefined` when none hits the target. When
- * the day holds more than one piece on the same prescription (a warm-up and a
- * cool-down rowed alike), the earliest is taken: the athlete works through the
- * session in order.
+ * `candidates` rowed that day — or, when more than one hits the target, all of
+ * them in the order they were rowed, for the caller to put to the athlete.
  */
 export const matchSlot = (
   prescription: Prescription,
   scheduledDate: string,
   candidates: readonly NormalizedWorkout[],
-): NormalizedWorkout | undefined =>
-  earliest(
-    candidates.filter(
-      (normalized) =>
-        dayOf(normalized) === scheduledDate &&
-        isCardioMatch(prescription, normalized),
+): SlotMatch =>
+  toSlotMatch(
+    byTimeRowed(
+      candidates.filter(
+        (normalized) =>
+          dayOf(normalized) === scheduledDate &&
+          isCardioMatch(prescription, normalized),
+      ),
     ),
   );
 
-const earliest = (
+const byTimeRowed = (
   candidates: readonly NormalizedWorkout[],
-): NormalizedWorkout | undefined =>
-  candidates.reduce<NormalizedWorkout | undefined>(
-    (best, current) =>
-      best === undefined || current.workoutAt < best.workoutAt ? current : best,
-    undefined,
-  );
+): readonly NormalizedWorkout[] =>
+  [...candidates].sort((a, b) => (a.workoutAt < b.workoutAt ? -1 : 1));
+
+const toSlotMatch = (matches: readonly NormalizedWorkout[]): SlotMatch => {
+  const [first, second] = matches;
+  if (first === undefined) {
+    return SlotMatch.Unmatched();
+  } else if (second === undefined) {
+    return SlotMatch.Matched(first);
+  } else {
+    return SlotMatch.Ambiguous(matches);
+  }
+};
 
 /** Whether an imported piece is the effort `prescription` asked for. Only the
  *  axis the prescription pins down is tested, and it is tested exactly; a

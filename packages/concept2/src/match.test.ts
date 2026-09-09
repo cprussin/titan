@@ -7,7 +7,8 @@ import type {
   PrescribedExercise,
   WorkoutSession,
 } from "@titan/domain/workout-session";
-import { MatchKind, matchSlot, matchWorkout } from "./match";
+import type { SlotMatch } from "./match";
+import { MatchKind, matchSlot, matchWorkout, SlotMatchKind } from "./match";
 
 const exercise = (
   slotId: string,
@@ -151,6 +152,7 @@ describe("matchWorkout", () => {
 
 describe("matchSlot", () => {
   const scheduledDate = "2024-01-15";
+  const unmatched: SlotMatch = { kind: SlotMatchKind.Unmatched };
   const tenK = Rx.DistanceCardio({ distanceMeters: 10_000 });
 
   it("claims the piece that hits the slot's distance target", () => {
@@ -161,15 +163,18 @@ describe("matchSlot", () => {
       rowingFor(500, 150),
       tenKPiece,
     ]);
-    expect(result).toEqual(tenKPiece);
+    expect(result).toEqual({
+      kind: SlotMatchKind.Matched,
+      normalized: tenKPiece,
+    });
   });
 
   it("rejects a piece that misses the slot's distance target", () => {
     // Ten metres short of the dialled-in 10k: the erg would have logged 10,000
     // exactly, so this is some other row.
-    expect(
-      matchSlot(tenK, scheduledDate, [rowingFor(9990, 2383)]),
-    ).toBeUndefined();
+    expect(matchSlot(tenK, scheduledDate, [rowingFor(9990, 2383)])).toEqual({
+      kind: SlotMatchKind.Unmatched,
+    });
   });
 
   it("judges a timed slot on duration alone", () => {
@@ -177,27 +182,33 @@ describe("matchSlot", () => {
     // identifies it — and it identifies it exactly.
     const fortyFive = Rx.TimedCardio({ durationSec: 2700 });
     const piece = rowingFor(9523, 2700);
-    expect(matchSlot(fortyFive, scheduledDate, [piece])).toEqual(piece);
+    expect(matchSlot(fortyFive, scheduledDate, [piece])).toEqual({
+      kind: SlotMatchKind.Matched,
+      normalized: piece,
+    });
     expect(
       matchSlot(fortyFive, scheduledDate, [rowingFor(9523, 2699)]),
-    ).toBeUndefined();
+    ).toEqual({ kind: SlotMatchKind.Unmatched });
   });
 
-  it("takes the earliest of several pieces that hit the target", () => {
-    // Two identical pieces in one day — a warm-up and a cool-down on the same
-    // prescription. The athlete works through the session in order, so the
-    // slot takes the first one rowed rather than whatever order the logbook
-    // happened to return.
+  it("reports every piece that hits the target when more than one does", () => {
+    // Two pieces in one day on the same prescription — a warm-up and a
+    // cool-down rowed alike. Nothing in the data says which one the athlete
+    // means, so the slot hands both back for them to choose rather than
+    // guessing from the order the logbook returned them in.
     const warmup = {
       ...rowingFor(2000, 480),
       workoutAt: "2024-01-15T08:30:00",
     };
     const cooldown = {
-      ...rowingFor(2000, 480),
+      ...rowingFor(2000, 485),
       workoutAt: "2024-01-15T09:45:00",
     };
     const twoK = Rx.DistanceCardio({ distanceMeters: 2000 });
-    expect(matchSlot(twoK, scheduledDate, [cooldown, warmup])).toEqual(warmup);
+    expect(matchSlot(twoK, scheduledDate, [cooldown, warmup])).toEqual({
+      candidates: [warmup, cooldown],
+      kind: SlotMatchKind.Ambiguous,
+    });
   });
 
   it("ignores a piece rowed on an adjacent day", () => {
@@ -207,7 +218,7 @@ describe("matchSlot", () => {
       ...rowingFor(10_000, 2383),
       workoutAt: "2024-01-14T18:30:00",
     };
-    expect(matchSlot(tenK, scheduledDate, [yesterday])).toBeUndefined();
+    expect(matchSlot(tenK, scheduledDate, [yesterday])).toEqual(unmatched);
   });
 
   describe("intervals", () => {
@@ -219,9 +230,10 @@ describe("matchSlot", () => {
 
     it("claims a piece rowed as the prescribed intervals", () => {
       const piece = intervalPiece(6, 500, 105);
-      expect(matchSlot(sixByFiveHundred, scheduledDate, [piece])).toEqual(
-        piece,
-      );
+      expect(matchSlot(sixByFiveHundred, scheduledDate, [piece])).toEqual({
+        kind: SlotMatchKind.Matched,
+        normalized: piece,
+      });
     });
 
     it("rejects a continuous piece", () => {
@@ -230,7 +242,7 @@ describe("matchSlot", () => {
       // not rowed as intervals at all — so it is not the slot's effort.
       expect(
         matchSlot(sixByFiveHundred, scheduledDate, [rowingFor(2000, 485)]),
-      ).toBeUndefined();
+      ).toEqual(unmatched);
     });
 
     it("rejects a piece rowed as a different interval shape", () => {
@@ -240,7 +252,7 @@ describe("matchSlot", () => {
         matchSlot(sixByFiveHundred, scheduledDate, [
           intervalPiece(3, 1000, 210),
         ]),
-      ).toBeUndefined();
+      ).toEqual(unmatched);
     });
 
     it("rejects a piece with a single interval off the target", () => {
@@ -257,9 +269,9 @@ describe("matchSlot", () => {
         summary: { distanceMeters: 3000, durationSec: 630 },
         workoutAt: "2024-01-15T08:30:00",
       };
-      expect(
-        matchSlot(sixByFiveHundred, scheduledDate, [uneven]),
-      ).toBeUndefined();
+      expect(matchSlot(sixByFiveHundred, scheduledDate, [uneven])).toEqual(
+        unmatched,
+      );
     });
 
     it("judges a time-based slot on each interval's duration", () => {
@@ -271,10 +283,13 @@ describe("matchSlot", () => {
         workSec: 30,
       });
       const piece = intervalPiece(12, 143, 30);
-      expect(matchSlot(twelveByThirty, scheduledDate, [piece])).toEqual(piece);
+      expect(matchSlot(twelveByThirty, scheduledDate, [piece])).toEqual({
+        kind: SlotMatchKind.Matched,
+        normalized: piece,
+      });
       expect(
         matchSlot(twelveByThirty, scheduledDate, [intervalPiece(12, 143, 29)]),
-      ).toBeUndefined();
+      ).toEqual(unmatched);
     });
   });
 });

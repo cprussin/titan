@@ -4,12 +4,8 @@ import type {
   ExerciseResult,
   SetResult,
 } from "@titan/domain/result";
-import {
-  formatDistance,
-  formatDuration,
-  formatSplit,
-  formatWeight,
-} from "./format";
+import { cardioSummary } from "./cardio-summary";
+import { formatWeight } from "./format";
 
 /** One line in a completed exercise's recap: a set label (`Set 2`, or empty for
  *  a single cardio effort) beside the work logged against it (`5 × 225 lb`). */
@@ -51,7 +47,7 @@ export const loggedExerciseLines = (work: LoggedWork): LoggedLine[] => {
     case "distance-cardio":
     case "intervals":
     case "circuit": {
-      return [{ label: "", value: cardioSummary(work.cardio) }];
+      return [{ label: "", value: cardioSummary(requireCardio(work.cardio)) }];
     }
   }
 };
@@ -75,26 +71,13 @@ const repSet = (set: SetResult): string =>
 const holdSet = (set: SetResult): string =>
   `${requireField(set.holdSec, "holdSec")}s hold`;
 
-/** A cardio effort as its recorded optics — distance, duration, split, average
- *  heart rate — most-summary-first and `·`-joined, or an em dash when nothing
- *  was recorded. */
-const cardioSummary = (cardio: CardioResult | undefined): string => {
+/** The effort summary a logged cardio result must carry; its absence is an
+ *  invariant violation (a corrupt result), not a display state. */
+const requireCardio = (cardio: CardioResult | undefined): CardioResult => {
   if (cardio === undefined) {
     throw new Error("a cardio exercise result is missing its effort summary");
   } else {
-    const parts = [
-      cardio.distanceMeters === undefined
-        ? undefined
-        : formatDistance(cardio.distanceMeters),
-      cardio.durationSec === undefined
-        ? undefined
-        : formatDuration(cardio.durationSec),
-      cardio.splitSecPer500 === undefined
-        ? undefined
-        : formatSplit(cardio.splitSecPer500),
-      cardio.avgHr === undefined ? undefined : `${cardio.avgHr} bpm`,
-    ].filter((part) => part !== undefined);
-    return parts.length === 0 ? "—" : parts.join(" · ");
+    return cardio;
   }
 };
 

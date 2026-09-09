@@ -27,7 +27,10 @@ deterministic and unit-testable.
   stamps the logbook in the athlete's local time and `scheduledDate` is that
   same local day). `matchSlot(prescription, scheduledDate, candidates)` runs the
   other direction for the live rowing step: which imported row is *this*
-  prescribed effort. Within the day the test is **exact**, because the
+  prescribed effort — and when several rows hit the target (a warm-up and a
+  cool-down rowed to the same prescription), it reports them all as an
+  `Ambiguous` outcome for the caller to put to the athlete rather than guessing.
+  Within the day the test is **exact**, because the
   prescription is what the athlete dials into the ergometer — a fixed-time piece
   runs the prescribed clock, a fixed-distance piece stops on the prescribed
   metre, and an interval piece logs the prescribed number of work intervals at
