@@ -58,6 +58,23 @@ const rowingFor = (
 const rowing = (distanceMeters: number): NormalizedWorkout =>
   rowingFor(distanceMeters, 450);
 
+const intervalPiece = (
+  count: number,
+  distanceMeters: number,
+  durationSec: number,
+): NormalizedWorkout => ({
+  intervals: Array.from({ length: count }, (_, index) => ({
+    distanceMeters,
+    durationSec,
+    index,
+  })),
+  summary: {
+    distanceMeters: distanceMeters * count,
+    durationSec: durationSec * count,
+  },
+  workoutAt: "2024-01-15T08:30:00",
+});
+
 describe("matchWorkout", () => {
   it("matches the same-day cardio session", () => {
     const result = matchWorkout(rowing(2000), [
@@ -85,11 +102,11 @@ describe("matchWorkout", () => {
     expect(result).toEqual({ kind: MatchKind.Unmatched });
   });
 
-  it("matches a cardio session one calendar day off", () => {
-    // The athlete rows in the evening in a negative-offset timezone, so the
-    // logbook's local day (2024-01-15) is a day behind the UTC day the app
-    // scheduled the session on (2024-01-16). Strict same-day equality would
-    // drop this match even though it is the session the row belongs to.
+  it("is unmatched when the cardio session falls on an adjacent day", () => {
+    // Both dates are the athlete's own calendar day — Concept2 stamps the
+    // logbook in local time and `scheduledDate` is the local day the app
+    // scheduled on — so a row from 2024-01-15 is not the 2024-01-16 session,
+    // and a one-day window only lets a neighbouring day's piece claim it.
     const result = matchWorkout(rowing(2000), [
       session(
         "next-day",
@@ -97,34 +114,16 @@ describe("matchWorkout", () => {
         Rx.DistanceCardio({ distanceMeters: 2000 }),
       ),
     ]);
-    expect(result).toEqual({
-      kind: MatchKind.Matched,
-      workoutSessionId: "next-day",
-    });
+    expect(result).toEqual({ kind: MatchKind.Unmatched });
   });
 
-  it("prefers a same-day session over an adjacent-day one", () => {
+  it("is unmatched when the day's cardio target is nowhere near the row", () => {
     const result = matchWorkout(rowing(2000), [
       session(
-        "adjacent",
-        "2024-01-16",
-        Rx.DistanceCardio({ distanceMeters: 2000 }),
-      ),
-      session(
-        "same-day",
+        "long-row",
         "2024-01-15",
-        Rx.DistanceCardio({ distanceMeters: 5000 }),
+        Rx.DistanceCardio({ distanceMeters: 10_000 }),
       ),
-    ]);
-    expect(result).toEqual({
-      kind: MatchKind.Matched,
-      workoutSessionId: "same-day",
-    });
-  });
-
-  it("is unmatched when the nearest cardio session is more than a day off", () => {
-    const result = matchWorkout(rowing(2000), [
-      session("far", "2024-01-17", Rx.DistanceCardio({ distanceMeters: 2000 })),
     ]);
     expect(result).toEqual({ kind: MatchKind.Unmatched });
   });
@@ -184,11 +183,79 @@ describe("matchSlot", () => {
     expect(matchSlot(recovery, scheduledDate, pieces)).toEqual(shortPiece);
   });
 
-  it("ignores a piece outside the day tolerance", () => {
-    const farPiece = {
+  it("ignores a piece rowed on an adjacent day", () => {
+    // Yesterday's cool-down is not today's slot: the logbook date and
+    // `scheduledDate` are both the athlete's local calendar day.
+    const yesterday = {
       ...rowingFor(10_000, 2383),
-      workoutAt: "2024-01-20T08:30:00",
+      workoutAt: "2024-01-14T18:30:00",
     };
-    expect(matchSlot(tenK, scheduledDate, [farPiece])).toBeUndefined();
+    expect(matchSlot(tenK, scheduledDate, [yesterday])).toBeUndefined();
+  });
+
+  describe("intervals", () => {
+    const sixByFiveHundred = Rx.Intervals({
+      count: 6,
+      recoverySec: 120,
+      workDistanceMeters: 500,
+    });
+
+    it("claims a piece rowed as the prescribed intervals", () => {
+      const piece = intervalPiece(6, 500, 105);
+      expect(matchSlot(sixByFiveHundred, scheduledDate, [piece])).toEqual(
+        piece,
+      );
+    });
+
+    it("rejects a continuous piece", () => {
+      // The athlete warmed up with a straight 2k before the session. Its total
+      // is a third shy of the 3 km the slot adds up to and, decisively, it was
+      // not rowed as intervals at all — so it is not the slot's effort.
+      expect(
+        matchSlot(sixByFiveHundred, scheduledDate, [rowingFor(2000, 485)]),
+      ).toBeUndefined();
+    });
+
+    it("rejects a piece rowed as a different interval shape", () => {
+      // 3 × 1000 m covers exactly the 3 km the slot totals, so only the shape
+      // of the piece tells the two sessions apart.
+      expect(
+        matchSlot(sixByFiveHundred, scheduledDate, [
+          intervalPiece(3, 1000, 210),
+        ]),
+      ).toBeUndefined();
+    });
+
+    it("rejects a piece whose intervals are the wrong size", () => {
+      // Six efforts totalling 3 km, but not six 500s — the worst interval
+      // disqualifies the piece.
+      const uneven: NormalizedWorkout = {
+        intervals: [250, 750, 500, 500, 500, 500].map(
+          (distanceMeters, index) => ({
+            distanceMeters,
+            durationSec: 105,
+            index,
+          }),
+        ),
+        summary: { distanceMeters: 3000, durationSec: 630 },
+        workoutAt: "2024-01-15T08:30:00",
+      };
+      expect(
+        matchSlot(sixByFiveHundred, scheduledDate, [uneven]),
+      ).toBeUndefined();
+    });
+
+    it("judges a time-based slot on each interval's duration", () => {
+      const fourByFour = Rx.Intervals({
+        count: 4,
+        recoverySec: 60,
+        workSec: 240,
+      });
+      const piece = intervalPiece(4, 1100, 240);
+      expect(matchSlot(fourByFour, scheduledDate, [piece])).toEqual(piece);
+      expect(
+        matchSlot(fourByFour, scheduledDate, [intervalPiece(4, 1100, 120)]),
+      ).toBeUndefined();
+    });
   });
 });
