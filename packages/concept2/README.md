@@ -23,10 +23,16 @@ deterministic and unit-testable.
   split is derived via `@titan/domain/pace`, and heart-rate / stroke-rate carry
   through only when present.
 - **`match`** — `matchWorkout(normalized, candidateSessions)` picks the planned
-  rowing/cardio session nearest the workout's day (within one calendar day, to
-  absorb the timezone skew between Concept2's local date and the app's UTC
-  scheduling), breaking equal-day ties by closest target distance. The "no
-  planned session" case is returned as a `MatchResult` variant, not thrown.
+  rowing/cardio session scheduled for the day the piece was rowed (Concept2
+  stamps the logbook in the athlete's local time and `scheduledDate` is that
+  same local day), taking the one whose target the piece came closest to.
+  `matchSlot(prescription, scheduledDate, candidates)` runs the other direction
+  for the live rowing step: which imported row is *this* prescribed effort. Both
+  require the piece to land within a tenth of the target, and an interval
+  prescription is judged on the shape of the piece — the erg must have recorded
+  the prescribed number of intervals, each near the prescribed size — so a
+  continuous 2 km never passes for 6 × 500 m. The "no planned session" case is
+  returned as a `MatchResult` variant, not thrown.
 
 ## Dependencies
 
