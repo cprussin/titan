@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Prescription } from "@titan/domain/prescription";
 import type { WorkoutSession } from "@titan/domain/workout-session";
-import { topStrengthSeries, topStrengthSeriesList } from "./strength-series";
+import { topStrengthSeriesList } from "./strength-series";
 
 const session = (id: string, date: string, weight: number): WorkoutSession => ({
   blockId: "b",
@@ -31,32 +31,6 @@ const session = (id: string, date: string, weight: number): WorkoutSession => ({
   weekNumber: 1,
 });
 
-describe("topStrengthSeries", () => {
-  it("returns a chronological estimated-1RM series for the most-logged lift", () => {
-    const series = topStrengthSeries([
-      session("s2", "2026-01-12", 235),
-      session("s1", "2026-01-05", 225),
-    ]);
-    expect(series?.exerciseId).toBe("back-squat");
-    expect(series?.unit).toBe("kg");
-    expect(series?.values).toHaveLength(2);
-    // chronological: earlier (225) before later (235), and increasing
-    expect(series?.values[0]).toBeLessThan(series?.values[1] ?? 0);
-  });
-
-  it("dates each point, so a chart can name the day a lift was logged", () => {
-    const series = topStrengthSeries([
-      session("s2", "2026-01-12", 235),
-      session("s1", "2026-01-05", 225),
-    ]);
-    expect(series?.dates).toEqual(["2026-01-05", "2026-01-12"]);
-  });
-
-  it("returns undefined without weighted work", () => {
-    expect(topStrengthSeries([])).toBeUndefined();
-  });
-});
-
 const lift = (
   exerciseId: string,
   date: string,
@@ -76,6 +50,25 @@ const lift = (
   }) as unknown as WorkoutSession;
 
 describe("topStrengthSeriesList", () => {
+  it("returns a chronological estimated-1RM series in the lift's own unit", () => {
+    const series = topStrengthSeriesList(
+      [session("s2", "2026-01-12", 235), session("s1", "2026-01-05", 225)],
+      1,
+    ).at(0);
+    expect(series?.exerciseId).toBe("back-squat");
+    expect(series?.unit).toBe("kg");
+    // chronological: earlier (225) before later (235), and increasing
+    expect(series?.values[0]).toBeLessThan(series?.values[1] ?? 0);
+  });
+
+  it("dates each point, so a chart can name the day a lift was logged", () => {
+    const series = topStrengthSeriesList(
+      [session("s2", "2026-01-12", 235), session("s1", "2026-01-05", 225)],
+      1,
+    ).at(0);
+    expect(series?.dates).toEqual(["2026-01-05", "2026-01-12"]);
+  });
+
   it("orders lifts by how often they were logged and caps at the limit", () => {
     const list = topStrengthSeriesList(
       [

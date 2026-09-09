@@ -54,14 +54,6 @@ export const topStrengthSeriesList = (
     .slice(0, limit);
 };
 
-/**
- * The estimated-1RM trend for the exercise with the most logged weighted
- * sessions, or `undefined` when no weighted work exists yet.
- */
-export const topStrengthSeries = (
-  sessions: readonly WorkoutSession[],
-): StrengthSeries | undefined => topStrengthSeriesList(sessions, 1).at(0);
-
 /** The unit a result's loads were logged in — its snapshot prescription carries
  *  it for strength work; everything else is pounds. */
 const resultUnit = (result: ExerciseResult): LoadUnit =>
