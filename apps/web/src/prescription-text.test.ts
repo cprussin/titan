@@ -22,9 +22,22 @@ describe("describePrescription", () => {
   it("describes weighted bodyweight", () => {
     expect(
       describePrescription(
-        Prescription.Bodyweight({ addedWeightLb: 25, reps: 6, sets: 4 }),
+        Prescription.Bodyweight({ addedWeight: 25, reps: 6, sets: 4 }),
       ),
     ).toBe("4×6 +25 lb");
+  });
+
+  it("describes a belt-loaded bodyweight target in kilograms", () => {
+    expect(
+      describePrescription(
+        Prescription.Bodyweight({
+          addedWeight: 10,
+          reps: 6,
+          sets: 4,
+          unit: "kg",
+        }),
+      ),
+    ).toBe("4×6 +10 kg");
   });
 
   it("describes an interval target", () => {

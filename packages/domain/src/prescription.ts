@@ -31,11 +31,16 @@ const strengthSchema = z.object({
 export type StrengthPrescription = z.infer<typeof strengthSchema>;
 
 const bodyweightSchema = z.object({
-  /** Added load for a weighted bodyweight movement (weighted pull-ups, dips). */
-  addedWeightLb: z.number().nonnegative().optional(),
+  /** Added load for a weighted bodyweight movement (weighted pull-ups, dips),
+   *  expressed in {@link unit}. */
+  addedWeight: z.number().nonnegative().optional(),
   reps: z.number().int().positive(),
   sets: z.number().int().positive(),
   type: z.literal("bodyweight"),
+  /** The unit `addedWeight` is in. Belt-loaded work hangs plates off the same
+   *  tree as the barbell, so it is prescribed in kilograms; defaults to pounds
+   *  so pre-unit data and imperial callers stay valid. */
+  unit: loadUnitSchema.default("lb"),
 });
 
 export type BodyweightPrescription = z.infer<typeof bodyweightSchema>;
@@ -99,22 +104,54 @@ const circuitSchema = z.object({
 
 export type CircuitPrescription = z.infer<typeof circuitSchema>;
 
-export const prescriptionSchema = z.discriminatedUnion("type", [
-  strengthSchema,
-  bodyweightSchema,
-  timedHoldSchema,
-  timedCardioSchema,
-  distanceCardioSchema,
-  intervalsSchema,
-  circuitSchema,
-]);
+/** A bodyweight prescription persisted before added load carried a unit, which
+ *  stored the load under `addedWeightLb`. */
+type LegacyBodyweight = Record<string, unknown> & { addedWeightLb: number };
+
+const isLegacyBodyweight = (data: unknown): data is LegacyBodyweight =>
+  typeof data === "object" &&
+  data !== null &&
+  "type" in data &&
+  data.type === "bodyweight" &&
+  "addedWeightLb" in data &&
+  typeof data.addedWeightLb === "number";
+
+/** Migrate-on-read for the legacy key (see DATA.md, "on read … migrate"): the
+ *  load moves to `addedWeight` and the schema's `unit` default reads it as the
+ *  pounds it was stored as. Runs before the union so every reader of a
+ *  persisted prescription gets it, whichever document it was nested in. */
+const migrateLegacyAddedWeight = (data: unknown): unknown => {
+  if (isLegacyBodyweight(data)) {
+    const { addedWeightLb, ...rest } = data;
+    return { ...rest, addedWeight: addedWeightLb };
+  } else {
+    return data;
+  }
+};
+
+export const prescriptionSchema = z.preprocess(
+  migrateLegacyAddedWeight,
+  z.discriminatedUnion("type", [
+    strengthSchema,
+    bodyweightSchema,
+    timedHoldSchema,
+    timedCardioSchema,
+    distanceCardioSchema,
+    intervalsSchema,
+    circuitSchema,
+  ]),
+);
 
 export type Prescription = z.infer<typeof prescriptionSchema>;
 
 export const Prescription = {
   Bodyweight: (
-    args: Omit<BodyweightPrescription, "type">,
-  ): BodyweightPrescription => ({ ...args, type: "bodyweight" }),
+    args: Omit<BodyweightPrescription, "type" | "unit"> & { unit?: LoadUnit },
+  ): BodyweightPrescription => ({
+    ...args,
+    type: "bodyweight",
+    unit: args.unit ?? "lb",
+  }),
   Circuit: (args: Omit<CircuitPrescription, "type">): CircuitPrescription => ({
     ...args,
     type: "circuit",

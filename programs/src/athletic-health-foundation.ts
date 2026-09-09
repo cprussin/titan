@@ -254,12 +254,17 @@ const heavyUpper: SessionTemplate = {
       role: "primary",
     },
     {
-      base: Prescription.Bodyweight({ addedWeightLb: 25, reps: 6, sets: 4 }),
+      base: Prescription.Bodyweight({
+        addedWeight: 10,
+        reps: 6,
+        sets: 4,
+        unit: "kg",
+      }),
       exerciseId: "weighted-pullup",
       generateWarmup: false,
       id: "foundation-heavy-upper-weighted-pullup",
       progression: ProgressionPolicy.Double({
-        increment: 5,
+        increment: 2,
         maxReps: 8,
         minReps: 6,
         rpeCap: 8,
@@ -301,12 +306,12 @@ const heavyUpper: SessionTemplate = {
       role: "secondary",
     },
     {
-      base: Prescription.Bodyweight({ reps: 10, sets: 3 }),
+      base: Prescription.Bodyweight({ reps: 10, sets: 3, unit: "kg" }),
       exerciseId: "dips",
       generateWarmup: false,
       id: "foundation-heavy-upper-dips",
       progression: ProgressionPolicy.Double({
-        increment: 5,
+        increment: 2,
         maxReps: 15,
         minReps: 10,
         rpeCap: 8,
@@ -424,15 +429,16 @@ const athleticDay: SessionTemplate = {
         },
         {
           base: Prescription.Bodyweight({
-            addedWeightLb: 25,
+            addedWeight: 10,
             reps: 6,
             sets: 3,
+            unit: "kg",
           }),
           exerciseId: "weighted-pullup",
           generateWarmup: false,
           id: "foundation-athletic-day-power-weighted-pullup",
           progression: ProgressionPolicy.Double({
-            increment: 5,
+            increment: 2,
             maxReps: 8,
             minReps: 6,
             rpeCap: 8,

@@ -168,12 +168,12 @@ const upperStrength: SessionTemplate = {
       role: "primary",
     },
     {
-      base: Prescription.Bodyweight({ reps: 8, sets: 3 }),
+      base: Prescription.Bodyweight({ reps: 8, sets: 3, unit: "kg" }),
       exerciseId: "weighted-pullup",
       generateWarmup: false,
       id: "fatloss-upper-strength-weighted-pullup",
       progression: ProgressionPolicy.Double({
-        increment: 5,
+        increment: 2,
         maxReps: 10,
         minReps: 8,
         rpeCap: 8,
@@ -182,12 +182,12 @@ const upperStrength: SessionTemplate = {
       role: "secondary",
     },
     {
-      base: Prescription.Bodyweight({ reps: 10, sets: 3 }),
+      base: Prescription.Bodyweight({ reps: 10, sets: 3, unit: "kg" }),
       exerciseId: "dips",
       generateWarmup: false,
       id: "fatloss-upper-strength-dips",
       progression: ProgressionPolicy.Double({
-        increment: 5,
+        increment: 2,
         maxReps: 15,
         minReps: 10,
         rpeCap: 8,

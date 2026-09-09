@@ -26,6 +26,33 @@ describe("prescriptionSchema", () => {
     expect(prescriptionSchema.parse(value)).toEqual(value);
   });
 
+  it("parses a metric weighted-bodyweight prescription", () => {
+    const value = Prescription.Bodyweight({
+      addedWeight: 10,
+      reps: 6,
+      sets: 4,
+      unit: "kg",
+    });
+    expect(prescriptionSchema.parse(value)).toEqual(value);
+  });
+
+  it("defaults a bodyweight prescription's added load to pounds", () => {
+    expect(
+      Prescription.Bodyweight({ addedWeight: 25, reps: 6, sets: 4 }).unit,
+    ).toBe("lb");
+  });
+
+  it("reads a legacy `addedWeightLb` bodyweight prescription as pounds", () => {
+    expect(
+      prescriptionSchema.parse({
+        addedWeightLb: 25,
+        reps: 6,
+        sets: 4,
+        type: "bodyweight",
+      }),
+    ).toEqual(Prescription.Bodyweight({ addedWeight: 25, reps: 6, sets: 4 }));
+  });
+
   it("parses an intervals prescription with a work distance", () => {
     const value = Prescription.Intervals({
       count: 6,

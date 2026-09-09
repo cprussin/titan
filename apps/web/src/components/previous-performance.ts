@@ -1,3 +1,4 @@
+import type { LoadUnit } from "@titan/domain/load-unit";
 import type {
   BodyweightPrescription,
   StrengthPrescription,
@@ -79,7 +80,7 @@ const bodyweightLine = (
   const top = topBy(sets, (set) => set.reps ?? 0);
   return top === undefined || top.reps === undefined
     ? undefined
-    : `${top.reps} reps${addedLoad(prescription.addedWeightLb)}`;
+    : `${top.reps} reps${addedLoad(prescription.addedWeight, prescription.unit)}`;
 };
 
 const timedHoldLine = (
@@ -89,15 +90,13 @@ const timedHoldLine = (
   const top = topBy(sets, (set) => set.holdSec ?? 0);
   return top === undefined || top.holdSec === undefined
     ? undefined
-    : `${top.holdSec}s${addedLoad(prescription.addedWeightLb)}`;
+    : `${top.holdSec}s${addedLoad(prescription.addedWeightLb, "lb")}`;
 };
 
-/** The ` +N lb` clause for a weighted bodyweight/hold movement, or empty when
- *  the movement carries no added load. */
-const addedLoad = (addedWeightLb: number | undefined): string =>
-  addedWeightLb === undefined || addedWeightLb === 0
-    ? ""
-    : ` +${formatWeight(addedWeightLb, "lb")}`;
+/** The added-load clause for a weighted bodyweight/hold movement (` +10 kg`),
+ *  or empty when the movement carries no added load. */
+const addedLoad = (added: number | undefined, unit: LoadUnit): string =>
+  added === undefined || added === 0 ? "" : ` +${formatWeight(added, unit)}`;
 
 /**
  * The best set by a primary metric, breaking ties with an optional secondary

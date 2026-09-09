@@ -174,12 +174,17 @@ const heavyPull: SessionTemplate = {
       role: "primary",
     },
     {
-      base: Prescription.Bodyweight({ addedWeightLb: 45, reps: 6, sets: 4 }),
+      base: Prescription.Bodyweight({
+        addedWeight: 20,
+        reps: 6,
+        sets: 4,
+        unit: "kg",
+      }),
       exerciseId: "weighted-pullup",
       generateWarmup: false,
       id: "power-heavy-pull-weighted-pullup",
       progression: ProgressionPolicy.Double({
-        increment: 5,
+        increment: 2,
         maxReps: 8,
         minReps: 6,
         rpeCap: 8,

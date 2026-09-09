@@ -1,5 +1,8 @@
 import { describe, expect, it } from "bun:test";
-import type { StrengthPrescription } from "@titan/domain/prescription";
+import type {
+  BodyweightPrescription,
+  StrengthPrescription,
+} from "@titan/domain/prescription";
 import type { ExerciseSlot, SessionTemplate } from "@titan/domain/program";
 import { programSchema, programVersionSchema } from "@titan/domain/program";
 import type { ProgressionPolicy } from "@titan/domain/progression-policy";
@@ -26,6 +29,22 @@ const isKgBarbell = (slot: ExerciseSlot): slot is KgBarbellSlot =>
 const kgBarbellSlots = (): readonly KgBarbellSlot[] =>
   catalog.programs.flatMap(({ version }) =>
     version.sessionTemplates.flatMap(templateSlots).filter(isKgBarbell),
+  );
+
+/** The bodyweight movements loaded by hanging plates off a belt. They come off
+ *  the same plate tree as the barbell, so they are prescribed on the metric
+ *  grid rather than in pounds. */
+const BELT_LOADED_EXERCISE_IDS = new Set(["dips", "pullup", "weighted-pullup"]);
+
+type BeltLoadedSlot = ExerciseSlot & { base: BodyweightPrescription };
+
+const isBeltLoaded = (slot: ExerciseSlot): slot is BeltLoadedSlot =>
+  slot.base.type === "bodyweight" &&
+  BELT_LOADED_EXERCISE_IDS.has(slot.exerciseId);
+
+const beltLoadedSlots = (): readonly BeltLoadedSlot[] =>
+  catalog.programs.flatMap(({ version }) =>
+    version.sessionTemplates.flatMap(templateSlots).filter(isBeltLoaded),
   );
 
 /** The load steps a policy adds, in the exercise's unit; empty for policies that
@@ -71,6 +90,27 @@ describe("catalog", () => {
   it("prescribes kg barbell lifts at whole-kilogram starting loads", () => {
     for (const slot of kgBarbellSlots()) {
       expect(Number.isInteger(slot.base.weight)).toBe(true);
+    }
+  });
+
+  it("loads belt-loaded bodyweight movements in kilograms", () => {
+    for (const slot of beltLoadedSlots()) {
+      expect(slot.base.unit).toBe("kg");
+    }
+  });
+
+  it("progresses belt-loaded bodyweight movements in whole-kilogram increments", () => {
+    const increments = beltLoadedSlots().flatMap((slot) =>
+      progressionIncrements(slot.progression),
+    );
+    for (const increment of increments) {
+      expect(Number.isInteger(increment)).toBe(true);
+    }
+  });
+
+  it("prescribes belt-loaded bodyweight movements at whole-kilogram added loads", () => {
+    for (const slot of beltLoadedSlots()) {
+      expect(Number.isInteger(slot.base.addedWeight ?? 0)).toBe(true);
     }
   });
 
