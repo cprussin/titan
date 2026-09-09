@@ -4,8 +4,8 @@ import type { ExternalWorkout } from "@titan/domain/external";
 import type { WorkoutSession } from "@titan/domain/workout-session";
 import { trendsSummary } from "./trends-summary";
 
-const metric = (weightLb: number): BodyMetric =>
-  ({ weightLb }) as unknown as BodyMetric;
+const metric = (weightLb: number, date = "2026-01-01"): BodyMetric =>
+  ({ date, weightLb }) as unknown as BodyMetric;
 
 const external = (distanceMeters: number | undefined): ExternalWorkout =>
   ({
@@ -45,6 +45,15 @@ describe("trendsSummary", () => {
     );
     expect(summary.latestWeightLb).toBe(180);
     expect(summary.weightSeries).toEqual([184, 182, 180]);
+  });
+
+  it("dates the charted weigh-ins oldest-first alongside their weights", () => {
+    const summary = trendsSummary(
+      [metric(180, "2026-01-12"), metric(184, "2026-01-05")],
+      [],
+      [],
+    );
+    expect(summary.weightDates).toEqual(["2026-01-05", "2026-01-12"]);
   });
 
   it("reports the change from the previous weigh-in (down since last)", () => {

@@ -26,7 +26,11 @@ const names = new Map([
   ["bench", "Bench Press"],
 ]);
 
-const bodyWeight = { latestWeightLb: 184, series: [182, 184] };
+const bodyWeight = {
+  dates: ["2026-01-02", "2026-02-14"],
+  latestWeightLb: 184,
+  series: [182, 184],
+};
 
 const full = (
   <TrendsBand
@@ -35,10 +39,24 @@ const full = (
       value: {
         bodyWeight,
         names,
-        rowPace: { latestSplitSec: 112, values: [114, 112] },
+        rowPace: {
+          dates: ["2026-03-03", "2026-04-04"],
+          latestSplitSec: 112,
+          values: [114, 112],
+        },
         strengthSeries: [
-          { exerciseId: "squat", unit: "lb", values: [270, 272.5] },
-          { exerciseId: "bench", unit: "lb", values: [205, 207.5] },
+          {
+            dates: ["2026-05-05", "2026-06-06"],
+            exerciseId: "squat",
+            unit: "lb",
+            values: [270, 272.5],
+          },
+          {
+            dates: ["2026-07-07", "2026-08-08"],
+            exerciseId: "bench",
+            unit: "lb",
+            values: [205, 207.5],
+          },
         ],
       },
     }}
@@ -76,6 +94,16 @@ describe(TrendsBand, () => {
     fireEvent.pointerEnter(point, { pointerType: "mouse" });
     expect(screen.getByText("270 lb")).toBeDefined();
     expect(screen.queryByText("272.5 lb")).toBeNull();
+  });
+
+  it("dates a column at its newest point, then at the point being read", () => {
+    wrap(full);
+    expect(screen.getByText("Jun 6, 2026")).toBeDefined();
+    fireEvent.pointerEnter(chartPoint("Est. 1RM · Back Squat trend", 0), {
+      pointerType: "mouse",
+    });
+    expect(screen.getByText("May 5, 2026")).toBeDefined();
+    expect(screen.queryByText("Jun 6, 2026")).toBeNull();
   });
 
   it("returns the column to its latest value when the mouse leaves", () => {

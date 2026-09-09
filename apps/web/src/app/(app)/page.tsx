@@ -139,6 +139,7 @@ const DashboardPage = async ({
     session: view.session,
     trends: {
       bodyWeight: {
+        dates: summary.weightDates,
         latestWeightLb: summary.latestWeightLb,
         series: summary.weightSeries,
       },

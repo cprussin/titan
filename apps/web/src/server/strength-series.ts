@@ -4,13 +4,15 @@ import type { ExerciseResult } from "@titan/domain/result";
 import type { WorkoutSession } from "@titan/domain/workout-session";
 
 export type StrengthSeries = {
+  /** The `YYYY-MM-DD` day each value was logged, in step with `values`. */
+  dates: readonly string[];
   exerciseId: string;
   /** The unit every point is in (kg for a barbell lift, else lb). */
   unit: LoadUnit;
   values: readonly number[];
 };
 
-type Accumulated = { unit: LoadUnit; values: number[] };
+type Accumulated = { dates: string[]; unit: LoadUnit; values: number[] };
 
 /**
  * The estimated-1RM trends for the exercises with the most logged weighted
@@ -31,16 +33,23 @@ export const topStrengthSeriesList = (
       const best = bestOneRepMax(result);
       if (best !== undefined) {
         const series = byExercise.get(result.exerciseId) ?? {
+          dates: [],
           unit: resultUnit(result),
           values: [],
         };
+        series.dates.push(session.scheduledDate);
         series.values.push(Math.round(best));
         byExercise.set(result.exerciseId, series);
       }
     }
   }
   return [...byExercise.entries()]
-    .map(([exerciseId, { unit, values }]) => ({ exerciseId, unit, values }))
+    .map(([exerciseId, { dates, unit, values }]) => ({
+      dates,
+      exerciseId,
+      unit,
+      values,
+    }))
     .sort((a, b) => b.values.length - a.values.length)
     .slice(0, limit);
 };

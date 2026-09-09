@@ -44,6 +44,14 @@ describe("topStrengthSeries", () => {
     expect(series?.values[0]).toBeLessThan(series?.values[1] ?? 0);
   });
 
+  it("dates each point, so a chart can name the day a lift was logged", () => {
+    const series = topStrengthSeries([
+      session("s2", "2026-01-12", 235),
+      session("s1", "2026-01-05", 225),
+    ]);
+    expect(series?.dates).toEqual(["2026-01-05", "2026-01-12"]);
+  });
+
   it("returns undefined without weighted work", () => {
     expect(topStrengthSeries([])).toBeUndefined();
   });

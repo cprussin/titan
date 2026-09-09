@@ -4,6 +4,8 @@ import type { WorkoutSession } from "@titan/domain/workout-session";
 /** The rowing-pace trend: 500m splits oldest-first (for a left-to-right
  *  sparkline) and the latest split, in seconds per 500m. */
 export type RowPaceSeries = {
+  /** The `YYYY-MM-DD` day each value was rowed, in step with `values`. */
+  dates: readonly string[];
   latestSplitSec: number;
   values: readonly number[];
 };
@@ -26,7 +28,13 @@ export const rowPaceSeries = (
   ].sort((a, b) => (a.date < b.date ? -1 : 1));
   const values = points.map((point) => point.split);
   const latest = values.at(-1);
-  return latest === undefined ? undefined : { latestSplitSec: latest, values };
+  return latest === undefined
+    ? undefined
+    : {
+        dates: points.map((point) => point.date),
+        latestSplitSec: latest,
+        values,
+      };
 };
 
 /** Split points from completed sessions' cardio results. */

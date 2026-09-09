@@ -11,8 +11,11 @@ import type { StrengthSeries } from "../server/strength-series";
 import { Skeleton } from "../ui";
 import { BodyWeightTrendCard } from "./BodyWeightTrendCard";
 import { Sparkline } from "./Sparkline";
+import { TrendDate } from "./TrendDate";
 
 type BodyWeight = {
+  /** The `YYYY-MM-DD` day of each weigh-in in `series`, oldest-first. */
+  dates: readonly string[];
   latestWeightLb: number | undefined;
   series: readonly number[];
 };
@@ -51,6 +54,7 @@ export const TrendsBand = ({ load }: Props) => {
             <BodyWeightColumnSkeleton />
           ) : (
             <BodyWeightTrendCard
+              dates={load.value.bodyWeight.dates}
               latestWeightLb={load.value.bodyWeight.latestWeightLb}
               series={load.value.bodyWeight.series}
             />
@@ -90,6 +94,8 @@ export const TrendsBand = ({ load }: Props) => {
 const extrasRegionId = "trends-band-extras";
 
 type TrendColumnData = {
+  /** The `YYYY-MM-DD` day of each point in `values`, oldest-first. */
+  dates: readonly string[];
   /** Renders one point of the series in the column's own unit. */
   format: (value: number) => string;
   label: string;
@@ -113,9 +119,10 @@ const renderColumn = (
   );
 };
 
-/** One non-editable trend column: label, value, sparkline — each a skeleton
- *  while loading. The value follows the point being read off the sparkline,
- *  falling back to the series' latest once the reading ends. */
+/** One non-editable trend column: label, value, date, sparkline — each a
+ *  skeleton while loading. The value and its date follow the point being read
+ *  off the sparkline, falling back to the series' latest once the reading
+ *  ends. */
 const TrendColumn = ({
   load,
   slot,
@@ -130,6 +137,7 @@ const TrendColumn = ({
         <>
           <Skeleton height="0.875rem" width="7rem" />
           <Skeleton height="1.875rem" radius="md" width="4.5rem" />
+          <Skeleton height="0.75rem" width="5rem" />
           <SparklineSkeleton />
         </>
       ) : (
@@ -138,6 +146,7 @@ const TrendColumn = ({
           <span className={valueStyles}>
             {readValue(load.value, activeIndex)}
           </span>
+          <TrendDate activeIndex={activeIndex} dates={load.value.dates} />
           <Sparkline
             activeIndex={activeIndex}
             label={`${load.value.label} trend`}
@@ -160,11 +169,12 @@ const readValue = (
   return point === undefined ? data.value : data.format(point);
 };
 
-/** The body-weight column's skeleton: label, accent numeral, sparkline. */
+/** The body-weight column's skeleton: label, accent numeral, date, sparkline. */
 const BodyWeightColumnSkeleton = () => (
   <>
     <Skeleton height="0.875rem" width="6rem" />
     <Skeleton height="1.875rem" radius="md" width="5rem" />
+    <Skeleton height="0.75rem" width="5rem" />
     <SparklineSkeleton />
   </>
 );
@@ -190,6 +200,7 @@ const paceColumn = (data: TrendsBandData): TrendColumnData | undefined =>
   data.rowPace === undefined
     ? undefined
     : {
+        dates: data.rowPace.dates,
         format: formatSplitClock,
         label: "Row pace · 500m split",
         value: formatSplitClock(data.rowPace.latestSplitSec),
@@ -204,6 +215,7 @@ const strengthColumn = (
   series === undefined
     ? undefined
     : {
+        dates: series.dates,
         format: (value: number) => formatWeight(value, series.unit),
         label: strengthLabel(series, names),
         value: strengthValue(series),

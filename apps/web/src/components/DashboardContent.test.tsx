@@ -66,7 +66,11 @@ const data: DashboardData = {
   names: new Map(),
   session: undefined,
   trends: {
-    bodyWeight: { latestWeightLb: 184, series: [182, 184] },
+    bodyWeight: {
+      dates: ["2026-08-04", "2026-08-11"],
+      latestWeightLb: 184,
+      series: [182, 184],
+    },
     names: new Map(),
     rowPace: undefined,
     strengthSeries: [],
