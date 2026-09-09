@@ -5,8 +5,9 @@ import type { NormalizedWorkout } from "@titan/domain/external";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { css } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
+import { cardioSummary } from "../cardio-summary";
 import type { Concept2MatchResult } from "../concept2-match-result";
-import { Button } from "../ui";
+import { Button, ModalDialog } from "../ui";
 
 type Props = {
   /** Sync Concept2 and report whether a workout matches the current session. */
@@ -15,11 +16,26 @@ type Props = {
   onFound: (normalized: NormalizedWorkout) => void;
 };
 
-type Phase =
-  | { status: "idle" }
-  | { status: "found" }
-  | { status: "notFound" }
-  | { status: "error" };
+enum PhaseKind {
+  Idle,
+  Choosing,
+  Found,
+  NotFound,
+  Error,
+}
+
+const Phase = {
+  Choosing: (candidates: readonly NormalizedWorkout[]) => ({
+    candidates,
+    kind: PhaseKind.Choosing as const,
+  }),
+  Error: () => ({ kind: PhaseKind.Error as const }),
+  Found: () => ({ kind: PhaseKind.Found as const }),
+  Idle: () => ({ kind: PhaseKind.Idle as const }),
+  NotFound: () => ({ kind: PhaseKind.NotFound as const }),
+};
+
+type Phase = ReturnType<(typeof Phase)[keyof typeof Phase]>;
 
 /** Time between background polls while the athlete sits on the rowing step, so a
  *  row finished mid-workout is picked up without the athlete lifting a finger. */
@@ -31,11 +47,17 @@ const POLL_INTERVAL_MS = 20_000;
  * finished mid-workout), reports it so the screen advances. The athlete can also
  * force a check; only that explicit press surfaces the "no match" prompt, so the
  * background poll never nags.
+ *
+ * When more than one row hits the target the hand-off stops and asks: the
+ * matcher has no way to tell a warm-up from a cool-down rowed to the same
+ * prescription, and picking one for the athlete would silently log the wrong
+ * piece. Asking also stops the poll, so the choices hold still under the prompt.
  */
 export const Concept2Check = ({ check, onFound }: Props) => {
-  const [phase, setPhase] = useState<Phase>({ status: "idle" });
+  const [phase, setPhase] = useState<Phase>(Phase.Idle());
   const [checking, setChecking] = useState(false);
   const foundRef = useRef(false);
+  const pollingRef = useRef(true);
 
   const runCheck = useCallback(
     (manual: boolean) => {
@@ -43,20 +65,33 @@ export const Concept2Check = ({ check, onFound }: Props) => {
       check()
         .then((result) => {
           setChecking(false);
-          if (result.matched) {
-            if (!foundRef.current) {
-              foundRef.current = true;
-              setPhase({ status: "found" });
-              onFound(result.normalized);
+          if (!foundRef.current) {
+            switch (result.status) {
+              case "matched": {
+                foundRef.current = true;
+                pollingRef.current = false;
+                setPhase(Phase.Found());
+                onFound(result.normalized);
+                break;
+              }
+              case "ambiguous": {
+                pollingRef.current = false;
+                setPhase(Phase.Choosing(result.candidates));
+                break;
+              }
+              case "not-matched": {
+                if (manual) {
+                  setPhase(Phase.NotFound());
+                }
+                break;
+              }
             }
-          } else if (manual) {
-            setPhase({ status: "notFound" });
           }
         })
         .catch((error: unknown) => {
           setChecking(false);
           if (manual) {
-            setPhase({ status: "error" });
+            setPhase(Phase.Error());
           }
           // biome-ignore lint/suspicious/noConsole: surface a Concept2 check failure
           console.error("Concept2 check failed", error);
@@ -68,7 +103,7 @@ export const Concept2Check = ({ check, onFound }: Props) => {
   useEffect(() => {
     runCheck(false);
     const timer = setInterval(() => {
-      if (!foundRef.current) {
+      if (pollingRef.current) {
         runCheck(false);
       }
     }, POLL_INTERVAL_MS);
@@ -81,11 +116,16 @@ export const Concept2Check = ({ check, onFound }: Props) => {
     runCheck(true);
   };
   const dismiss = () => {
-    setPhase({ status: "idle" });
+    setPhase(Phase.Idle());
+  };
+  const pick = (normalized: NormalizedWorkout) => {
+    foundRef.current = true;
+    setPhase(Phase.Found());
+    onFound(normalized);
   };
 
-  switch (phase.status) {
-    case "idle": {
+  switch (phase.kind) {
+    case PhaseKind.Idle: {
       return (
         <div className={rootStyles}>
           <p className={hintStyles}>
@@ -104,10 +144,19 @@ export const Concept2Check = ({ check, onFound }: Props) => {
         </div>
       );
     }
-    case "found": {
+    case PhaseKind.Choosing: {
+      return (
+        <ChoicePrompt
+          candidates={phase.candidates}
+          onCancel={dismiss}
+          onPick={pick}
+        />
+      );
+    }
+    case PhaseKind.Found: {
       return <p className={foundStyles}>Workout found</p>;
     }
-    case "notFound": {
+    case PhaseKind.NotFound: {
       return (
         <RetryPrompt
           checking={checking}
@@ -117,7 +166,7 @@ export const Concept2Check = ({ check, onFound }: Props) => {
         />
       );
     }
-    case "error": {
+    case PhaseKind.Error: {
       return (
         <RetryPrompt
           checking={checking}
@@ -129,6 +178,56 @@ export const Concept2Check = ({ check, onFound }: Props) => {
     }
   }
 };
+
+/** The rows that all hit the slot's target, for the athlete to pick between.
+ *  Each is labelled with the time it was rowed — what tells two pieces on one
+ *  prescription apart — and the optics it recorded. */
+const ChoicePrompt = ({
+  candidates,
+  onCancel,
+  onPick,
+}: {
+  candidates: readonly NormalizedWorkout[];
+  onCancel: () => void;
+  onPick: (normalized: NormalizedWorkout) => void;
+}) => (
+  <ModalDialog
+    footer={
+      <Button onClick={onCancel} variant="ghost">
+        Not these
+      </Button>
+    }
+    onOpenChange={(open) => {
+      if (!open) {
+        onCancel();
+      }
+    }}
+    open
+    title="Which row was this?"
+  >
+    <div className={choicesStyles}>
+      <p className={hintStyles}>
+        More than one Concept2 row matches this piece.
+      </p>
+      {candidates.map((candidate, index) => (
+        <Button
+          key={index}
+          onClick={() => {
+            onPick(candidate);
+          }}
+          variant="outline"
+        >
+          {`${timeRowed(candidate)} · ${cardioSummary(candidate.summary)}`}
+        </Button>
+      ))}
+    </div>
+  </ModalDialog>
+);
+
+/** The wall-clock time the piece was rowed. Concept2 stamps the logbook in the
+ *  athlete's local time, so the `HH:MM` sits ready in the timestamp. */
+const timeRowed = (normalized: NormalizedWorkout): string =>
+  normalized.workoutAt.slice(11, 16);
 
 const RetryPrompt = ({
   checking,
@@ -155,6 +254,8 @@ const RetryPrompt = ({
 );
 
 const rootStyles = vstack({ alignItems: "stretch", gap: 2 });
+
+const choicesStyles = vstack({ alignItems: "stretch", gap: 3 });
 
 const hintStyles = css({ color: "muted", fontSize: "sm" });
 

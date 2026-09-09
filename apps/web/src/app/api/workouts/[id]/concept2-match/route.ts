@@ -1,4 +1,5 @@
-import { matchSlot } from "@titan/concept2/match";
+import type { SlotMatch } from "@titan/concept2/match";
+import { matchSlot, SlotMatchKind } from "@titan/concept2/match";
 import { getConnection } from "@titan/db/external-connections";
 import { getWorkoutSession } from "@titan/db/workout-sessions";
 import { NextResponse } from "next/server";
@@ -17,7 +18,9 @@ import { USER_ID } from "../../../../../user";
  * the manual sync uses); this handler then picks the row that hits that slot's
  * target exactly, so the slot claims its own effort — a 10k slot takes the 10k
  * rather than a 500 m warm-up that shares the day. A row already logged, or one
- * finished mid-workout and surfaced on a later poll, is recorded automatically.
+ * finished mid-workout and surfaced on a later poll, is recorded automatically;
+ * when several rows hit the target the client is handed all of them to ask the
+ * athlete about, since only they know which piece they meant.
  */
 export const POST = async (
   request: Request,
@@ -61,11 +64,23 @@ export const POST = async (
         session.scheduledDate,
         outcomes.map((outcome) => outcome.workout.normalized),
       );
-      return NextResponse.json(
-        match === undefined
-          ? Concept2MatchResult.NotMatched()
-          : Concept2MatchResult.Matched(match),
-      );
+      return NextResponse.json(toResponse(match));
+    }
+  }
+};
+
+/** Map the matcher's in-memory union onto the wire one — the memory enum never
+ *  leaves the process (see DISCRIMINATED_UNIONS.md). */
+const toResponse = (match: SlotMatch) => {
+  switch (match.kind) {
+    case SlotMatchKind.Matched: {
+      return Concept2MatchResult.Matched(match.normalized);
+    }
+    case SlotMatchKind.Ambiguous: {
+      return Concept2MatchResult.Ambiguous(match.candidates);
+    }
+    case SlotMatchKind.Unmatched: {
+      return Concept2MatchResult.NotMatched();
     }
   }
 };

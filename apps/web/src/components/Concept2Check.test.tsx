@@ -10,8 +10,23 @@ const normalized: NormalizedWorkout = {
   workoutAt: "2024-01-15T08:30:00",
 };
 
-const matched: Concept2MatchResult = { matched: true, normalized };
-const unmatched: Concept2MatchResult = { matched: false };
+const matched: Concept2MatchResult = { normalized, status: "matched" };
+const unmatched: Concept2MatchResult = { status: "not-matched" };
+
+const warmup: NormalizedWorkout = {
+  intervals: [],
+  summary: { distanceMeters: 2000, durationSec: 450 },
+  workoutAt: "2024-01-15T08:12:00",
+};
+const cooldown: NormalizedWorkout = {
+  intervals: [],
+  summary: { distanceMeters: 2000, durationSec: 461 },
+  workoutAt: "2024-01-15T09:38:00",
+};
+const ambiguous: Concept2MatchResult = {
+  candidates: [warmup, cooldown],
+  status: "ambiguous",
+};
 
 const settleAutoCheck = async (): Promise<HTMLElement> => {
   const button = await screen.findByRole("button", { name: "Check Concept2" });
@@ -94,6 +109,55 @@ describe(Concept2Check, () => {
     expect(
       screen.queryByText(/no matching workout found/i),
     ).not.toBeInTheDocument();
+  });
+
+  it("asks which row to use when more than one hits the target", async () => {
+    // Two pieces on one prescription: nothing in the data picks between them,
+    // so the athlete does — by the time each was rowed and what it covered.
+    const found: NormalizedWorkout[] = [];
+    render(
+      <Concept2Check
+        check={() => Promise.resolve(ambiguous)}
+        onFound={(workout) => found.push(workout)}
+      />,
+    );
+    expect(
+      await screen.findByRole("button", { name: /08:12/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /09:38/ })).toBeInTheDocument();
+    expect(found).toEqual([]);
+  });
+
+  it("logs the row the athlete picks out of the choices", async () => {
+    const found: NormalizedWorkout[] = [];
+    render(
+      <Concept2Check
+        check={() => Promise.resolve(ambiguous)}
+        onFound={(workout) => found.push(workout)}
+      />,
+    );
+    fireEvent.click(await screen.findByRole("button", { name: /09:38/ }));
+    await waitFor(() => {
+      expect(found).toEqual([cooldown]);
+    });
+  });
+
+  it("stops polling once it has asked, so the choices hold still", async () => {
+    // The background poll would otherwise keep firing under an open prompt and
+    // re-ask on every tick.
+    let checks = 0;
+    render(
+      <Concept2Check
+        check={() => {
+          checks += 1;
+          return Promise.resolve(ambiguous);
+        }}
+        onFound={() => undefined}
+      />,
+    );
+    await screen.findByRole("button", { name: /08:12/ });
+    fireEvent.click(screen.getByRole("button", { name: "Not these" }));
+    expect(checks).toBe(1);
   });
 
   it("surfaces a failure with a retry prompt instead of transitioning", async () => {
