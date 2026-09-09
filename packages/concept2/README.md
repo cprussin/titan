@@ -25,14 +25,16 @@ deterministic and unit-testable.
 - **`match`** — `matchWorkout(normalized, candidateSessions)` picks the planned
   rowing/cardio session scheduled for the day the piece was rowed (Concept2
   stamps the logbook in the athlete's local time and `scheduledDate` is that
-  same local day), taking the one whose target the piece came closest to.
-  `matchSlot(prescription, scheduledDate, candidates)` runs the other direction
-  for the live rowing step: which imported row is *this* prescribed effort. Both
-  require the piece to land within a tenth of the target, and an interval
-  prescription is judged on the shape of the piece — the erg must have recorded
-  the prescribed number of intervals, each near the prescribed size — so a
-  continuous 2 km never passes for 6 × 500 m. The "no planned session" case is
-  returned as a `MatchResult` variant, not thrown.
+  same local day). `matchSlot(prescription, scheduledDate, candidates)` runs the
+  other direction for the live rowing step: which imported row is *this*
+  prescribed effort. Within the day the test is **exact**, because the
+  prescription is what the athlete dials into the ergometer — a fixed-time piece
+  runs the prescribed clock, a fixed-distance piece stops on the prescribed
+  metre, and an interval piece logs the prescribed number of work intervals at
+  the prescribed size, so a continuous 2 km is never 6 × 500 m. Only the axis
+  the prescription pins down is tested; the distance a timed piece covers, the
+  split, and the target heart-rate zone are not. The "no planned session" case
+  is returned as a `MatchResult` variant, not thrown.
 
 ## Dependencies
 

@@ -19,28 +19,23 @@ import type { WorkoutSession } from "@titan/domain/workout-session";
  * Both gate on the athlete's calendar day: Concept2 stamps the logbook in the
  * athlete's local time and a session's `scheduledDate` is that same local day
  * (see `date.ts`), so the two are on one calendar and a piece belongs only to
- * the day it was rowed. Within the day both rank by how close the piece came to
- * a target, measured as a dimensionless fraction of that target
- * ({@link cardioMismatch}) so a distance-based effort and a time-based one
- * compare on one scale — and an interval prescription is judged on the *shape*
- * of the piece, not just its total, so a continuous 2 km never passes for
- * 6 × 500 m. "No planned work" is an ordinary outcome, not a failure, so it is
- * modelled as a {@link MatchResult} variant / `undefined` the caller branches on
- * rather than a thrown error (see ERRORS.md).
+ * the day it was rowed.
+ *
+ * Within the day the test is **exact** ({@link isCardioMatch}), because the
+ * prescription is what the athlete dials into the ergometer: a fixed-time piece
+ * runs the prescribed clock to the tenth, a fixed-distance piece stops on the
+ * prescribed metre, and an interval piece logs the prescribed number of work
+ * intervals at the prescribed size. A piece that misses is not this effort
+ * rowed loosely — it is a different piece, and there is no tolerance under
+ * which admitting it beats leaving the slot for the athlete to log. Whatever
+ * the prescription doesn't pin down (the distance a timed piece covers, the
+ * split it was held at, the heart-rate zone it targeted) is not part of the
+ * test.
+ *
+ * "No planned work" is an ordinary outcome, not a failure, so it is modelled as
+ * a {@link MatchResult} variant / `undefined` the caller branches on rather than
+ * a thrown error (see ERRORS.md).
  */
-
-const CARDIO_PRESCRIPTION_TYPES = new Set<Prescription["type"]>([
-  "distance-cardio",
-  "intervals",
-  "timed-cardio",
-]);
-
-/** The most a piece may deviate from a target — on total volume, and on each
- *  interval of an interval piece — and still be taken as that target's effort.
- *  The erg is programmed to the prescription, so the athlete's own piece lands
- *  within a few percent; a tenth leaves room for one trimmed or overshot by a
- *  sensible margin without letting a neighbouring piece claim the work. */
-const MAX_MISMATCH = 0.1;
 
 export enum MatchKind {
   Matched,
@@ -64,137 +59,100 @@ export const matchWorkout = (
   candidateSessions: readonly WorkoutSession[],
 ): MatchResult => {
   const day = dayOf(normalized);
-  const best = pickClosest(
-    candidateSessions
-      .filter((session) => session.scheduledDate === day)
-      .map((session) => ({
-        mismatch: sessionMismatch(session, normalized),
-        session,
-      }))
-      .filter((candidate) => candidate.mismatch <= MAX_MISMATCH),
+  const match = candidateSessions.find(
+    (session) =>
+      session.scheduledDate === day &&
+      session.prescribedExercises.some((exercise) =>
+        isCardioMatch(exercise.prescription, normalized),
+      ),
   );
-  return best === undefined
+  return match === undefined
     ? MatchResult.Unmatched()
-    : MatchResult.Matched(best.session.id);
+    : MatchResult.Matched(match.id);
 };
 
 /**
- * The imported row that best fits `prescription` scheduled on `scheduledDate`,
- * among `candidates` rowed that day — or `undefined` when none comes close
- * enough. Ranks by how near the piece landed to the slot's target, so the slot
- * claims its own effort rather than the first row that shares its day.
+ * The imported row that is `prescription` scheduled on `scheduledDate`, among
+ * `candidates` rowed that day — or `undefined` when none hits the target. When
+ * the day holds more than one piece on the same prescription (a warm-up and a
+ * cool-down rowed alike), the earliest is taken: the athlete works through the
+ * session in order.
  */
 export const matchSlot = (
   prescription: Prescription,
   scheduledDate: string,
   candidates: readonly NormalizedWorkout[],
 ): NormalizedWorkout | undefined =>
-  pickClosest(
-    candidates
-      .filter((normalized) => dayOf(normalized) === scheduledDate)
-      .map((normalized) => ({
-        mismatch: cardioMismatch(prescription, normalized),
-        normalized,
-      }))
-      .filter((candidate) => candidate.mismatch <= MAX_MISMATCH),
-  )?.normalized;
+  earliest(
+    candidates.filter(
+      (normalized) =>
+        dayOf(normalized) === scheduledDate &&
+        isCardioMatch(prescription, normalized),
+    ),
+  );
 
-type Scored = { mismatch: number };
-
-const pickClosest = <T extends Scored>(scored: readonly T[]): T | undefined =>
-  scored.reduce<T | undefined>(
+const earliest = (
+  candidates: readonly NormalizedWorkout[],
+): NormalizedWorkout | undefined =>
+  candidates.reduce<NormalizedWorkout | undefined>(
     (best, current) =>
-      best === undefined || current.mismatch < best.mismatch ? current : best,
+      best === undefined || current.workoutAt < best.workoutAt ? current : best,
     undefined,
   );
 
-/** A session's mismatch is that of its best-fitting cardio slot;
- *  `POSITIVE_INFINITY` when it prescribes no cardio at all, which drops it as a
- *  candidate. */
-const sessionMismatch = (
-  session: WorkoutSession,
-  normalized: NormalizedWorkout,
-): number =>
-  Math.min(
-    ...session.prescribedExercises
-      .filter((exercise) =>
-        CARDIO_PRESCRIPTION_TYPES.has(exercise.prescription.type),
-      )
-      .map((exercise) => cardioMismatch(exercise.prescription, normalized)),
-    Number.POSITIVE_INFINITY,
-  );
-
-/** How far an imported piece fell from a prescription's target, as a
- *  dimensionless fraction of that target; `POSITIVE_INFINITY` when the
- *  prescription carries no target the piece can be compared against. */
-const cardioMismatch = (
+/** Whether an imported piece is the effort `prescription` asked for. Only the
+ *  axis the prescription pins down is tested, and it is tested exactly; a
+ *  prescription with no cardio target is never a piece. */
+const isCardioMatch = (
   prescription: Prescription,
   normalized: NormalizedWorkout,
-): number => {
+): boolean => {
   switch (prescription.type) {
     case "distance-cardio": {
-      return relativeDelta(
-        prescription.distanceMeters,
-        normalized.summary.distanceMeters,
-      );
+      return normalized.summary.distanceMeters === prescription.distanceMeters;
     }
     case "intervals": {
-      return intervalsMismatch(prescription, normalized);
+      return isIntervalsMatch(prescription, normalized);
     }
     case "timed-cardio": {
-      return relativeDelta(
-        prescription.durationSec,
-        normalized.summary.durationSec,
-      );
+      return normalized.summary.durationSec === prescription.durationSec;
     }
     case "bodyweight":
     case "circuit":
     case "strength":
     case "timed-hold": {
-      return Number.POSITIVE_INFINITY;
+      return false;
     }
   }
 };
 
 /** An interval piece is the prescription's effort only when it was *rowed* as
- *  intervals: the erg must have recorded the prescribed number of them, each
- *  near the prescribed size. Judging it on total volume alone lets a continuous
- *  2 km warm-up — or a 3 × 1000 m — pass for 6 × 500 m. The worst interval sets
- *  the mismatch, so one effort nothing like the target disqualifies the piece. */
-const intervalsMismatch = (
+ *  those intervals: the erg recorded the prescribed number of work intervals,
+ *  every one of them on target. A continuous row logs none at all, so it can
+ *  never stand in for one however far it went. */
+const isIntervalsMatch = (
   prescription: IntervalsPrescription,
   normalized: NormalizedWorkout,
-): number =>
-  normalized.intervals.length === prescription.count
-    ? Math.max(
-        ...normalized.intervals.map((interval) =>
-          intervalMismatch(prescription, interval),
-        ),
-      )
-    : Number.POSITIVE_INFINITY;
+): boolean =>
+  normalized.intervals.length === prescription.count &&
+  normalized.intervals.every((interval) =>
+    isIntervalMatch(prescription, interval),
+  );
 
 /** Intervals target either a distance or a time per effort (the constructor
- *  sets exactly one), so the interval is compared on whichever axis was set. */
-const intervalMismatch = (
+ *  sets exactly one), so the interval is tested on whichever axis was set. */
+const isIntervalMatch = (
   prescription: IntervalsPrescription,
   interval: IntervalResult,
-): number => {
+): boolean => {
   if (prescription.workDistanceMeters !== undefined) {
-    return relativeDelta(
-      prescription.workDistanceMeters,
-      interval.distanceMeters,
-    );
+    return interval.distanceMeters === prescription.workDistanceMeters;
   } else if (prescription.workSec === undefined) {
-    return Number.POSITIVE_INFINITY;
+    return false;
   } else {
-    return relativeDelta(prescription.workSec, interval.durationSec);
+    return interval.durationSec === prescription.workSec;
   }
 };
-
-const relativeDelta = (target: number, actual: number | undefined): number =>
-  actual === undefined
-    ? Number.POSITIVE_INFINITY
-    : Math.abs(target - actual) / target;
 
 const dayOf = (normalized: NormalizedWorkout): string =>
   normalized.workoutAt.slice(0, 10);

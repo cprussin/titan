@@ -14,9 +14,9 @@ import { USER_ID } from "../../../../../user";
  * Sync Concept2 and report whether any imported row is the cardio slot the
  * athlete is logging, identified by the session `id` and the `slotId` in the
  * request body. The import refreshes the athlete's recent results (the same path
- * the manual sync uses); this handler then picks the row nearest that slot's
- * target, so the slot claims its own effort — a 10k slot takes the 10k rather
- * than a 500 m warm-up that merely shares the day. A row already logged, or one
+ * the manual sync uses); this handler then picks the row that hits that slot's
+ * target exactly, so the slot claims its own effort — a 10k slot takes the 10k
+ * rather than a 500 m warm-up that shares the day. A row already logged, or one
  * finished mid-workout and surfaced on a later poll, is recorded automatically.
  */
 export const POST = async (
