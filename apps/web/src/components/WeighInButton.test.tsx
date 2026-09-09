@@ -1,24 +1,30 @@
 import { describe, expect, it } from "bun:test";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { WeighInButton } from "./WeighInButton";
-import { useWeighIn, WeighInProvider } from "./WeighInContext";
 
-/** Surfaces the shared weigh-in state so the test can assert the button opened it. */
-const Probe = () => {
-  const { weighingIn } = useWeighIn();
-  return <span data-testid="state">{weighingIn ? "open" : "closed"}</span>;
+const router = {
+  back: () => undefined,
+  forward: () => undefined,
+  prefetch: () => undefined,
+  push: () => undefined,
+  refresh: () => undefined,
+  replace: () => undefined,
 };
 
 describe(WeighInButton, () => {
-  it("opens the weigh-in editor when clicked", () => {
+  it("opens the weigh-in dialog when clicked", async () => {
     render(
-      <WeighInProvider>
+      <AppRouterContext.Provider value={router}>
         <WeighInButton />
-        <Probe />
-      </WeighInProvider>,
+      </AppRouterContext.Provider>,
     );
-    expect(screen.getByTestId("state").textContent).toBe("closed");
+    expect(
+      screen.queryByRole("spinbutton", { name: "Bodyweight in pounds" }),
+    ).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Weigh in" }));
-    expect(screen.getByTestId("state").textContent).toBe("open");
+    expect(
+      await screen.findByRole("spinbutton", { name: "Bodyweight in pounds" }),
+    ).toBeDefined();
   });
 });

@@ -37,8 +37,8 @@ type ColumnSlot = "lead" | "extraA" | "extraB";
  *  most-trained lifts' estimated 1RM, rowing pace, and body weight — that never
  *  change with the selected day. On wide screens all four sit in a row; on
  *  phones two show (the lead lift and body weight) and a "Show more" toggle
- *  reveals the rest. Body weight is the weigh-in card, its value the one accent
- *  number. While loading, the same four columns fill with skeletons. */
+ *  reveals the rest. Body weight's value is the one accent number. While
+ *  loading, the same four columns fill with skeletons. */
 export const TrendsBand = ({ load }: Props) => {
   const [expanded, setExpanded] = useState(false);
   // Assume extras exist while loading so the toggle holds its place; once loaded

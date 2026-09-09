@@ -15,7 +15,6 @@ import type { TrendsBandData } from "./TrendsBand";
 import { TrendsBand } from "./TrendsBand";
 import type { WeekRibbonData } from "./WeekRibbon";
 import { WeekRibbon } from "./WeekRibbon";
-import { WeighInProvider } from "./WeighInContext";
 
 export type DashboardData = {
   body: DashboardBody;
@@ -39,24 +38,22 @@ type Props = {
 export const DashboardContent = ({ load }: Props) => (
   <div className={pageStyles}>
     <TopBar icon={<GaugeIcon size={18} />} title="Dashboard" />
-    <WeighInProvider>
-      <div className={contentStyles}>
-        <TrendsBand load={mapLoadable(load, (data) => data.trends)} />
-        <div className={sectionStyles}>
-          <WeekRibbon load={mapLoadable(load, (data) => data.week)} />
-        </div>
-        <div className={sectionStyles}>
-          <DashboardHeader load={mapLoadable(load, (data) => data.header)} />
-        </div>
-        <SessionBlock
-          load={mapLoadable(load, (data) => ({
-            body: data.body,
-            names: data.names,
-            session: data.session,
-          }))}
-        />
+    <div className={contentStyles}>
+      <TrendsBand load={mapLoadable(load, (data) => data.trends)} />
+      <div className={sectionStyles}>
+        <WeekRibbon load={mapLoadable(load, (data) => data.week)} />
       </div>
-    </WeighInProvider>
+      <div className={sectionStyles}>
+        <DashboardHeader load={mapLoadable(load, (data) => data.header)} />
+      </div>
+      <SessionBlock
+        load={mapLoadable(load, (data) => ({
+          body: data.body,
+          names: data.names,
+          session: data.session,
+        }))}
+      />
+    </div>
   </div>
 );
 

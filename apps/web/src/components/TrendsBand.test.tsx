@@ -1,25 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import type { ReactElement } from "react";
 import { TrendsBand } from "./TrendsBand";
-import { WeighInProvider } from "./WeighInContext";
-
-const router = {
-  back: () => undefined,
-  forward: () => undefined,
-  prefetch: () => undefined,
-  push: () => undefined,
-  refresh: () => undefined,
-  replace: () => undefined,
-};
-
-const wrap = (ui: ReactElement) =>
-  render(
-    <AppRouterContext.Provider value={router}>
-      <WeighInProvider>{ui}</WeighInProvider>
-    </AppRouterContext.Provider>,
-  );
 
 const names = new Map([
   ["squat", "Back Squat"],
@@ -79,7 +60,7 @@ const chartPoint = (label: string, index: number) => {
 
 describe(TrendsBand, () => {
   it("renders a labeled value per strength lift, row pace, and body weight", () => {
-    wrap(full);
+    render(full);
     expect(screen.getByText("Est. 1RM · Back Squat")).toBeDefined();
     expect(screen.getByText("272.5 lb")).toBeDefined();
     expect(screen.getByText("Est. 1RM · Bench Press")).toBeDefined();
@@ -89,7 +70,7 @@ describe(TrendsBand, () => {
   });
 
   it("reads the picked point's value while a chart is being read", () => {
-    wrap(full);
+    render(full);
     const point = chartPoint("Est. 1RM · Back Squat trend", 0);
     fireEvent.pointerEnter(point, { pointerType: "mouse" });
     expect(screen.getByText("270 lb")).toBeDefined();
@@ -97,7 +78,7 @@ describe(TrendsBand, () => {
   });
 
   it("dates a column at its newest point, then at the point being read", () => {
-    wrap(full);
+    render(full);
     expect(screen.getByText("Jun 6, 2026")).toBeDefined();
     fireEvent.pointerEnter(chartPoint("Est. 1RM · Back Squat trend", 0), {
       pointerType: "mouse",
@@ -107,7 +88,7 @@ describe(TrendsBand, () => {
   });
 
   it("returns the column to its latest value when the mouse leaves", () => {
-    wrap(full);
+    render(full);
     const chart = screen.getByRole("img", {
       name: "Row pace · 500m split trend",
     });
@@ -120,7 +101,7 @@ describe(TrendsBand, () => {
   });
 
   it("reads the picked point's weight on the body-weight column", () => {
-    wrap(full);
+    render(full);
     fireEvent.pointerEnter(chartPoint("Body weight trend", 0), {
       pointerType: "touch",
     });
@@ -129,14 +110,14 @@ describe(TrendsBand, () => {
   });
 
   it("toggles the mobile show-more control", () => {
-    wrap(full);
+    render(full);
     const toggle = screen.getByRole("button", { name: /Show more/i });
     fireEvent.click(toggle);
     expect(screen.getByRole("button", { name: /Show less/i })).toBeDefined();
   });
 
   it("marks the extras region expanded as the toggle flips", () => {
-    const { container } = wrap(full);
+    const { container } = render(full);
     const extras = container.querySelector("[data-trends-extras]");
     expect(extras?.getAttribute("data-expanded")).toBeNull();
     const toggle = screen.getByRole("button", { name: /Show more/i });
@@ -152,7 +133,7 @@ describe(TrendsBand, () => {
   });
 
   it("has no toggle when there is only body weight to show", () => {
-    wrap(
+    render(
       <TrendsBand
         load={{
           isLoading: false,
@@ -170,7 +151,7 @@ describe(TrendsBand, () => {
   });
 
   it("fills every column with skeletons while loading", () => {
-    const { container } = wrap(<TrendsBand load={{ isLoading: true }} />);
+    const { container } = render(<TrendsBand load={{ isLoading: true }} />);
     expect(screen.queryByText("184 lb")).toBeNull();
     expect(screen.queryByText(/Est. 1RM/)).toBeNull();
     expect(

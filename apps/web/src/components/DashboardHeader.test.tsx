@@ -4,7 +4,6 @@ import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared
 import type { ReactElement } from "react";
 import type { DashboardHeaderData } from "./DashboardHeader";
 import { DashboardHeader } from "./DashboardHeader";
-import { WeighInProvider } from "./WeighInContext";
 
 const router = {
   back: () => undefined,
@@ -17,9 +16,7 @@ const router = {
 
 const wrap = (ui: ReactElement) =>
   render(
-    <AppRouterContext.Provider value={router}>
-      <WeighInProvider>{ui}</WeighInProvider>
-    </AppRouterContext.Provider>,
+    <AppRouterContext.Provider value={router}>{ui}</AppRouterContext.Provider>,
   );
 
 const eyebrow = {
