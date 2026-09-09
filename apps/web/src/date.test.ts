@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { dateIso, isoDayOfWeek } from "./date";
+import { dateIso, formatCalendarDate, isoDayOfWeek } from "./date";
 
 describe("dateIso", () => {
   it("formats an instant as YYYY-MM-DD in the given time zone", () => {
@@ -25,5 +25,17 @@ describe("isoDayOfWeek", () => {
 
   it("maps Sunday to 7", () => {
     expect(isoDayOfWeek("2026-01-11")).toBe(7);
+  });
+});
+
+describe("formatCalendarDate", () => {
+  it("reads a YYYY-MM-DD date as an unambiguous short calendar date", () => {
+    expect(formatCalendarDate("2026-09-09")).toBe("Sep 9, 2026");
+  });
+
+  it("reads the date as written rather than shifting it into local time", () => {
+    // A naive `new Date("2026-01-01")` lands on UTC midnight, which is still
+    // 2025 west of Greenwich — the label must stay on the day that was logged.
+    expect(formatCalendarDate("2026-01-01")).toBe("Jan 1, 2026");
   });
 });

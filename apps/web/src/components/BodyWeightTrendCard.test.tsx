@@ -37,6 +37,8 @@ const renderCard = (ui: ReactNode, refresh: () => void = () => undefined) =>
 
 const noopSave = () => Promise.resolve();
 
+const dates = ["2026-01-05", "2026-01-12"];
+
 const openEditor = () =>
   fireEvent.click(screen.getByRole("button", { name: "open weigh-in" }));
 
@@ -44,6 +46,7 @@ describe(BodyWeightTrendCard, () => {
   it("shows the latest weight in display mode with no editor", () => {
     renderCard(
       <BodyWeightTrendCard
+        dates={dates}
         latestWeightLb={184}
         save={noopSave}
         series={[182, 184]}
@@ -55,9 +58,28 @@ describe(BodyWeightTrendCard, () => {
     ).toBeNull();
   });
 
+  it("dates the trend at its newest weigh-in, then at the one being read", () => {
+    const { container } = renderCard(
+      <BodyWeightTrendCard
+        dates={dates}
+        latestWeightLb={184}
+        save={noopSave}
+        series={[182, 184]}
+      />,
+    );
+    expect(screen.getByText("Jan 12, 2026")).toBeDefined();
+    const point = container.querySelectorAll("[data-sparkline-point]")[0];
+    if (point === undefined) {
+      throw new Error("the trend line has no hit targets");
+    }
+    fireEvent.pointerEnter(point, { pointerType: "mouse" });
+    expect(screen.getByText("Jan 5, 2026")).toBeDefined();
+  });
+
   it("swaps into an input prefilled with the last weight when opened", () => {
     renderCard(
       <BodyWeightTrendCard
+        dates={dates}
         latestWeightLb={184}
         save={noopSave}
         series={[182, 184]}
@@ -75,6 +97,7 @@ describe(BodyWeightTrendCard, () => {
     const refreshed = new Promise<void>((resolve) => {
       renderCard(
         <BodyWeightTrendCard
+          dates={dates}
           latestWeightLb={184}
           save={(weightLb) => {
             saved.push(weightLb);
@@ -100,6 +123,7 @@ describe(BodyWeightTrendCard, () => {
   it("returns to display mode on cancel", () => {
     renderCard(
       <BodyWeightTrendCard
+        dates={dates}
         latestWeightLb={184}
         save={noopSave}
         series={[182, 184]}

@@ -8,6 +8,7 @@ import { hstack } from "../../styled-system/patterns";
 import { formatBodyWeight } from "../format";
 import { Button } from "../ui";
 import { Sparkline } from "./Sparkline";
+import { TrendDate } from "./TrendDate";
 import { useWeighIn } from "./WeighInContext";
 
 /** Persist a weigh-in. Throws on a failed save so the caller surfaces it rather
@@ -24,6 +25,8 @@ export const saveBodyWeight = async (weightLb: number): Promise<void> => {
 };
 
 type Props = {
+  /** The `YYYY-MM-DD` day of each weigh-in in `series`, oldest-first. */
+  dates: readonly string[];
   latestWeightLb: number | undefined;
   /** Injected for tests; defaults to the real POST. */
   save?: typeof saveBodyWeight;
@@ -36,6 +39,7 @@ type Props = {
  *  weigh-in state is open (from the headline's "Weigh in" button), the numeral
  *  becomes an input, so the eye stays in place; Enter saves, Esc cancels. */
 export const BodyWeightTrendCard = ({
+  dates,
   latestWeightLb,
   save = saveBodyWeight,
   series,
@@ -108,6 +112,8 @@ export const BodyWeightTrendCard = ({
           {shownWeightLb === undefined ? "—" : formatBodyWeight(shownWeightLb)}
         </span>
       )}
+
+      <TrendDate activeIndex={activeIndex} dates={dates} />
 
       <Sparkline
         activeIndex={activeIndex}

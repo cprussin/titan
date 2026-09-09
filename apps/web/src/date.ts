@@ -22,6 +22,19 @@ export const isoDayOfWeek = (dateString: string): number => {
   return day === 0 ? 7 : day;
 };
 
+/** Dates are calendar days, not instants, so they are read back in UTC — the
+ *  zone they were anchored to — rather than the reader's local zone. */
+const calendarDateFormat = new Intl.DateTimeFormat("en-US", {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+  year: "numeric",
+});
+
+/** A `YYYY-MM-DD` date as a short, unambiguous label — `Sep 9, 2026`. */
+export const formatCalendarDate = (dateString: string): string =>
+  calendarDateFormat.format(new Date(`${dateString}T00:00:00.000Z`));
+
 const datePart = (
   parts: readonly Intl.DateTimeFormatPart[],
   type: Intl.DateTimeFormatPartTypes,

@@ -29,6 +29,14 @@ describe("rowPaceSeries", () => {
     expect(series?.latestSplitSec).toBe(114);
   });
 
+  it("dates each split, so a chart can name the day a point was rowed", () => {
+    const series = rowPaceSeries(
+      [rowedSession("2026-01-10", 114)],
+      [external("2026-01-05T07:00:00.000Z", 116)],
+    );
+    expect(series?.dates).toEqual(["2026-01-05", "2026-01-10"]);
+  });
+
   it("ignores results without a split and sessions that were not completed", () => {
     const series = rowPaceSeries(
       [
