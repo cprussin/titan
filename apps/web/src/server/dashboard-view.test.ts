@@ -43,7 +43,11 @@ const base = {
   isFuture: false,
   isToday: true,
   logged: undefined,
-  programName: "Athletic Health Foundation",
+  program: {
+    blockId: "block-1",
+    name: "Athletic Health Foundation",
+    versionId: "v1",
+  },
   weekCount: "W3 / 8",
   weekLabel: "TUE 11",
 };
@@ -51,7 +55,7 @@ const base = {
 describe("dashboardView", () => {
   it("pre-workout today: program eyebrow, no status, start action, today's-session header", () => {
     const view = dashboardView({ ...base, selected: workout("Heavy Lower") });
-    expect(view.eyebrow.programName).toBe("Athletic Health Foundation");
+    expect(view.eyebrow.program?.name).toBe("Athletic Health Foundation");
     expect(view.eyebrow.weekCount).toBe("W3 / 8");
     expect(view.eyebrow.status).toBeUndefined();
     expect(view.title).toBe("Heavy Lower");
@@ -148,7 +152,7 @@ describe("dashboardView", () => {
 
   it("no program: empty eyebrow, prompt title, rest body", () => {
     const view = dashboardView({ ...base, selected: noProgram });
-    expect(view.eyebrow.programName).toBeUndefined();
+    expect(view.eyebrow.program).toBeUndefined();
     expect(view.title).toBe("No active program");
     expect(view.body.kind).toBe("rest");
   });

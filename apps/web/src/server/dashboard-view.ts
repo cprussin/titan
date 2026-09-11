@@ -24,11 +24,19 @@ export type DashboardBody =
   | { kind: "log"; view: LoggedSessionView }
   | { copy: string; kind: "rest" };
 
-/** The headline eyebrow's three baseline segments: the program name (accent),
- *  the week count (mono), and — away from today's pre-workout state — where the
+/** The program the selected day belongs to: its name, and the block it sits in
+ *  so the eyebrow can link to that block's detail page. */
+export type DashboardProgram = {
+  blockId: string;
+  name: string;
+  versionId: string;
+};
+
+/** The headline eyebrow's three baseline segments: the program (accent), the
+ *  week count (mono), and — away from today's pre-workout state — where the
  *  selected day stands. */
 export type DashboardEyebrow = {
-  programName: string | undefined;
+  program: DashboardProgram | undefined;
   status: { text: string; tone: "success" | "tertiary" } | undefined;
   weekCount: string | undefined;
 };
@@ -52,8 +60,8 @@ export type DashboardViewInput = {
   isToday: boolean;
   /** The completed session for the selected day, when one exists. */
   logged: LoggedSessionView | undefined;
-  /** The active program's name, for the accent eyebrow segment. */
-  programName: string | undefined;
+  /** The active program and block, for the accent eyebrow segment. */
+  program: DashboardProgram | undefined;
   /** The day the page is showing, resolved to its prescription/rest state. */
   selected: Today;
   /** "W3 / 8" for the selected day, when a program is placed. */
@@ -78,7 +86,7 @@ export const dashboardView = (input: DashboardViewInput): DashboardView => {
       return {
         body: { copy: NO_PROGRAM_COPY, kind: "rest" },
         eyebrow: {
-          programName: undefined,
+          program: undefined,
           status: undefined,
           weekCount: undefined,
         },
@@ -168,7 +176,7 @@ const eyebrow = (
   input: DashboardViewInput,
   status: DashboardEyebrow["status"],
 ): DashboardEyebrow => ({
-  programName: input.programName,
+  program: input.program,
   status,
   weekCount: input.weekCount,
 });

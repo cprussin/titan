@@ -16,6 +16,7 @@ import { DashboardContent } from "../../components/DashboardContent";
 import { db } from "../../db";
 import { programName } from "../../program-name";
 import { athleteAbsoluteWeek } from "../../server/athlete-absolute-week";
+import type { DashboardProgram } from "../../server/dashboard-view";
 import { dashboardView } from "../../server/dashboard-view";
 import { exerciseNames } from "../../server/exercise-names";
 import { todayIso } from "../../server/local-date";
@@ -120,7 +121,7 @@ const DashboardPage = async ({
     isFuture: selectedDate > today,
     isToday: selectedDate === today,
     logged,
-    programName: programLabel(selected, programs),
+    program: selectedProgram(selected, programs),
     selected,
     weekCount: weekCount(selected),
     weekLabel: dayLabel(selectedDate),
@@ -170,13 +171,18 @@ const selectWeek = (param: string | string[] | undefined): number => {
   return parsed.success ? parsed.data : 0;
 };
 
-/** The active program's name for the selected day, when a program is placed. */
-const programLabel = (
+/** The selected day's program and block, when a program is placed — the eyebrow
+ *  names the program and links to that block. */
+const selectedProgram = (
   selected: Today,
   programs: Parameters<typeof programName>[0],
-): string | undefined =>
+): DashboardProgram | undefined =>
   selected.kind === "workout"
-    ? programName(programs, selected.programVersion.programId)
+    ? {
+        blockId: selected.position.block.id,
+        name: programName(programs, selected.programVersion.programId),
+        versionId: selected.programVersion.id,
+      }
     : undefined;
 
 /** "W3 / 8" — the selected day's week within its block. */

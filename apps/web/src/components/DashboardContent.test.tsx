@@ -56,7 +56,11 @@ const data: DashboardData = {
   body: { copy: "Recover well today.", kind: "rest" },
   header: {
     eyebrow: {
-      programName: "Athletic Health Foundation",
+      program: {
+        blockId: "block-1",
+        name: "Athletic Health Foundation",
+        versionId: "v1",
+      },
       status: { text: "Today · Rest", tone: "tertiary" },
       weekCount: "W1 / 8",
     },
