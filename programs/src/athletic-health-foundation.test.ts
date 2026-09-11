@@ -151,7 +151,7 @@ describe("foundation block aesthetic accessories", () => {
 
   it("progresses each accessory by double progression inside its rep range", () => {
     for (const [slotId, sets, minReps, maxReps] of [
-      ["foundation-heavy-upper-lateral-raise", 3, 10, 15],
+      ["foundation-heavy-upper-lateral-raise", 3, 15, 20],
       ["foundation-heavy-upper-biceps-curl", 3, 10, 12],
       ["foundation-heavy-upper-triceps-pushdown", 3, 10, 12],
       ["foundation-athletic-day-hammer-curl", 3, 10, 15],
