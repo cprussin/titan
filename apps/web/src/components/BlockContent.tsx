@@ -535,13 +535,16 @@ const durationStyles = css({
 });
 
 // The exercise list flows into two columns on large screens so a full-width
-// workout uses the room. Rows are separated by spacing, not rules — the only
-// divider in a workout is the one under its header.
+// workout uses the room. Multi-column rather than a grid: a grid fills a row at
+// a time, which reads as a zig-zag, while columns fill top to bottom so the run
+// order follows the first column down and picks up at the top of the second. A
+// row never splits across the break. Rows are separated by spacing, not rules —
+// the only divider in a workout is the one under its header.
 const slotListStyles = css({
+  "& > li": { breakInside: "avoid" },
+  "& > li:not(:last-child)": { marginBlockEnd: 3 },
   columnGap: 10,
-  display: "grid",
-  gridTemplateColumns: { base: "1fr", lg: "repeat(2, minmax(0, 1fr))" },
-  rowGap: 3,
+  lg: { columnCount: 2 },
 });
 
 // The week-variant block: a labeled column of its own exercises.
