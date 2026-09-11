@@ -334,22 +334,28 @@ const renderVariant = (
  *  *is* the execution order, and the list grid flows a row at a time, so the
  *  numbers run across the columns and then down — and stay right when the
  *  columns collapse to one. Each call starts over at 1, so a day and each
- *  rotating variant of it are numbered independently. */
+ *  rotating variant of it are numbered independently — and a lone exercise goes
+ *  unnumbered, since a "1" with nothing to order against is noise. */
 const renderSlots = (
   slots: SelectedVariant["slots"],
   names: Map<string, string>,
-) => slots.map((slot, index) => renderSlot(slot, index + 1, names));
+) =>
+  slots.map((slot, index) =>
+    renderSlot(slot, slots.length > 1 ? index + 1 : undefined, names),
+  );
 
-/** One exercise row: its position in the workout, then name and target, with the
- *  role badge on the end edge. */
+/** One exercise row: its position in the workout (when the workout runs more
+ *  than one), then name and target, with the role badge on the end edge. */
 const renderSlot = (
   slot: SelectedVariant["slots"][number],
-  position: number,
+  position: number | undefined,
   names: Map<string, string>,
 ) => (
   <li className={rowStyles} key={slot.id}>
     <span className={slotLeadStyles}>
-      <span className={ordinalStyles}>{position}</span>
+      {position === undefined ? undefined : (
+        <span className={ordinalStyles}>{position}</span>
+      )}
       <span className={slotTextStyles}>
         <span className={exerciseNameStyles}>
           {names.get(slot.exerciseId) ?? slot.exerciseId}

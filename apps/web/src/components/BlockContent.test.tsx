@@ -103,10 +103,11 @@ const renderBlock = (data: BlockData) =>
     </AppRouterContext.Provider>,
   );
 
-/** Every distinct ordinal shown by the rows naming `exerciseId`. A fixed
- *  schedule renders each row twice — once for the phone accordion, once for the
- *  desktop overview — so consistent numbering collapses to a single entry. */
-const ordinals = (exerciseId: string): readonly string[] => [
+/** Every distinct ordinal shown by the rows naming `exerciseId`, `undefined`
+ *  standing for a row that shows none. A fixed schedule renders each row twice
+ *  — once for the phone accordion, once for the desktop overview — so
+ *  consistent numbering collapses to a single entry. */
+const ordinals = (exerciseId: string): readonly (string | undefined)[] => [
   ...new Set(
     screen
       .getAllByRole("listitem")
@@ -115,16 +116,10 @@ const ordinals = (exerciseId: string): readonly string[] => [
   ),
 ];
 
-/** The number a row leads with. Throws when the row shows none, so a missing
- *  ordinal fails the assertion it was gathered for. */
-const leadingOrdinal = (row: HTMLElement): string => {
-  const match = /^\d+/.exec(row.textContent ?? "");
-  if (match === null) {
-    throw new Error(`exercise row "${row.textContent}" shows no ordinal`);
-  } else {
-    return match[0];
-  }
-};
+/** The number a row leads with, or `undefined` when it leads with the exercise
+ *  name instead. */
+const leadingOrdinal = (row: HTMLElement): string | undefined =>
+  /^\d+/.exec(row.textContent ?? "")?.[0];
 
 describe(BlockContent, () => {
   it("stands in a representative schedule with skeletons while loading", () => {
@@ -155,6 +150,13 @@ describe(BlockContent, () => {
     expect(ordinals("row")).toEqual(["3"]);
     expect(ordinals("chin")).toEqual(["1"]);
     expect(ordinals("curl")).toEqual(["2"]);
+  });
+
+  it("leaves a day's sole exercise unnumbered", () => {
+    renderBlock(
+      blockData([template("a", { slots: [slot("squat")] })], "repeating"),
+    );
+    expect(ordinals("squat")).toEqual([undefined]);
   });
 
   it("restarts numbering within each rotating variant", () => {
