@@ -388,7 +388,7 @@ const heavyUpper: SessionTemplate = {
       exerciseId: "biceps-curl",
       id: "foundation-heavy-upper-biceps-curl",
       maxReps: 12,
-      minReps: 8,
+      minReps: 10,
       sets: 3,
       weight: 25,
     }),
@@ -397,7 +397,7 @@ const heavyUpper: SessionTemplate = {
       extraNote: "An overhead triceps extension is an equal substitute.",
       id: "foundation-heavy-upper-triceps-pushdown",
       maxReps: 12,
-      minReps: 8,
+      minReps: 10,
       sets: 3,
       weight: 40,
     }),
@@ -470,26 +470,6 @@ const athleticDay: SessionTemplate = {
       slots: [
         {
           base: Prescription.Strength({
-            reps: 5,
-            sets: 3,
-            unit: "kg",
-            weight: 125,
-          }),
-          exerciseId: "deadlift",
-          generateWarmup: true,
-          id: "ahf-deadlift",
-          progression: ProgressionPolicy.Linear({
-            increment: 5,
-            missesBeforeDeload: 2,
-            reps: 5,
-            retainOnDeload: 0.9,
-            rpeCap: 8.5,
-            sets: 3,
-          }),
-          role: "primary",
-        },
-        {
-          base: Prescription.Strength({
             reps: 3,
             sets: 5,
             unit: "kg",
@@ -507,6 +487,26 @@ const athleticDay: SessionTemplate = {
             sets: 5,
           }),
           role: "secondary",
+        },
+        {
+          base: Prescription.Strength({
+            reps: 3,
+            sets: 3,
+            unit: "kg",
+            weight: 125,
+          }),
+          exerciseId: "deadlift",
+          generateWarmup: true,
+          id: "ahf-deadlift",
+          progression: ProgressionPolicy.Linear({
+            increment: 5,
+            missesBeforeDeload: 2,
+            reps: 3,
+            retainOnDeload: 0.9,
+            rpeCap: 8.5,
+            sets: 3,
+          }),
+          role: "primary",
         },
         {
           base: Prescription.Bodyweight({
