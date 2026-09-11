@@ -1,4 +1,5 @@
 import { ArrowLeftIcon } from "@phosphor-icons/react/dist/ssr/ArrowLeft";
+import Link from "next/link";
 import { css, cva } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
 import type { Loadable } from "../loadable";
@@ -61,7 +62,9 @@ export const DashboardHeader = ({ load }: Props) => (
 const Eyebrow = ({ eyebrow }: { eyebrow: DashboardEyebrow }) => (
   <>
     {eyebrow.programName !== undefined && (
-      <span className={programStyles}>{eyebrow.programName}</span>
+      <Link className={programStyles} href="/programs">
+        {eyebrow.programName}
+      </Link>
     )}
     {eyebrow.weekCount !== undefined && (
       <span className={weekCountStyles}>{eyebrow.weekCount}</span>
@@ -127,7 +130,10 @@ const eyebrowStyles = css({
   rowGap: 1,
 });
 
+// The program name doubles as the way into the programs explorer, so it carries
+// a hover underline to read as a link rather than a label.
 const programStyles = css({
+  _hover: { textDecoration: "underline" },
   color: "accent",
   fontSize: "xs",
   fontWeight: "bold",
