@@ -152,8 +152,8 @@ describe("foundation block aesthetic accessories", () => {
   it("progresses each accessory by double progression inside its rep range", () => {
     for (const [slotId, sets, minReps, maxReps] of [
       ["foundation-heavy-upper-lateral-raise", 3, 10, 15],
-      ["foundation-heavy-upper-biceps-curl", 3, 8, 12],
-      ["foundation-heavy-upper-triceps-pushdown", 3, 8, 12],
+      ["foundation-heavy-upper-biceps-curl", 3, 10, 12],
+      ["foundation-heavy-upper-triceps-pushdown", 3, 10, 12],
       ["foundation-athletic-day-hammer-curl", 3, 10, 15],
       ["foundation-athletic-day-lateral-raise", 3, 12, 20],
     ] as const) {
@@ -230,5 +230,43 @@ describe("farmer carry", () => {
       order.indexOf("weighted-pullup"),
     );
     expect(slot().role).toBe("accessory");
+  });
+});
+
+describe("athletic day workout A", () => {
+  const powerSlots = (): readonly ExerciseSlot[] => {
+    const power = templateById("foundation-athletic-day").variants?.[0];
+    if (power === undefined) {
+      throw new Error("missing athletic day power variant");
+    } else {
+      return power.slots;
+    }
+  };
+
+  it("opens with the push press, then the deadlift", () => {
+    // The push press is the day's explosive lift, so it is pressed fresh and
+    // the deadlift follows it.
+    expect(powerSlots().map((slot) => slot.exerciseId)).toEqual([
+      "push-press",
+      "deadlift",
+      "weighted-pullup",
+      "farmer-carry",
+      "hammer-curl",
+      "lateral-raise",
+    ]);
+  });
+
+  it("prescribes the deadlift for triples", () => {
+    // Heavy Lower already carries the block's lower-body volume, so athletic
+    // day takes the deadlift at 3×3 and stays a power day.
+    const deadlift = powerSlots().find(
+      (slot) => slot.exerciseId === "deadlift",
+    );
+    expect(deadlift?.base).toMatchObject({ reps: 3, sets: 3, weight: 125 });
+    expect(deadlift?.progression).toMatchObject({
+      kind: "linear",
+      reps: 3,
+      sets: 3,
+    });
   });
 });
