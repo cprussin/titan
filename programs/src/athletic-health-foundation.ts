@@ -1,5 +1,6 @@
 import { Prescription } from "@titan/domain/prescription";
 import type {
+  ExerciseSlot,
   Program,
   ProgramVersion,
   SessionTemplate,
@@ -226,6 +227,54 @@ const rowIntervals: SessionTemplate = {
   ],
 };
 
+/** Execution guidance for the isolation work. These are the only slots in the
+ *  block where the rest interval and the reps-in-reserve target aren't implied
+ *  by the prescription itself, so they are spelled out. */
+const isolationNote =
+  "Rest 60–90s between sets. Leave 1–3 reps in reserve, with controlled reps through a full range of motion.";
+
+/**
+ * A light isolation slot for direct hypertrophy work: double progression walks
+ * the reps from `minReps` to `maxReps`, then adds the smallest practical step
+ * — a 5 lb dumbbell or stack jump. `role: "accessory"` is the point as much as
+ * the prescription: session adaptation sheds accessories first, so a bad
+ * recovery week costs this work before it touches the block's core lifting.
+ *
+ * @param extraNote - Slot-specific coaching appended to {@link isolationNote}.
+ */
+const isolationSlot = ({
+  exerciseId,
+  extraNote,
+  id,
+  maxReps,
+  minReps,
+  sets,
+  weight,
+}: {
+  exerciseId: string;
+  extraNote?: string;
+  id: string;
+  maxReps: number;
+  minReps: number;
+  sets: number;
+  weight: number;
+}): ExerciseSlot => ({
+  base: Prescription.Strength({ reps: minReps, rpeTarget: 8, sets, weight }),
+  exerciseId,
+  generateWarmup: false,
+  id,
+  note:
+    extraNote === undefined ? isolationNote : `${isolationNote} ${extraNote}`,
+  progression: ProgressionPolicy.Double({
+    increment: 5,
+    maxReps,
+    minReps,
+    rpeCap: 8,
+    sets,
+  }),
+  role: "accessory",
+});
+
 const heavyUpper: SessionTemplate = {
   constraints: { preferredDay: 3 },
   focus: "horizontal-push",
@@ -327,9 +376,34 @@ const heavyUpper: SessionTemplate = {
       progression: ProgressionPolicy.Amrap({ repCap: 15, sets: 3 }),
       role: "accessory",
     },
+    isolationSlot({
+      exerciseId: "lateral-raise",
+      id: "foundation-heavy-upper-lateral-raise",
+      maxReps: 15,
+      minReps: 10,
+      sets: 3,
+      weight: 15,
+    }),
+    isolationSlot({
+      exerciseId: "biceps-curl",
+      id: "foundation-heavy-upper-biceps-curl",
+      maxReps: 12,
+      minReps: 8,
+      sets: 3,
+      weight: 25,
+    }),
+    isolationSlot({
+      exerciseId: "triceps-pushdown",
+      extraNote: "An overhead triceps extension is an equal substitute.",
+      id: "foundation-heavy-upper-triceps-pushdown",
+      maxReps: 12,
+      minReps: 8,
+      sets: 3,
+      weight: 40,
+    }),
   ],
   tags: ["heavy-upper"],
-  targetDurationMin: 60,
+  targetDurationMin: 75,
 };
 
 const zone2Row: SessionTemplate = {
@@ -360,13 +434,36 @@ const zone2Row: SessionTemplate = {
   targetDurationMin: 60,
 };
 
+/** The arm and delt work that closes Athletic Day whichever workout the week
+ *  rotates to. One slot id per exercise across all three variants — history is
+ *  keyed by slot id, so the load carries week to week instead of restarting
+ *  every time the rotation comes back around. */
+const athleticDayIsolation: readonly ExerciseSlot[] = [
+  isolationSlot({
+    exerciseId: "hammer-curl",
+    id: "foundation-athletic-day-hammer-curl",
+    maxReps: 15,
+    minReps: 10,
+    sets: 3,
+    weight: 25,
+  }),
+  isolationSlot({
+    exerciseId: "lateral-raise",
+    id: "foundation-athletic-day-lateral-raise",
+    maxReps: 20,
+    minReps: 12,
+    sets: 3,
+    weight: 10,
+  }),
+];
+
 const athleticDay: SessionTemplate = {
   constraints: { preferredDay: 5 },
   focus: "conditioning",
   id: "foundation-athletic-day",
   name: "Athletic Day",
   tags: ["athletic"],
-  targetDurationMin: 60,
+  targetDurationMin: 70,
   variants: [
     {
       label: "Workout A — Power",
@@ -446,6 +543,7 @@ const athleticDay: SessionTemplate = {
           }),
           role: "accessory",
         },
+        ...athleticDayIsolation,
       ],
     },
     {
@@ -468,6 +566,7 @@ const athleticDay: SessionTemplate = {
           progression: ProgressionPolicy.None(),
           role: "primary",
         },
+        ...athleticDayIsolation,
       ],
     },
     {
@@ -527,6 +626,7 @@ const athleticDay: SessionTemplate = {
           }),
           role: "accessory",
         },
+        ...athleticDayIsolation,
       ],
     },
   ],

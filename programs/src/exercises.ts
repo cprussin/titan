@@ -181,4 +181,32 @@ export const exercises: readonly Exercise[] = [
     movementPattern: "cardio",
     name: "Hike",
   },
+  {
+    id: "lateral-raise",
+    isUnilateral: false,
+    modality: "dumbbell",
+    movementPattern: "delt",
+    name: "Lateral Raise",
+  },
+  {
+    id: "biceps-curl",
+    isUnilateral: false,
+    modality: "dumbbell",
+    movementPattern: "biceps",
+    name: "Biceps Curl",
+  },
+  {
+    id: "hammer-curl",
+    isUnilateral: false,
+    modality: "dumbbell",
+    movementPattern: "biceps",
+    name: "Hammer Curl",
+  },
+  {
+    id: "triceps-pushdown",
+    isUnilateral: false,
+    modality: "machine",
+    movementPattern: "triceps",
+    name: "Triceps Pushdown",
+  },
 ];

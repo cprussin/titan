@@ -17,6 +17,9 @@ export const movementPatternSchema = z.enum([
   "carry",
   "core",
   "calf",
+  "delt",
+  "biceps",
+  "triceps",
   "conditioning",
   "cardio",
 ]);
