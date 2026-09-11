@@ -9,6 +9,7 @@ import { resolvePosition } from "@titan/program-engine/schedule";
 import { isoDayOfWeek } from "../date";
 import { prescriptionColumns } from "../prescription-columns";
 import { sessionDurationMin } from "../session-duration";
+import { isSetBased } from "../set-based-prescription";
 import { dayLabel } from "./week-dates";
 import type { WeekDayBase } from "./week-day";
 import { WeekDay, weekDaySchema } from "./week-day";
@@ -139,15 +140,8 @@ const primarySignature = (
     return undefined;
   } else {
     const { scheme } = prescriptionColumns(primary.prescription);
-    return isNamedTarget(primary.prescription.type)
+    return isSetBased(primary.prescription)
       ? `${names.get(primary.exerciseId) ?? primary.exerciseId} ${scheme}`
       : scheme;
   }
 };
-
-/** Whether a prescription's signature reads better with the exercise name — the
- *  weight-room movements — versus a self-describing cardio target. */
-const isNamedTarget = (
-  type: PrescribedExercise["prescription"]["type"],
-): boolean =>
-  type === "strength" || type === "bodyweight" || type === "timed-hold";

@@ -53,6 +53,21 @@ describe("prescriptionSchema", () => {
     ).toEqual(Prescription.Bodyweight({ addedWeight: 25, reps: 6, sets: 4 }));
   });
 
+  it("parses a timed-carry prescription", () => {
+    const value = Prescription.TimedCarry({
+      durationSec: 40,
+      sets: 3,
+      weight: 150,
+    });
+    expect(prescriptionSchema.parse(value)).toEqual(value);
+  });
+
+  it("defaults a timed carry's load to pounds", () => {
+    expect(
+      Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 150 }).unit,
+    ).toBe("lb");
+  });
+
   it("parses an intervals prescription with a work distance", () => {
     const value = Prescription.Intervals({
       count: 6,

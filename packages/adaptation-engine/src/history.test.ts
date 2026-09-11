@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { Prescription } from "@titan/domain/prescription";
 import type { ExerciseResult } from "@titan/domain/result";
-import { completedWeight } from "./history";
+import { completedWeight, metDurationTarget } from "./history";
 
 const strengthResult = (
   prescribedWeight: number,
@@ -51,5 +51,72 @@ describe("completedWeight", () => {
       slotId: "slot-pull",
     };
     expect(() => completedWeight(result)).toThrow();
+  });
+});
+
+const carryResult = (
+  prescribedWeight: number,
+  sets: readonly { durationSec: number; weight?: number }[],
+): ExerciseResult => ({
+  exerciseId: "farmer-carry",
+  id: "r",
+  prescription: Prescription.TimedCarry({
+    durationSec: 40,
+    sets: sets.length,
+    weight: prescribedWeight,
+  }),
+  sets: sets.map((set, setIndex) => ({
+    completed: true,
+    durationSec: set.durationSec,
+    setIndex,
+    ...(set.weight === undefined ? {} : { weight: set.weight }),
+  })),
+  slotId: "slot-carry",
+});
+
+describe("completedWeight (timed carry)", () => {
+  it("uses the lightest load actually carried", () => {
+    expect(
+      completedWeight(
+        carryResult(150, [
+          { durationSec: 40, weight: 160 },
+          { durationSec: 40, weight: 155 },
+        ]),
+      ),
+    ).toBe(155);
+  });
+
+  it("resolves an absent set weight from the prescription snapshot", () => {
+    expect(completedWeight(carryResult(150, [{ durationSec: 40 }]))).toBe(150);
+  });
+});
+
+describe("metDurationTarget", () => {
+  it("is met when every prescribed set carried the full duration", () => {
+    expect(
+      metDurationTarget(
+        carryResult(150, [
+          { durationSec: 40 },
+          { durationSec: 41 },
+          { durationSec: 40 },
+        ]),
+      ),
+    ).toBe(true);
+  });
+
+  it("is missed when a set was cut short", () => {
+    expect(
+      metDurationTarget(
+        carryResult(150, [
+          { durationSec: 40 },
+          { durationSec: 28 },
+          { durationSec: 40 },
+        ]),
+      ),
+    ).toBe(false);
+  });
+
+  it("throws when the snapshot is not a timed-carry prescription", () => {
+    expect(() => metDurationTarget(strengthResult(225, [225]))).toThrow();
   });
 });

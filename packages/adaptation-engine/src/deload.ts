@@ -37,6 +37,12 @@ export const deloadPrescription = (
         sets: retain(prescription.sets, SET_RETENTION),
       });
     }
+    case "timed-carry": {
+      return Rx.TimedCarry({
+        ...prescription,
+        sets: retain(prescription.sets, SET_RETENTION),
+      });
+    }
     case "intervals": {
       return Rx.Intervals({
         ...prescription,

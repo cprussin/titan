@@ -11,6 +11,41 @@ describe("progressExercise", () => {
     expect(outcome.prescription).toEqual(base);
   });
 
+  it("routes a timed-carry policy to load progression without rep targets", () => {
+    const base = Prescription.TimedCarry({
+      durationSec: 40,
+      sets: 3,
+      weight: 150,
+    });
+    const outcome = progressExercise(
+      ProgressionPolicy.TimedCarry({
+        durationSec: 40,
+        increment: 5,
+        rpeCap: 8,
+        sets: 3,
+      }),
+      base,
+      [
+        {
+          exerciseId: "farmer-carry",
+          id: "r1",
+          prescription: base,
+          sets: Array.from({ length: 3 }, (_, setIndex) => ({
+            completed: true,
+            durationSec: 40,
+            rpe: 7,
+            setIndex,
+          })),
+          slotId: "slot-carry",
+        },
+      ],
+    );
+    expect(outcome.action).toBe("increase-load");
+    expect(outcome.prescription).toEqual(
+      Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 155 }),
+    );
+  });
+
   it("routes a linear policy to load progression", () => {
     const base = Prescription.Strength({ reps: 5, sets: 5, weight: 135 });
     const outcome = progressExercise(

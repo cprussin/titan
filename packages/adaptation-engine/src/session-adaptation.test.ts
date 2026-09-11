@@ -70,6 +70,31 @@ describe("adaptSession", () => {
     primaryPreserved(result);
   });
 
+  it("trims a set from a secondary timed carry without adding reps", () => {
+    const carryPlan: readonly PrescribedExercise[] = [
+      slot("squat", "primary", 5),
+      {
+        exerciseId: "farmer-carry",
+        prescription: Prescription.TimedCarry({
+          durationSec: 40,
+          sets: 3,
+          weight: 150,
+        }),
+        progression: ProgressionPolicy.None(),
+        role: "secondary",
+        slotId: "slot-farmer-carry",
+      },
+    ];
+    const { plan: result } = adaptSession(
+      carryPlan,
+      readiness({ availableMinutes: 15 }),
+    );
+    expect(result[1]?.prescription).toEqual(
+      Prescription.TimedCarry({ durationSec: 40, sets: 1, weight: 150 }),
+    );
+    primaryPreserved(result);
+  });
+
   it("never increases workload when readiness is high", () => {
     const { plan: result } = adaptSession(plan, readiness({ energy: 5 }));
     expect(result).toEqual(plan);

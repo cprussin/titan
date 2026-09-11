@@ -191,6 +191,16 @@ describe("matchSlot", () => {
     ).toEqual({ kind: SlotMatchKind.Unmatched });
   });
 
+  it("never claims an erg piece for a weight-room slot", () => {
+    expect(
+      matchSlot(
+        Rx.TimedCarry({ durationSec: 40, sets: 3, weight: 150 }),
+        scheduledDate,
+        [rowingFor(9523, 40)],
+      ),
+    ).toEqual(unmatched);
+  });
+
   it("reports every piece that hits the target when more than one does", () => {
     // Two pieces in one day on the same prescription — a warm-up and a
     // cool-down rowed alike. Nothing in the data says which one the athlete

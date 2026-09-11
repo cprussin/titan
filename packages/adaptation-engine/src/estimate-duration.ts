@@ -1,8 +1,8 @@
 import type { Prescription } from "@titan/domain/prescription";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
 
-/** Minutes budgeted per working set of a strength / bodyweight / hold movement,
- *  including rest. A coarse planning constant, not a stopwatch. */
+/** Minutes budgeted per working set of a strength / bodyweight / hold / carry
+ *  movement, including rest. A coarse planning constant, not a stopwatch. */
 const MINUTES_PER_SET = 2.5;
 /** Assumed easy-row split (sec/500m) used to size distance and interval work
  *  when no explicit target is given. */
@@ -23,7 +23,8 @@ export const estimatePrescriptionMinutes = (
   switch (prescription.type) {
     case "strength":
     case "bodyweight":
-    case "timed-hold": {
+    case "timed-hold":
+    case "timed-carry": {
       return prescription.sets * MINUTES_PER_SET;
     }
     case "timed-cardio": {

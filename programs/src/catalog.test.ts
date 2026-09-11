@@ -67,6 +67,37 @@ const progressionIncrements = (
   }
 };
 
+/** The pulls a farmer carry must not precede: every one of them is held in the
+ *  hands, so a carry taken first would cost the athlete the set. */
+const GRIP_PULL_EXERCISE_IDS = new Set([
+  "barbell-row",
+  "deadlift",
+  "pullup",
+  "romanian-deadlift",
+  "weighted-pullup",
+]);
+
+const carrySlots = (): readonly ExerciseSlot[] =>
+  catalog.programs.flatMap(({ version }) =>
+    version.sessionTemplates
+      .flatMap(templateSlots)
+      .filter((slot) => slot.exerciseId === "farmer-carry"),
+  );
+
+/** The exercise order of every fixed or rotating slot list that holds a farmer
+ *  carry — one list per session or variant, since a variant is what the athlete
+ *  actually works through in a day. */
+const slotOrdersWithCarry = (): readonly (readonly string[])[] =>
+  catalog.programs
+    .flatMap(({ version }) =>
+      version.sessionTemplates.flatMap((template) => [
+        template.slots ?? [],
+        ...(template.variants ?? []).map((variant) => variant.slots),
+      ]),
+    )
+    .map((slots) => slots.map((slot) => slot.exerciseId))
+    .filter((order) => order.includes("farmer-carry"));
+
 describe("catalog", () => {
   it("contains the four initial programs", () => {
     expect(catalog.programs).toHaveLength(4);
@@ -113,6 +144,33 @@ describe("catalog", () => {
     for (const slot of beltLoadedSlots()) {
       expect(Number.isInteger(slot.base.addedWeight ?? 0)).toBe(true);
     }
+  });
+
+  it("prescribes every farmer carry by time under load, never by reps", () => {
+    for (const slot of carrySlots()) {
+      expect(slot.base.type).toBe("timed-carry");
+    }
+    expect(carrySlots().length).toBeGreaterThan(0);
+  });
+
+  it("schedules every farmer carry after the session's grip-dependent pulling", () => {
+    // A fried grip ruins the pull that follows it, so the carry goes last:
+    // after the primaries and after anything the athlete has to hold onto.
+    for (const order of slotOrdersWithCarry()) {
+      const carry = order.indexOf("farmer-carry");
+      for (const [index, exerciseId] of order.entries()) {
+        if (GRIP_PULL_EXERCISE_IDS.has(exerciseId)) {
+          expect(index).toBeLessThan(carry);
+        }
+      }
+    }
+  });
+
+  it("carries a coaching cue on the farmer carry itself", () => {
+    const carry = catalog.exercises.find(
+      (exercise) => exercise.id === "farmer-carry",
+    );
+    expect(carry?.notes).toContain("Tall, tight, quiet.");
   });
 
   it("holds valid exercise data", () => {

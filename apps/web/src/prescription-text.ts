@@ -45,6 +45,12 @@ export const prescriptionParts = (
         recovery: undefined,
       };
     }
+    case "timed-carry": {
+      return {
+        primary: `${prescription.sets} × ${prescription.durationSec} sec @ ${formatWeight(prescription.weight, prescription.unit)}`,
+        recovery: undefined,
+      };
+    }
     case "timed-cardio": {
       const zone =
         prescription.targetHrZone === undefined

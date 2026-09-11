@@ -31,6 +31,13 @@ describe("deloadPrescription", () => {
     expect(deloadPrescription(zone2)).toEqual(zone2);
   });
 
+  it("cuts timed-carry sets while holding the load and duration", () => {
+    const deloaded = deloadPrescription(
+      Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 150 }),
+    );
+    expect(deloaded).toMatchObject({ durationSec: 40, sets: 2, weight: 150 });
+  });
+
   it("never drops below a single set", () => {
     const deloaded = deloadPrescription(
       Prescription.Strength({ reps: 5, sets: 1, weight: 100 }),

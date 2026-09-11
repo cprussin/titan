@@ -16,6 +16,7 @@ import {
 } from "../save-workout-progress";
 import type { ResumePoint } from "../server/resume-workout";
 import { sessionOverview } from "../session-overview";
+import { isSetBased } from "../set-based-prescription";
 import { Badge } from "../ui";
 import { WorkoutProgressRequest } from "../workout-progress-request";
 import { CancelWorkoutButton } from "./CancelWorkoutButton";
@@ -51,21 +52,7 @@ type Props = {
 
 /** How many working sets a prescription calls for (cardio efforts are one bout). */
 const totalSets = (prescription: Prescription): number =>
-  prescription.type === "strength" ||
-  prescription.type === "bodyweight" ||
-  prescription.type === "timed-hold"
-    ? prescription.sets
-    : 1;
-
-const isStrengthLike = (
-  prescription: Prescription,
-): prescription is Extract<
-  Prescription,
-  { type: "strength" | "bodyweight" | "timed-hold" }
-> =>
-  prescription.type === "strength" ||
-  prescription.type === "bodyweight" ||
-  prescription.type === "timed-hold";
+  isSetBased(prescription) ? prescription.sets : 1;
 
 /**
  * The workout execution screen: guides the athlete through one exercise at a
@@ -305,7 +292,7 @@ const ExerciseLogger = ({
   sessionId,
 }: ExerciseLoggerProps) => {
   const { prescription } = prescribed;
-  return isStrengthLike(prescription) ? (
+  return isSetBased(prescription) ? (
     <StrengthLogger
       busy={busy}
       logged={logged}

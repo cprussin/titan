@@ -10,7 +10,7 @@ import { loadUnitSchema } from "./load-unit";
  * verbatim on the {@link WorkoutSession} so a historical prescription is never
  * recomputed (see ENGINE_SEPARATION.md).
  *
- * The six variants mirror the spec's exercise types. It is a persisted union,
+ * The variants mirror the spec's exercise types. It is a persisted union,
  * so the `type` discriminant is a wire string with the Zod schema as the source
  * of truth; constructors funnel every producer through one place.
  */
@@ -53,6 +53,22 @@ const timedHoldSchema = z.object({
 });
 
 export type TimedHoldPrescription = z.infer<typeof timedHoldSchema>;
+
+const timedCarrySchema = z.object({
+  /** How long each carry lasts. A carry is prescribed by time, never reps. */
+  durationSec: z.number().positive(),
+  sets: z.number().int().positive(),
+  type: z.literal("timed-carry"),
+  /** The unit `weight` is in. Carries are loaded with dumbbells or handles, so
+   *  they are prescribed in pounds; the field mirrors the strength schema so a
+   *  metric gym can prescribe kilograms. */
+  unit: loadUnitSchema.default("lb"),
+  /** The load carried, expressed in {@link unit} — the same total-load
+   *  convention strength work uses, not a per-hand figure. */
+  weight: z.number().nonnegative(),
+});
+
+export type TimedCarryPrescription = z.infer<typeof timedCarrySchema>;
 
 const timedCardioSchema = z.object({
   durationSec: z.number().positive(),
@@ -135,6 +151,7 @@ export const prescriptionSchema = z.preprocess(
     strengthSchema,
     bodyweightSchema,
     timedHoldSchema,
+    timedCarrySchema,
     timedCardioSchema,
     distanceCardioSchema,
     intervalsSchema,
@@ -172,6 +189,13 @@ export const Prescription = {
   TimedCardio: (
     args: Omit<TimedCardioPrescription, "type">,
   ): TimedCardioPrescription => ({ ...args, type: "timed-cardio" }),
+  TimedCarry: (
+    args: Omit<TimedCarryPrescription, "type" | "unit"> & { unit?: LoadUnit },
+  ): TimedCarryPrescription => ({
+    ...args,
+    type: "timed-carry",
+    unit: args.unit ?? "lb",
+  }),
   TimedHold: (
     args: Omit<TimedHoldPrescription, "type">,
   ): TimedHoldPrescription => ({ ...args, type: "timed-hold" }),

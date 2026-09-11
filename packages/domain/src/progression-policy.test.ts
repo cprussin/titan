@@ -45,6 +45,16 @@ describe("progressionPolicySchema", () => {
     expect(progressionPolicySchema.parse(value)).toEqual(value);
   });
 
+  it("parses a timed-carry policy", () => {
+    const value = ProgressionPolicy.TimedCarry({
+      durationSec: 40,
+      increment: 5,
+      rpeCap: 8,
+      sets: 3,
+    });
+    expect(progressionPolicySchema.parse(value)).toEqual(value);
+  });
+
   it("parses an rpe-banded policy", () => {
     const value = ProgressionPolicy.RpeBanded({
       bands: [

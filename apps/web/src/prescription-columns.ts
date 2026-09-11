@@ -50,6 +50,12 @@ export const prescriptionColumns = (
         scheme: `${prescription.sets}×`,
       };
     }
+    case "timed-carry": {
+      return {
+        load: formatWeight(prescription.weight, prescription.unit),
+        scheme: `${prescription.sets} × ${prescription.durationSec} sec`,
+      };
+    }
     case "timed-cardio": {
       return {
         load:
