@@ -5,7 +5,7 @@ import type { Program, ProgramVersion } from "@titan/domain/program";
 import type { SelectedVariant } from "@titan/program-engine/variant";
 import Link from "next/link";
 import { css } from "../../styled-system/css";
-import { hstack, vstack } from "../../styled-system/patterns";
+import { flex, hstack, vstack } from "../../styled-system/patterns";
 import type { Loadable } from "../loadable";
 import { roleTone } from "../role-tone";
 import type {
@@ -195,7 +195,7 @@ const renderWeekDay = (workout: WeekWorkout, names: Map<string, string>) => (
       </span>
     </div>
     <ul className={slotListStyles}>
-      {workout.variant.slots.map((slot) => renderSlot(slot, names))}
+      {renderSlots(workout.variant.slots, names)}
     </ul>
   </section>
 );
@@ -307,9 +307,10 @@ const renderWorkoutContent = (
     </div>
   ) : (
     <ul className={slotListStyles}>
-      {rotations
-        .flatMap((rotation) => rotation.slots)
-        .map((slot) => renderSlot(slot, names))}
+      {renderSlots(
+        rotations.flatMap((rotation) => rotation.slots),
+        names,
+      )}
     </ul>
   );
 };
@@ -324,23 +325,38 @@ const renderVariant = (
   <div className={variantStyles} key={rotation.label ?? index}>
     <span className={variantLabelStyles}>{rotation.label}</span>
     <ul className={variantSlotListStyles}>
-      {rotation.slots.map((slot) => renderSlot(slot, names))}
+      {renderSlots(rotation.slots, names)}
     </ul>
   </div>
 );
 
-/** One exercise row: name and target on the start edge, role badge on the end. */
+/** One workout's exercises, numbered by their place in the run order. Slot order
+ *  *is* the execution order, and the list grid flows a row at a time, so the
+ *  numbers run across the columns and then down — and stay right when the
+ *  columns collapse to one. Each call starts over at 1, so a day and each
+ *  rotating variant of it are numbered independently. */
+const renderSlots = (
+  slots: SelectedVariant["slots"],
+  names: Map<string, string>,
+) => slots.map((slot, index) => renderSlot(slot, index + 1, names));
+
+/** One exercise row: its position in the workout, then name and target, with the
+ *  role badge on the end edge. */
 const renderSlot = (
   slot: SelectedVariant["slots"][number],
+  position: number,
   names: Map<string, string>,
 ) => (
   <li className={rowStyles} key={slot.id}>
-    <div className={vstack({ alignItems: "flex-start", gap: 0.5 })}>
-      <span className={exerciseNameStyles}>
-        {names.get(slot.exerciseId) ?? slot.exerciseId}
+    <span className={slotLeadStyles}>
+      <span className={ordinalStyles}>{position}</span>
+      <span className={slotTextStyles}>
+        <span className={exerciseNameStyles}>
+          {names.get(slot.exerciseId) ?? slot.exerciseId}
+        </span>
+        <PrescriptionTarget prescription={slot.base} />
       </span>
-      <PrescriptionTarget prescription={slot.base} />
-    </div>
+    </span>
     <Badge tone={roleTone(slot.role)}>{slot.role}</Badge>
   </li>
 );
@@ -565,5 +581,23 @@ const rowStyles = hstack({
   gap: 3,
   justifyContent: "space-between",
 });
+
+// The ordinal and the exercise text share a baseline so the number sits on the
+// exercise name's line rather than floating above it.
+const slotLeadStyles = flex({ align: "baseline", gap: 2, minInlineSize: 0 });
+
+// Subordinate to the name but scannable: dimmer and smaller, end-aligned in a
+// fixed gutter with tabular figures so names line up past a two-digit ordinal.
+const ordinalStyles = css({
+  color: "muted",
+  flexShrink: 0,
+  fontSize: "sm",
+  fontVariantNumeric: "tabular-nums",
+  fontWeight: "medium",
+  minInlineSize: 4,
+  textAlign: "end",
+});
+
+const slotTextStyles = vstack({ alignItems: "flex-start", gap: 0.5 });
 
 const exerciseNameStyles = css({ fontWeight: "medium" });
