@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import { exerciseSchema } from "@titan/domain/exercise";
 import type {
   BodyweightPrescription,
   StrengthPrescription,
@@ -111,6 +112,12 @@ describe("catalog", () => {
   it("prescribes belt-loaded bodyweight movements at whole-kilogram added loads", () => {
     for (const slot of beltLoadedSlots()) {
       expect(Number.isInteger(slot.base.addedWeight ?? 0)).toBe(true);
+    }
+  });
+
+  it("holds valid exercise data", () => {
+    for (const exercise of catalog.exercises) {
+      expect(exerciseSchema.parse(exercise)).toEqual(exercise);
     }
   });
 

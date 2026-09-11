@@ -105,3 +105,86 @@ describe("athleticHealthFoundationV1", () => {
     }
   });
 });
+
+describe("foundation block aesthetic accessories", () => {
+  it("closes the Wednesday upper day with delt and arm isolation", () => {
+    const upper = templateById("foundation-heavy-upper");
+    expect((upper.slots ?? []).map((slot) => slot.exerciseId)).toEqual([
+      "bench-press",
+      "weighted-pullup",
+      "overhead-press",
+      "barbell-row",
+      "dips",
+      "ab-wheel",
+      "lateral-raise",
+      "biceps-curl",
+      "triceps-pushdown",
+    ]);
+  });
+
+  it("closes every athletic-day variant with the same two accessory slots", () => {
+    const athletic = templateById("foundation-athletic-day");
+    expect(athletic.variants).toHaveLength(3);
+    for (const variant of athletic.variants ?? []) {
+      // One slot id per accessory across all three variants: history is keyed by
+      // slot id, so the load carries whichever variant the week lands on.
+      expect(
+        variant.slots.slice(-2).map((slot) => [slot.exerciseId, slot.id]),
+      ).toEqual([
+        ["hammer-curl", "foundation-athletic-day-hammer-curl"],
+        ["lateral-raise", "foundation-athletic-day-lateral-raise"],
+      ]);
+    }
+  });
+
+  it("leaves the Monday lower day alone", () => {
+    const lower = templateById("foundation-heavy-lower");
+    expect((lower.slots ?? []).map((slot) => slot.exerciseId)).toEqual([
+      "back-squat",
+      "romanian-deadlift",
+      "bulgarian-split-squat",
+      "standing-calf-raise",
+      "plank",
+      "rower",
+    ]);
+  });
+
+  it("progresses each accessory by double progression inside its rep range", () => {
+    for (const [slotId, sets, minReps, maxReps] of [
+      ["foundation-heavy-upper-lateral-raise", 3, 10, 15],
+      ["foundation-heavy-upper-biceps-curl", 3, 8, 12],
+      ["foundation-heavy-upper-triceps-pushdown", 3, 8, 12],
+      ["foundation-athletic-day-hammer-curl", 3, 10, 15],
+      ["foundation-athletic-day-lateral-raise", 3, 12, 20],
+    ] as const) {
+      const slot = allSlots.find((entry) => entry.id === slotId);
+      expect(slot?.progression).toEqual({
+        increment: 5,
+        kind: "double",
+        maxReps,
+        minReps,
+        rpeCap: 8,
+        sets,
+      });
+      // Starts at the bottom of the range so the reps climb before the load.
+      expect(slot?.base).toMatchObject({ reps: minReps, sets });
+    }
+  });
+
+  it("marks the accessories sheddable so recovery costs them first", () => {
+    const roles = [
+      "foundation-heavy-upper-lateral-raise",
+      "foundation-heavy-upper-biceps-curl",
+      "foundation-heavy-upper-triceps-pushdown",
+      "foundation-athletic-day-hammer-curl",
+      "foundation-athletic-day-lateral-raise",
+    ].map((slotId) => allSlots.find((slot) => slot.id === slotId)?.role);
+    expect(roles).toEqual([
+      "accessory",
+      "accessory",
+      "accessory",
+      "accessory",
+      "accessory",
+    ]);
+  });
+});
