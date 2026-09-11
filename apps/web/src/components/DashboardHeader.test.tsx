@@ -45,6 +45,23 @@ describe(DashboardHeader, () => {
     expect(screen.getByText("MON 10 · Logged")).toBeDefined();
   });
 
+  it("links the program name to the programs page", () => {
+    wrap(
+      <DashboardHeader
+        load={loaded({
+          eyebrow,
+          primary: { kind: "none" },
+          title: "Volume Upper",
+        })}
+      />,
+    );
+    expect(
+      screen
+        .getByRole("link", { name: "Athletic Health Foundation" })
+        .getAttribute("href"),
+    ).toBe("/programs");
+  });
+
   it("always offers a weigh-in button", () => {
     wrap(
       <DashboardHeader
