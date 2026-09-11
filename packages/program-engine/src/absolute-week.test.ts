@@ -39,6 +39,15 @@ describe("absoluteWeekFor", () => {
     ).toBe(3);
   });
 
+  it("projects each further week ahead one more program week", () => {
+    expect(
+      absoluteWeekFor(placement, ["2026-08-12"], "2026-08-17", "2026-08-31"),
+    ).toBe(4);
+    expect(
+      absoluteWeekFor(placement, ["2026-08-12"], "2026-08-17", "2026-09-14"),
+    ).toBe(6);
+  });
+
   it("projects past weeks back to the position they were trained at", () => {
     const completed = ["2026-08-12", "2026-08-19", "2026-08-26", "2026-09-02"];
     expect(
