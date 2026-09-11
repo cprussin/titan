@@ -61,9 +61,12 @@ export const DashboardHeader = ({ load }: Props) => (
 /** The eyebrow's three baseline segments, each shown only when present. */
 const Eyebrow = ({ eyebrow }: { eyebrow: DashboardEyebrow }) => (
   <>
-    {eyebrow.programName !== undefined && (
-      <Link className={programStyles} href="/programs">
-        {eyebrow.programName}
+    {eyebrow.program !== undefined && (
+      <Link
+        className={programStyles}
+        href={`/programs/${eyebrow.program.versionId}/block/${eyebrow.program.blockId}`}
+      >
+        {eyebrow.program.name}
       </Link>
     )}
     {eyebrow.weekCount !== undefined && (
@@ -130,8 +133,8 @@ const eyebrowStyles = css({
   rowGap: 1,
 });
 
-// The program name doubles as the way into the programs explorer, so it carries
-// a hover underline to read as a link rather than a label.
+// The program name doubles as the way into its block's detail page, so it
+// carries a hover underline to read as a link rather than a label.
 const programStyles = css({
   _hover: { textDecoration: "underline" },
   color: "accent",

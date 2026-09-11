@@ -20,7 +20,11 @@ const wrap = (ui: ReactElement) =>
   );
 
 const eyebrow = {
-  programName: "Athletic Health Foundation",
+  program: {
+    blockId: "block-1",
+    name: "Athletic Health Foundation",
+    versionId: "v1",
+  },
   status: { text: "MON 10 · Logged", tone: "success" as const },
   weekCount: "W3 / 8",
 };
@@ -45,7 +49,7 @@ describe(DashboardHeader, () => {
     expect(screen.getByText("MON 10 · Logged")).toBeDefined();
   });
 
-  it("links the program name to the programs page", () => {
+  it("links the program name to its block detail page", () => {
     wrap(
       <DashboardHeader
         load={loaded({
@@ -59,7 +63,7 @@ describe(DashboardHeader, () => {
       screen
         .getByRole("link", { name: "Athletic Health Foundation" })
         .getAttribute("href"),
-    ).toBe("/programs");
+    ).toBe("/programs/v1/block/block-1");
   });
 
   it("always offers a weigh-in button", () => {
