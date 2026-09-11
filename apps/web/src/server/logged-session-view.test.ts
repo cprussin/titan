@@ -61,6 +61,25 @@ const holdResult = (): ExerciseResult =>
     slotId: "plank-slot",
   }) as unknown as ExerciseResult;
 
+const carryResult = (
+  sets: readonly { durationSec: number; weight: number }[],
+): ExerciseResult =>
+  ({
+    exerciseId: "carry-ex",
+    prescription: Prescription.TimedCarry({
+      durationSec: 40,
+      sets: 3,
+      weight: 150,
+    }),
+    role: "accessory",
+    sets: sets.map(({ durationSec, weight }) => ({
+      completed: true,
+      durationSec,
+      weight,
+    })),
+    slotId: "carry-slot",
+  }) as unknown as ExerciseResult;
+
 const rowResult = (): ExerciseResult =>
   ({
     cardio: { distanceMeters: 5000, splitSecPer500: 111.4 },
@@ -90,6 +109,7 @@ const names = new Map([
   ["squat-ex", "Back Squat"],
   ["split-ex", "Bulgarian Split Squat"],
   ["plank-ex", "Plank"],
+  ["carry-ex", "Farmer Carry"],
   ["row-ex", "Zone 2 Row"],
 ]);
 
@@ -233,6 +253,57 @@ describe("loggedSessionView", () => {
       done: "3× 45s ✓",
       prescribed: "3× 45s hold",
     });
+  });
+
+  it("collapses a timed carry done as prescribed", () => {
+    const view = loggedSessionView(
+      session([
+        carryResult([
+          { durationSec: 40, weight: 150 },
+          { durationSec: 40, weight: 150 },
+          { durationSec: 40, weight: 150 },
+        ]),
+      ]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "3× 40 sec ✓",
+      prescribed: "3 × 40 sec @ 150 lb",
+    });
+  });
+
+  it("lists the per-set seconds of a carry cut short, without a tick", () => {
+    const view = loggedSessionView(
+      session([
+        carryResult([
+          { durationSec: 40, weight: 150 },
+          { durationSec: 25, weight: 150 },
+          { durationSec: 40, weight: 150 },
+        ]),
+      ]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "3× 40, 25, 40 sec",
+      isAsPrescribed: false,
+    });
+  });
+
+  it("shows the load a carry was actually taken at when it differed", () => {
+    const view = loggedSessionView(
+      session([
+        carryResult([
+          { durationSec: 40, weight: 160 },
+          { durationSec: 40, weight: 160 },
+          { durationSec: 40, weight: 160 },
+        ]),
+      ]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({ done: "3× 40 sec @ 160 lb ✓" });
   });
 
   it("reports a cardio piece from its logged distance and split", () => {

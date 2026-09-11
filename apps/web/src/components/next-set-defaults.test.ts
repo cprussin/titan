@@ -2,7 +2,11 @@ import { describe, expect, it } from "bun:test";
 import { Prescription } from "@titan/domain/prescription";
 import type { SetResult } from "@titan/domain/result";
 
-import { nextSetReps, nextSetWeight } from "./next-set-defaults";
+import {
+  nextSetReps,
+  nextSetSeconds,
+  nextSetWeight,
+} from "./next-set-defaults";
 
 const strength = Prescription.Strength({ reps: 5, sets: 3, weight: 100 });
 
@@ -17,6 +21,15 @@ describe("nextSetWeight", () => {
     expect(nextSetWeight(strength, [])).toBe(100);
   });
 
+  it("uses the prescribed load for a timed carry's first set", () => {
+    expect(
+      nextSetWeight(
+        Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 150 }),
+        [],
+      ),
+    ).toBe(150);
+  });
+
   it("carries the last logged set's weight forward on later sets", () => {
     expect(nextSetWeight(strength, [set({ reps: 5, weight: 115 })])).toBe(115);
   });
@@ -28,6 +41,26 @@ describe("nextSetWeight", () => {
         set({ reps: 5, setIndex: 1, weight: 120 }),
       ]),
     ).toBe(120);
+  });
+});
+
+describe("nextSetSeconds", () => {
+  it("uses the prescribed duration for a timed carry", () => {
+    expect(
+      nextSetSeconds(
+        Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 150 }),
+      ),
+    ).toBe(40);
+  });
+
+  it("uses the prescribed hold for a timed hold", () => {
+    expect(
+      nextSetSeconds(Prescription.TimedHold({ holdSec: 45, sets: 3 })),
+    ).toBe(45);
+  });
+
+  it("has no seconds to prefill for rep-based work", () => {
+    expect(nextSetSeconds(strength)).toBe(0);
   });
 });
 

@@ -153,6 +153,7 @@ const isCardioMatch = (
     case "bodyweight":
     case "circuit":
     case "strength":
+    case "timed-carry":
     case "timed-hold": {
       return false;
     }

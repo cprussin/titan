@@ -22,6 +22,42 @@ const result = (
 });
 
 describe("describePreviousPerformance", () => {
+  describe("timed carry", () => {
+    const carry = Prescription.TimedCarry({
+      durationSec: 40,
+      sets: 3,
+      weight: 150,
+    });
+
+    it("shows the best carry as duration × load", () => {
+      expect(
+        describePreviousPerformance(
+          result(carry, [
+            set({ durationSec: 40, setIndex: 0, weight: 150 }),
+            set({ durationSec: 45, setIndex: 1, weight: 150 }),
+          ]),
+        ),
+      ).toBe("45 sec × 150 lb");
+    });
+
+    it("breaks a tie on duration by the heavier load", () => {
+      expect(
+        describePreviousPerformance(
+          result(carry, [
+            set({ durationSec: 40, setIndex: 0, weight: 150 }),
+            set({ durationSec: 40, setIndex: 1, weight: 160 }),
+          ]),
+        ),
+      ).toBe("40 sec × 160 lb");
+    });
+
+    it("passes over a set that recorded no duration", () => {
+      expect(
+        describePreviousPerformance(result(carry, [set({ weight: 150 })])),
+      ).toBeUndefined();
+    });
+  });
+
   describe("strength", () => {
     const strength = Prescription.Strength({ reps: 5, sets: 3, weight: 100 });
 

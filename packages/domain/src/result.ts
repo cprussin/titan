@@ -13,6 +13,8 @@ import { prescriptionSchema } from "./prescription";
 
 export const setResultSchema = z.object({
   completed: z.boolean(),
+  /** For timed carries (farmer carry) — the seconds the load was carried. */
+  durationSec: z.number().nonnegative().optional(),
   /** For timed holds (plank). */
   holdSec: z.number().nonnegative().optional(),
   reps: z.number().int().nonnegative().optional(),

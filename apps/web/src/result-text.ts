@@ -24,10 +24,10 @@ export type LoggedWork = Pick<ExerciseResult, "cardio" | "prescription"> & {
 
 /**
  * The recap lines for one logged exercise — a labelled line per set for
- * strength, bodyweight, and timed-hold work, or a single effort summary for a
- * cardio piece. Pure; the caller supplies the exercise name and renders the
- * lines. Branches on the result's snapshot prescription so a bodyweight set's
- * placeholder zero load reads as reps rather than "× 0 lb".
+ * strength, bodyweight, timed-hold, and timed-carry work, or a single effort
+ * summary for a cardio piece. Pure; the caller supplies the exercise name and
+ * renders the lines. Branches on the result's snapshot prescription so a
+ * bodyweight set's placeholder zero load reads as reps rather than "× 0 lb".
  */
 export const loggedExerciseLines = (work: LoggedWork): LoggedLine[] => {
   const { prescription } = work;
@@ -42,6 +42,9 @@ export const loggedExerciseLines = (work: LoggedWork): LoggedLine[] => {
     }
     case "timed-hold": {
       return setLines(work.sets, holdSet);
+    }
+    case "timed-carry": {
+      return setLines(work.sets, (each) => carrySet(each, prescription.unit));
     }
     case "timed-cardio":
     case "distance-cardio":
@@ -70,6 +73,9 @@ const repSet = (set: SetResult): string =>
 
 const holdSet = (set: SetResult): string =>
   `${requireField(set.holdSec, "holdSec")}s hold`;
+
+const carrySet = (set: SetResult, unit: LoadUnit): string =>
+  `${requireField(set.durationSec, "durationSec")} sec × ${formatWeight(requireField(set.weight, "weight"), unit)}`;
 
 /** The effort summary a logged cardio result must carry; its absence is an
  *  invariant violation (a corrupt result), not a display state. */

@@ -2,25 +2,24 @@
 
 import { MinusIcon } from "@phosphor-icons/react/dist/ssr/Minus";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
+import type { LoadUnit } from "@titan/domain/load-unit";
 import { coarseLoadStep, fineLoadStep } from "@titan/domain/load-unit";
-import type { Prescription } from "@titan/domain/prescription";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
 import { useState } from "react";
 import { css } from "../../styled-system/css";
 import { hstack, vstack } from "../../styled-system/patterns";
+import type { SetBasedPrescription } from "../set-based-prescription";
 import type { ScheduleTick } from "../tick-scheduler";
 import { Button } from "../ui";
 import { EffortTimer } from "./EffortTimer";
-import { nextSetReps, nextSetWeight } from "./next-set-defaults";
+import {
+  nextSetReps,
+  nextSetSeconds,
+  nextSetWeight,
+} from "./next-set-defaults";
 import { RpePicker } from "./RpePicker";
 import { WorkoutActionBar } from "./WorkoutActionBar";
-
-/** The strength/bodyweight/timed-hold prescription shapes this logger drives. */
-type StrengthLikePrescription = Extract<
-  Prescription,
-  { type: "strength" | "bodyweight" | "timed-hold" }
->;
 
 type Props = {
   busy: boolean;
@@ -32,9 +31,9 @@ type Props = {
   /** Drop the most recently logged set (the Back affordance). */
   onUndoLastSet: () => void;
   prescribed: PrescribedExercise;
-  prescription: StrengthLikePrescription;
-  /** Tick scheduler for the hold timer, injected for testing; defaults to a 1s
-   *  `setInterval` inside {@link EffortTimer}. */
+  prescription: SetBasedPrescription;
+  /** Tick scheduler for the effort timer, injected for testing; defaults to a
+   *  1s `setInterval` inside {@link EffortTimer}. */
   schedule?: ScheduleTick;
 };
 
@@ -62,13 +61,11 @@ export const StrengthLogger = ({
 }: Props) => {
   const sets = prescription.sets;
   const done = logged.length;
-  const isHold = prescription.type === "timed-hold";
-  const holdTarget =
-    prescription.type === "timed-hold" ? prescription.holdSec : undefined;
-  const unit = prescription.type === "strength" ? prescription.unit : undefined;
+  const isTimed = isTimedPrescription(prescription);
+  const unit = loadUnitOf(prescription);
   const [weight, setWeight] = useState(nextSetWeight(prescription, logged));
   const [reps, setReps] = useState(nextSetReps(prescription));
-  const [holdSec, setHoldSec] = useState(isHold ? prescription.holdSec : 0);
+  const [seconds, setSeconds] = useState(nextSetSeconds(prescription));
   const [rpe, setRpe] = useState<number | undefined>(undefined);
 
   // Carryover is scoped to a single exercise: within one movement the inputs
@@ -82,7 +79,7 @@ export const StrengthLogger = ({
     setSlotId(prescribed.slotId);
     setWeight(nextSetWeight(prescription, logged));
     setReps(nextSetReps(prescription));
-    setHoldSec(isHold ? prescription.holdSec : 0);
+    setSeconds(nextSetSeconds(prescription));
     setRpe(undefined);
   }
 
@@ -96,7 +93,7 @@ export const StrengthLogger = ({
         completed: true,
         rpe,
         setIndex: done,
-        ...(isHold ? { holdSec } : { reps, weight }),
+        ...setMetrics(prescription, { reps, seconds, weight }),
       });
       setRpe(undefined);
     }
@@ -113,8 +110,9 @@ export const StrengthLogger = ({
       if (last.reps !== undefined) {
         setReps(last.reps);
       }
-      if (last.holdSec !== undefined) {
-        setHoldSec(last.holdSec);
+      const lastSeconds = loggedSeconds(last);
+      if (lastSeconds !== undefined) {
+        setSeconds(lastSeconds);
       }
       setRpe(last.rpe);
       onUndoLastSet();
@@ -136,8 +134,8 @@ export const StrengthLogger = ({
       {logged.length > 0 && (
         <LoggedSets
           busy={busy}
-          isHold={isHold}
           onEditSet={onEditSet}
+          prescription={prescription}
           sets={logged}
           unit={unit}
         />
@@ -147,33 +145,31 @@ export const StrengthLogger = ({
       </p>
       {done < sets && (
         <div className={vstack({ alignItems: "stretch", gap: 3 })}>
-          {isHold ? (
+          {unit !== undefined && (
+            <Stepper
+              fineStep={fineLoadStep(unit)}
+              label={`Weight (${unit})`}
+              onChange={setWeight}
+              step={coarseLoadStep}
+              value={weight}
+            />
+          )}
+          {isTimed ? (
             <div className={vstack({ alignItems: "stretch", gap: 3 })}>
               <EffortTimer
-                onUse={(seconds) => setHoldSec(seconds)}
+                onUse={setSeconds}
                 schedule={schedule}
-                targetSeconds={holdTarget}
+                targetSeconds={nextSetSeconds(prescription)}
               />
               <Stepper
-                label="Hold (sec)"
-                onChange={setHoldSec}
+                label={secondsLabel(prescription)}
+                onChange={setSeconds}
                 step={5}
-                value={holdSec}
+                value={seconds}
               />
             </div>
           ) : (
-            <>
-              {unit !== undefined && (
-                <Stepper
-                  fineStep={fineLoadStep(unit)}
-                  label={`Weight (${unit})`}
-                  onChange={setWeight}
-                  step={coarseLoadStep}
-                  value={weight}
-                />
-              )}
-              <Stepper label="Reps" onChange={setReps} step={1} value={reps} />
-            </>
+            <Stepper label="Reps" onChange={setReps} step={1} value={reps} />
           )}
           <RpePicker onChange={setRpe} value={rpe} />
         </div>
@@ -214,12 +210,86 @@ export const StrengthLogger = ({
   );
 };
 
+/** The timed shapes: the seconds the athlete works for are the set's measure,
+ *  whether the load is held still or walked. */
+type TimedPrescription = Extract<
+  SetBasedPrescription,
+  { type: "timed-hold" | "timed-carry" }
+>;
+
+const isTimedPrescription = (
+  prescription: SetBasedPrescription,
+): prescription is TimedPrescription =>
+  prescription.type === "timed-hold" || prescription.type === "timed-carry";
+
+/** The unit the load input works in, or `undefined` for a movement the athlete
+ *  enters no load for — bodyweight reps, an unweighted hold. */
+const loadUnitOf = (
+  prescription: SetBasedPrescription,
+): LoadUnit | undefined =>
+  prescription.type === "strength" || prescription.type === "timed-carry"
+    ? prescription.unit
+    : undefined;
+
+/** Whether a logged set of this shape shows a load to edit. A hold is the one
+ *  set-based shape carrying no load at all; everything else — a carry's
+ *  dumbbells included — is worked against one. */
+const logsLoad = (prescription: SetBasedPrescription): boolean =>
+  prescription.type !== "timed-hold";
+
+/** What the seconds are called for a timed movement: a plank is held, a carry
+ *  is walked for a duration. */
+const secondsNoun = (prescription: TimedPrescription): string =>
+  prescription.type === "timed-hold" ? "Hold" : "Duration";
+
+const secondsLabel = (prescription: TimedPrescription): string =>
+  `${secondsNoun(prescription)} (sec)`;
+
+/** The figures a logged set carries for the shape it was worked in. Reps and
+ *  seconds never appear together: a carry is measured in seconds under load, a
+ *  hold in seconds alone, and rep work in reps. */
+type SetMetrics = Pick<
+  SetResult,
+  "durationSec" | "holdSec" | "reps" | "weight"
+>;
+
+const setMetrics = (
+  prescription: SetBasedPrescription,
+  entered: { reps: number; seconds: number; weight: number },
+): SetMetrics => {
+  switch (prescription.type) {
+    case "timed-hold": {
+      return { holdSec: entered.seconds };
+    }
+    case "timed-carry": {
+      return { durationSec: entered.seconds, weight: entered.weight };
+    }
+    case "strength":
+    case "bodyweight": {
+      return { reps: entered.reps, weight: entered.weight };
+    }
+  }
+};
+
+/** The seconds a logged set recorded, under whichever key its shape uses. */
+const loggedSeconds = (set: SetResult): number | undefined =>
+  set.durationSec ?? set.holdSec;
+
+/** The seconds field an edit to an already-logged timed set writes back to. */
+const editedSeconds = (
+  prescription: TimedPrescription,
+  seconds: number,
+): SetMetrics =>
+  prescription.type === "timed-hold"
+    ? { holdSec: seconds }
+    : { durationSec: seconds };
+
 type LoggedSetsProps = {
   /** Whether the exercise is being recorded — see the action bar above, where
    *  every control that changes the sets stands down until the save settles. */
   busy: boolean;
-  isHold: boolean;
   onEditSet: (index: number, set: SetResult) => void;
+  prescription: SetBasedPrescription;
   sets: readonly SetResult[];
   unit: string | undefined;
 };
@@ -228,8 +298,8 @@ type LoggedSetsProps = {
  *  set can be corrected without re-doing the exercise. */
 const LoggedSets = ({
   busy,
-  isHold,
   onEditSet,
+  prescription,
   sets,
   unit,
 }: LoggedSetsProps) => (
@@ -239,9 +309,9 @@ const LoggedSets = ({
       <LoggedSetRow
         busy={busy}
         index={index}
-        isHold={isHold}
         key={set.setIndex}
         onEditSet={onEditSet}
+        prescription={prescription}
         set={set}
         unit={unit}
       />
@@ -252,8 +322,8 @@ const LoggedSets = ({
 type LoggedSetRowProps = {
   busy: boolean;
   index: number;
-  isHold: boolean;
   onEditSet: (index: number, set: SetResult) => void;
+  prescription: SetBasedPrescription;
   set: SetResult;
   unit: string | undefined;
 };
@@ -261,41 +331,43 @@ type LoggedSetRowProps = {
 const LoggedSetRow = ({
   busy,
   index,
-  isHold,
   onEditSet,
+  prescription,
   set,
   unit,
 }: LoggedSetRowProps) => (
   <div className={loggedRowStyles}>
     <span className={loggedRowLabelStyles}>Set {index + 1}</span>
     <div className={hstack({ gap: 3 })}>
-      {isHold ? (
+      {logsLoad(prescription) && (
         <MiniStepper
           disabled={busy}
-          label={`Set ${index + 1} hold`}
-          onChange={(value) => onEditSet(index, { ...set, holdSec: value })}
+          label={`Set ${index + 1} weight`}
+          onChange={(value) => onEditSet(index, { ...set, weight: value })}
+          step={coarseLoadStep}
+          suffix={unit}
+          value={set.weight ?? 0}
+        />
+      )}
+      {isTimedPrescription(prescription) ? (
+        <MiniStepper
+          disabled={busy}
+          label={`Set ${index + 1} ${secondsNoun(prescription).toLowerCase()}`}
+          onChange={(value) =>
+            onEditSet(index, { ...set, ...editedSeconds(prescription, value) })
+          }
           step={5}
           suffix="s"
-          value={set.holdSec ?? 0}
+          value={loggedSeconds(set) ?? 0}
         />
       ) : (
-        <>
-          <MiniStepper
-            disabled={busy}
-            label={`Set ${index + 1} weight`}
-            onChange={(value) => onEditSet(index, { ...set, weight: value })}
-            step={coarseLoadStep}
-            suffix={unit}
-            value={set.weight ?? 0}
-          />
-          <MiniStepper
-            disabled={busy}
-            label={`Set ${index + 1} reps`}
-            onChange={(value) => onEditSet(index, { ...set, reps: value })}
-            step={1}
-            value={set.reps ?? 0}
-          />
-        </>
+        <MiniStepper
+          disabled={busy}
+          label={`Set ${index + 1} reps`}
+          onChange={(value) => onEditSet(index, { ...set, reps: value })}
+          step={1}
+          value={set.reps ?? 0}
+        />
       )}
     </div>
   </div>

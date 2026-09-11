@@ -64,6 +64,23 @@ const timedHoldSchema = z.object({
 
 export type TimedHoldPolicy = z.infer<typeof timedHoldSchema>;
 
+const timedCarrySchema = z.object({
+  /** The carry's fixed duration. A carry progresses by load, not by time: the
+   *  duration is held here so the policy never has to read one off a rep-based
+   *  field. */
+  durationSec: z.number().positive(),
+  /** Load added after every set is carried for the full duration under the RPE
+   *  cap, in the exercise's unit. */
+  increment: z.number().positive(),
+  kind: z.literal("timed-carry"),
+  /** Average RPE at or below which the increment is applied — a carry taken
+   *  above it repeats, so load never runs ahead of posture and control. */
+  rpeCap: z.number().positive(),
+  sets: z.number().int().positive(),
+});
+
+export type TimedCarryPolicy = z.infer<typeof timedCarrySchema>;
+
 const intervalSchema = z.object({
   kind: z.literal("interval"),
   /** Max allowed per-500m slowdown across the intervals to still advance. */
@@ -119,6 +136,7 @@ export const progressionPolicySchema = z.discriminatedUnion("kind", [
   doubleSchema,
   amrapSchema,
   timedHoldSchema,
+  timedCarrySchema,
   intervalSchema,
   zone2Schema,
   rpeBandedSchema,
@@ -148,6 +166,10 @@ export const ProgressionPolicy = {
   RpeBanded: (args: Omit<RpeBandedPolicy, "kind">): RpeBandedPolicy => ({
     ...args,
     kind: "rpe-banded",
+  }),
+  TimedCarry: (args: Omit<TimedCarryPolicy, "kind">): TimedCarryPolicy => ({
+    ...args,
+    kind: "timed-carry",
   }),
   TimedHold: (args: Omit<TimedHoldPolicy, "kind">): TimedHoldPolicy => ({
     ...args,

@@ -2,6 +2,7 @@ import type { LoadUnit } from "@titan/domain/load-unit";
 import type {
   BodyweightPrescription,
   StrengthPrescription,
+  TimedCarryPrescription,
   TimedHoldPrescription,
 } from "@titan/domain/prescription";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
@@ -13,11 +14,11 @@ import { formatWeight } from "../format";
  * kind of movement it is.
  *
  * The metric is read from the source the progression engine itself trusts —
- * reps and hold time from the logged set, and *added* load from the result's
- * prescription snapshot (see `adaptation-engine` `readLoad`). A bodyweight
- * set's `weight` field is never surfaced: it is not a real load (there is no
- * weight input for bodyweight work) and can carry a stray value, so reporting
- * it would show a load the athlete never lifted.
+ * reps, hold time, and carry duration from the logged set, and *added* load
+ * from the result's prescription snapshot (see `adaptation-engine` `readLoad`).
+ * A bodyweight set's `weight` field is never surfaced: it is not a real load
+ * (there is no weight input for bodyweight work) and can carry a stray value,
+ * so reporting it would show a load the athlete never lifted.
  *
  * Returns `undefined` when there is nothing meaningful to show — an empty
  * history, a cardio-style result with no per-set metric, or a strength result
@@ -36,6 +37,9 @@ export const describePreviousPerformance = (
     }
     case "timed-hold": {
       return timedHoldLine(result.sets, prescription);
+    }
+    case "timed-carry": {
+      return timedCarryLine(result.sets, prescription);
     }
     case "timed-cardio":
     case "distance-cardio":
@@ -92,6 +96,32 @@ const timedHoldLine = (
     ? undefined
     : `${top.holdSec}s${addedLoad(prescription.addedWeightLb, "lb")}`;
 };
+
+const timedCarryLine = (
+  sets: readonly SetResult[],
+  prescription: TimedCarryPrescription,
+): string | undefined => {
+  const top = topBy(
+    carriedSets(sets),
+    (set) => set.durationSec,
+    (set) => set.weight,
+  );
+  return top === undefined
+    ? undefined
+    : `${top.durationSec} sec × ${formatWeight(top.weight, prescription.unit)}`;
+};
+
+/** The sets that recorded both figures a carry line reports. A set missing
+ *  either is passed over for the same reason a strength set is: the athlete
+ *  never carried a figure the prescription only asked for. */
+const carriedSets = (
+  sets: readonly SetResult[],
+): readonly (SetResult & { durationSec: number; weight: number })[] =>
+  sets.flatMap((set) =>
+    set.durationSec === undefined || set.weight === undefined
+      ? []
+      : [{ ...set, durationSec: set.durationSec, weight: set.weight }],
+  );
 
 /** The added-load clause for a weighted bodyweight/hold movement (` +10 kg`),
  *  or empty when the movement carries no added load. */

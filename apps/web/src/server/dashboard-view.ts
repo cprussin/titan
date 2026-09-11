@@ -1,5 +1,6 @@
 import type { Prescription } from "@titan/domain/prescription";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
+import { isSetBased } from "../set-based-prescription";
 import type { LoggedSessionView } from "./logged-session-view";
 import type { Today } from "./today";
 import type { WorkoutAction } from "./workout-action";
@@ -194,8 +195,4 @@ const totalSets = (exercises: readonly PrescribedExercise[]): number =>
 
 /** A prescription's set count, or 0 for the shapes that have none. */
 const prescriptionSets = (prescription: Prescription): number =>
-  prescription.type === "strength" ||
-  prescription.type === "bodyweight" ||
-  prescription.type === "timed-hold"
-    ? prescription.sets
-    : 0;
+  isSetBased(prescription) ? prescription.sets : 0;

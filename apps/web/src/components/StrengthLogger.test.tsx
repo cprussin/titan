@@ -329,6 +329,88 @@ describe(StrengthLogger, () => {
     expect(set).toMatchObject({ holdSec: 10, setIndex: 0 });
   });
 
+  it("asks a timed carry for weight and seconds, never reps", () => {
+    const carry = Prescription.TimedCarry({
+      durationSec: 40,
+      sets: 3,
+      weight: 150,
+    });
+    render(
+      <StrengthLogger
+        busy={false}
+        logged={[]}
+        onComplete={noop}
+        onEditSet={noop}
+        onLogSet={noop}
+        onUndoLastSet={noop}
+        prescribed={{ ...prescribed, prescription: carry }}
+        prescription={carry}
+      />,
+    );
+    expect(screen.getByLabelText("Weight (lb)")).toHaveValue("150");
+    expect(screen.getByLabelText("Duration (sec)")).toHaveValue("40");
+    expect(screen.queryByLabelText("Reps")).not.toBeInTheDocument();
+  });
+
+  it("logs a carry as its load and the seconds it was carried", async () => {
+    const carry = Prescription.TimedCarry({
+      durationSec: 40,
+      sets: 3,
+      weight: 150,
+    });
+    const set = await new Promise<SetResult>((resolve) => {
+      render(
+        <StrengthLogger
+          busy={false}
+          logged={[]}
+          onComplete={noop}
+          onEditSet={noop}
+          onLogSet={resolve}
+          onUndoLastSet={noop}
+          prescribed={{ ...prescribed, prescription: carry }}
+          prescription={carry}
+        />,
+      );
+      pickRpe(7);
+      fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+    });
+    expect(set).toEqual({
+      completed: true,
+      durationSec: 40,
+      rpe: 7,
+      setIndex: 0,
+      weight: 150,
+    });
+  });
+
+  it("edits a logged carry's seconds in place", async () => {
+    const carry = Prescription.TimedCarry({
+      durationSec: 40,
+      sets: 3,
+      weight: 150,
+    });
+    const edited = await new Promise<SetResult>((resolve) => {
+      render(
+        <StrengthLogger
+          busy={false}
+          logged={[loggedSet({ durationSec: 40, setIndex: 0, weight: 150 })]}
+          onComplete={noop}
+          onEditSet={(_index, set) => {
+            resolve(set);
+          }}
+          onLogSet={noop}
+          onUndoLastSet={noop}
+          prescribed={{ ...prescribed, prescription: carry }}
+          prescription={carry}
+        />,
+      );
+      fireEvent.click(
+        screen.getByRole("button", { name: "Decrease Set 1 duration" }),
+      );
+    });
+    expect(edited).toMatchObject({ durationSec: 35, weight: 150 });
+  });
+
   it("completes the exercise with the logged sets", async () => {
     const logged = [
       loggedSet({ reps: 5, setIndex: 0, weight: 100 }),

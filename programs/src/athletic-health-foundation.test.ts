@@ -188,3 +188,47 @@ describe("foundation block aesthetic accessories", () => {
     ]);
   });
 });
+
+describe("farmer carry", () => {
+  const slot = (): ExerciseSlot => {
+    const found = allSlots.find((entry) => entry.exerciseId === "farmer-carry");
+    if (found === undefined) {
+      throw new Error("missing farmer-carry slot");
+    } else {
+      return found;
+    }
+  };
+
+  it("prescribes three 40-second carries, not reps", () => {
+    expect(slot().base).toEqual({
+      durationSec: 40,
+      sets: 3,
+      type: "timed-carry",
+      unit: "lb",
+      weight: 150,
+    });
+  });
+
+  it("progresses by load with the duration pinned at 40 seconds", () => {
+    expect(slot().progression).toEqual({
+      durationSec: 40,
+      increment: 5,
+      kind: "timed-carry",
+      rpeCap: 8,
+      sets: 3,
+    });
+  });
+
+  it("tells the athlete how heavy 40 seconds should feel", () => {
+    expect(slot().note).toContain("final 10 seconds");
+  });
+
+  it("runs after the day's pulling work, as a late-session accessory", () => {
+    const power = templateById("foundation-athletic-day").variants?.[0]?.slots;
+    const order = (power ?? []).map((entry) => entry.exerciseId);
+    expect(order.indexOf("farmer-carry")).toBeGreaterThan(
+      order.indexOf("weighted-pullup"),
+    );
+    expect(slot().role).toBe("accessory");
+  });
+});

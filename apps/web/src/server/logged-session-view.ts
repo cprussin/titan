@@ -1,4 +1,8 @@
-import type { StrengthPrescription } from "@titan/domain/prescription";
+import type { LoadUnit } from "@titan/domain/load-unit";
+import type {
+  StrengthPrescription,
+  TimedCarryPrescription,
+} from "@titan/domain/prescription";
 import type {
   CardioResult,
   ExerciseResult,
@@ -103,6 +107,9 @@ const doneOutcome = (result: ExerciseResult): DoneOutcome => {
     case "timed-hold": {
       return holdDone(prescription.sets, prescription.holdSec, sets);
     }
+    case "timed-carry": {
+      return carryDone(prescription, sets);
+    }
     case "distance-cardio": {
       return cardioDone(result.cardio, prescription.distanceMeters);
     }
@@ -126,7 +133,7 @@ const strengthDone = (
 ): DoneOutcome => {
   const reps = repDone(prescription.sets, prescription.reps, sets);
   const weights = recordedWeights(sets);
-  const load = loadDone(weights, prescription);
+  const load = loadDone(weights, prescription.weight, prescription.unit);
   return {
     body: load === undefined ? reps.body : `${reps.body} @ ${load}`,
     isAsPrescribed:
@@ -150,7 +157,8 @@ const recordedWeights = (sets: readonly SetResult[]): readonly number[] =>
  *  print the same text twice. */
 const loadDone = (
   weights: readonly number[],
-  prescription: StrengthPrescription,
+  prescribedWeight: number,
+  unit: LoadUnit,
 ): string | undefined => {
   if (weights.length === 0) {
     return undefined;
@@ -158,9 +166,9 @@ const loadDone = (
     const load = formatWeightRange(
       Math.min(...weights),
       Math.max(...weights),
-      prescription.unit,
+      unit,
     );
-    const prescribed = formatWeight(prescription.weight, prescription.unit);
+    const prescribed = formatWeight(prescribedWeight, unit);
     return load === prescribed ? undefined : load;
   }
 };
@@ -202,6 +210,37 @@ const holdDone = (
     ? `${targetSets}× ${targetHoldSec}s`
     : `${sets.length}× ${holds.join(", ")}s`;
   return { body, isAsPrescribed };
+};
+
+/** Timed-carry done: `3× 40 sec` when every carry held its target, else the
+ *  per-set seconds (`3× 40, 25, 40 sec`), plus the load actually carried
+ *  whenever it differed from the prescribed weight. Met only when every set
+ *  held the full duration at or above the prescribed load — the same test
+ *  strength work gets, read on seconds instead of reps. */
+const carryDone = (
+  prescription: TimedCarryPrescription,
+  sets: readonly SetResult[],
+): DoneOutcome => {
+  const seconds = sets.map((entry) => entry.durationSec ?? 0);
+  const weights = recordedWeights(sets);
+  const load = loadDone(weights, prescription.weight, prescription.unit);
+  const isAsPrescribed =
+    sets.length >= prescription.sets &&
+    sets.every((entry) => entry.completed) &&
+    seconds.every((held) => held >= prescription.durationSec) &&
+    weights.every(
+      (weight) => snapWeight(weight) >= snapWeight(prescription.weight),
+    );
+  const uniform =
+    sets.length === prescription.sets &&
+    seconds.every((held) => held === prescription.durationSec);
+  const body = uniform
+    ? `${prescription.sets}× ${prescription.durationSec} sec`
+    : `${sets.length}× ${seconds.join(", ")} sec`;
+  return {
+    body: load === undefined ? body : `${body} @ ${load}`,
+    isAsPrescribed,
+  };
 };
 
 /** Cardio done: the logged distance and split, ticked when the distance met the

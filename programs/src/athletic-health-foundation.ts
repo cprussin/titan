@@ -509,22 +509,6 @@ const athleticDay: SessionTemplate = {
           role: "secondary",
         },
         {
-          base: Prescription.Strength({ reps: 1, sets: 4, weight: 150 }),
-          exerciseId: "farmer-carry",
-          generateWarmup: false,
-          id: "foundation-athletic-day-power-farmer-carry",
-          note: "Four carries of roughly 40m each.",
-          progression: ProgressionPolicy.Linear({
-            increment: 10,
-            missesBeforeDeload: 2,
-            reps: 1,
-            retainOnDeload: 0.9,
-            rpeCap: 8.5,
-            sets: 4,
-          }),
-          role: "accessory",
-        },
-        {
           base: Prescription.Bodyweight({
             addedWeight: 10,
             reps: 6,
@@ -538,6 +522,24 @@ const athleticDay: SessionTemplate = {
             increment: 2,
             maxReps: 8,
             minReps: 6,
+            rpeCap: 8,
+            sets: 3,
+          }),
+          role: "accessory",
+        },
+        {
+          base: Prescription.TimedCarry({
+            durationSec: 40,
+            sets: 3,
+            weight: 150,
+          }),
+          exerciseId: "farmer-carry",
+          generateWarmup: false,
+          id: "foundation-athletic-day-power-farmer-carry",
+          note: "Heavy enough that the final 10 seconds are a fight for grip and bracing — but only while the posture holds: tall torso, controlled steps, stable shoulders for the full 40. If any of that breaks down, stay at this load. 90 seconds between carries.",
+          progression: ProgressionPolicy.TimedCarry({
+            durationSec: 40,
+            increment: 5,
             rpeCap: 8,
             sets: 3,
           }),

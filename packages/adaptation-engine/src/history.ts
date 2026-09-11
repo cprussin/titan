@@ -14,23 +14,24 @@ export const mostRecent = (
 ): ExerciseResult | undefined => priorResults.at(-1);
 
 /**
- * The load actually worked on a strength session, in the exercise's unit (kg
- * for barbell, else lb). Each set's recorded `weight` is what the athlete truly
- * lifted; an absent set weight means that set was taken at its prescribed load,
- * resolved from the result's prescription snapshot. The session's worked load is
- * the lightest working set — the load carried across every set — so progression
- * builds on what was actually completed: a heavier-than-prescribed session
- * overrides the prescription, and a lighter one holds it back. Throws when the
- * snapshot isn't a strength prescription (a policy/prescription mismatch).
+ * The load actually worked on a loaded session — strength work or a timed carry
+ * — in the exercise's unit (kg for barbell, else lb). Each set's recorded
+ * `weight` is what the athlete truly lifted; an absent set weight means that set
+ * was taken at its prescribed load, resolved from the result's prescription
+ * snapshot. The session's worked load is the lightest working set — the load
+ * carried across every set — so progression builds on what was actually
+ * completed: a heavier-than-prescribed session overrides the prescription, and a
+ * lighter one holds it back. Throws when the snapshot carries no load (a
+ * policy/prescription mismatch).
  */
 export const completedWeight = (result: ExerciseResult): number => {
   const { prescription, sets } = result;
-  if (prescription.type === "strength") {
+  if (prescription.type === "strength" || prescription.type === "timed-carry") {
     const worked = sets.map((set) => set.weight ?? prescription.weight);
     return worked.length === 0 ? prescription.weight : Math.min(...worked);
   } else {
     throw new Error(
-      `completedWeight expects a strength prescription, got ${prescription.type}`,
+      `completedWeight expects a loaded prescription, got ${prescription.type}`,
     );
   }
 };
@@ -97,6 +98,23 @@ export const metHoldTarget = (result: ExerciseResult): boolean => {
   } else {
     throw new Error(
       `metHoldTarget expects a timed-hold prescription, got ${prescription.type}`,
+    );
+  }
+};
+
+/** Whether every prescribed set of a timed-carry result was carried for its full
+ *  duration. Reps never enter into it — a carry is judged on time alone. */
+export const metDurationTarget = (result: ExerciseResult): boolean => {
+  const { prescription, sets } = result;
+  if (prescription.type === "timed-carry") {
+    const carried = sets.filter(
+      (set) =>
+        set.completed && (set.durationSec ?? 0) >= prescription.durationSec,
+    ).length;
+    return carried >= prescription.sets;
+  } else {
+    throw new Error(
+      `metDurationTarget expects a timed-carry prescription, got ${prescription.type}`,
     );
   }
 };

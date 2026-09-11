@@ -480,15 +480,6 @@ const week4Athletic: readonly ExerciseSlot[] = [
     role: "secondary",
   },
   {
-    base: Prescription.Strength({ reps: 1, sets: 3, weight: 120 }),
-    exerciseId: "farmer-carry",
-    generateWarmup: false,
-    id: "ahf-reentry-farmer-carry",
-    note: "Three carries; distance configurable to available space.",
-    progression: ProgressionPolicy.None(),
-    role: "accessory",
-  },
-  {
     base: Prescription.Bodyweight({ reps: 6, sets: 2, unit: "kg" }),
     exerciseId: "pullup",
     generateWarmup: false,
@@ -500,6 +491,15 @@ const week4Athletic: readonly ExerciseSlot[] = [
       rpeCap: 6,
       sets: 2,
     }),
+    role: "accessory",
+  },
+  {
+    base: Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 120 }),
+    exerciseId: "farmer-carry",
+    generateWarmup: false,
+    id: "ahf-reentry-farmer-carry",
+    note: "Three 40-second carries to close the day; walk a loop if the space is short.",
+    progression: ProgressionPolicy.None(),
     role: "accessory",
   },
 ];

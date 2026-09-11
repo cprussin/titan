@@ -19,6 +19,14 @@ describe("describePrescription", () => {
     ).toBe("5×5 @ 100 kg");
   });
 
+  it("describes a timed carry by duration, never reps", () => {
+    expect(
+      describePrescription(
+        Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 150 }),
+      ),
+    ).toBe("3 × 40 sec @ 150 lb");
+  });
+
   it("describes weighted bodyweight", () => {
     expect(
       describePrescription(

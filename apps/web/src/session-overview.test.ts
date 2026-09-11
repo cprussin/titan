@@ -62,6 +62,25 @@ describe("sessionOverview", () => {
     ]);
   });
 
+  it("shows the carries logged so far against a timed carry in progress", () => {
+    const carry = Prescription.TimedCarry({
+      durationSec: 40,
+      sets: 3,
+      weight: 150,
+    });
+    const [current] = sessionOverview({
+      currentIndex: 0,
+      exerciseNames: {},
+      logged: [set({ durationSec: 40, rpe: 7, setIndex: 0, weight: 150 })],
+      prescribedExercises: [prescribed("slot-1", "farmer-carry", carry)],
+      results: [],
+    });
+    expect(current?.target).toBe("3 × 40 sec @ 150 lb");
+    expect(current?.sets).toEqual([
+      { label: "Set 1", rpe: 7, value: "40 sec × 150 lb" },
+    ]);
+  });
+
   it("lists every set logged against a finished exercise with its rating", () => {
     const [first] = sessionOverview({
       currentIndex: 1,

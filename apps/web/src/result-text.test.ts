@@ -20,6 +20,27 @@ const set = (over: Partial<SetResult>): SetResult => ({
 });
 
 describe("loggedExerciseLines", () => {
+  it("labels each timed-carry set with its duration and load", () => {
+    expect(
+      loggedExerciseLines(
+        result({
+          prescription: Prescription.TimedCarry({
+            durationSec: 40,
+            sets: 2,
+            weight: 150,
+          }),
+          sets: [
+            set({ durationSec: 40, setIndex: 0, weight: 150 }),
+            set({ durationSec: 32, setIndex: 1, weight: 150 }),
+          ],
+        }),
+      ),
+    ).toEqual([
+      { label: "Set 1", value: "40 sec × 150 lb" },
+      { label: "Set 2", value: "32 sec × 150 lb" },
+    ]);
+  });
+
   it("labels each strength set with its reps and load", () => {
     expect(
       loggedExerciseLines(

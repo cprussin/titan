@@ -11,6 +11,14 @@ describe("prescriptionColumns", () => {
     expect(columns.load).toBe("225 lb");
   });
 
+  it("splits a timed carry into a duration scheme and its load", () => {
+    const columns = prescriptionColumns(
+      Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 150 }),
+    );
+    expect(columns.scheme).toBe("3 × 40 sec");
+    expect(columns.load).toBe("150 lb");
+  });
+
   it("shows a weighted bodyweight movement's added load", () => {
     const columns = prescriptionColumns(
       Prescription.Bodyweight({ addedWeight: 25, reps: 10, sets: 3 }),

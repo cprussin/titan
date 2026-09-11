@@ -7,6 +7,7 @@ import { progressInterval } from "./interval";
 import { progressLinear } from "./linear";
 import type { AdaptationOutcome } from "./outcome";
 import { progressRpeBanded } from "./rpe-banded";
+import { progressTimedCarry } from "./timed-carry";
 import { progressTimedHold } from "./timed-hold";
 import { progressZone2 } from "./zone2";
 
@@ -39,6 +40,9 @@ export const progressExercise = (
     }
     case "timed-hold": {
       return progressTimedHold(policy, base, priorResults);
+    }
+    case "timed-carry": {
+      return progressTimedCarry(policy, base, priorResults);
     }
     case "interval": {
       return progressInterval(policy, base, priorResults);

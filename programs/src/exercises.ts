@@ -117,6 +117,8 @@ export const exercises: readonly Exercise[] = [
     modality: "dumbbell",
     movementPattern: "carry",
     name: "Farmer Carry",
+    notes:
+      "Tall, tight, quiet. Short controlled steps; keep the torso stacked and don't let the weights swing.",
   },
   {
     id: "burpee",
