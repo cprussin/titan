@@ -379,8 +379,8 @@ const heavyUpper: SessionTemplate = {
     isolationSlot({
       exerciseId: "lateral-raise",
       id: "foundation-heavy-upper-lateral-raise",
-      maxReps: 15,
-      minReps: 10,
+      maxReps: 20,
+      minReps: 15,
       sets: 3,
       weight: 15,
     }),
