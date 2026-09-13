@@ -1,10 +1,10 @@
 import type { Db } from "@titan/db/client";
 import { getProgramVersion } from "@titan/db/program-versions";
-import type { ExerciseSlot, SessionTemplate } from "@titan/domain/program";
 import type { WorkoutSession } from "@titan/domain/workout-session";
 import type { NextAdaptation } from "@titan/program-engine/next-adaptations";
 import { projectNextAdaptations } from "@titan/program-engine/next-adaptations";
 import { buildSlotHistory, historyLookup } from "./slot-history";
+import { templateSlotsById } from "./template-slots";
 
 /**
  * What the engine will do to each exercise the next time it's trained, computed
@@ -44,16 +44,3 @@ export const nextSessionAdaptations = async (
     }
   }
 };
-
-/** Index a template's slots by id across both its fixed `slots` and every
- *  variant's `slots` (exactly one is populated), so a session's slot ids resolve
- *  to their base prescription regardless of the template's shape. */
-const templateSlotsById = (
-  template: SessionTemplate,
-): Map<string, ExerciseSlot> =>
-  new Map(
-    [
-      ...(template.slots ?? []),
-      ...(template.variants ?? []).flatMap((variant) => variant.slots),
-    ].map((slot) => [slot.id, slot]),
-  );

@@ -5,7 +5,23 @@ import { resolveWorkoutAction } from "./workout-action";
 
 const date = "2026-08-09";
 
-const today = (kind: Today["kind"]): Today => ({ kind }) as Today;
+const today = (kind: Today["kind"]): Today =>
+  ({
+    kind,
+    template: { alternatives: undefined },
+  }) as unknown as Today;
+
+/** A workout day whose session offers the athlete a choice of alternatives. */
+const chooseableToday = (): Today =>
+  ({
+    kind: "workout",
+    template: {
+      alternatives: [
+        { id: "row", label: "Row — 75 min", slots: [] },
+        { id: "hike", label: "Mountain Hike — 90 min", slots: [] },
+      ],
+    },
+  }) as unknown as Today;
 
 const session = (
   fields: Pick<WorkoutSession, "id" | "scheduledDate" | "status">,
@@ -23,7 +39,7 @@ describe("resolveWorkoutAction", () => {
 
   it("starts today's workout when nothing is resumable", () => {
     const action = resolveWorkoutAction(today("workout"), [], date);
-    expect(action).toEqual({ kind: "start" });
+    expect(action).toEqual({ alternatives: [], kind: "start" });
   });
 
   it("marks today done when its workout is already completed", () => {
@@ -41,7 +57,7 @@ describe("resolveWorkoutAction", () => {
       [session({ id: "s1", scheduledDate: "2026-08-08", status: "completed" })],
       date,
     );
-    expect(action).toEqual({ kind: "start" });
+    expect(action).toEqual({ alternatives: [], kind: "start" });
   });
 
   it("offers nothing on a rest day with no resumable session", () => {
@@ -52,6 +68,19 @@ describe("resolveWorkoutAction", () => {
   it("offers nothing when no program is placed", () => {
     const action = resolveWorkoutAction(today("no-program"), [], date);
     expect(action).toBeUndefined();
+  });
+
+  it("offers the day's alternatives to choose between when it has them", () => {
+    // The launch control is where the choice is made, so the action carries the
+    // options — labels only; the slots stay server-side.
+    const action = resolveWorkoutAction(chooseableToday(), [], date);
+    expect(action).toEqual({
+      alternatives: [
+        { id: "row", label: "Row — 75 min" },
+        { id: "hike", label: "Mountain Hike — 90 min" },
+      ],
+      kind: "start",
+    });
   });
 
   it("continues a resumable session even on a rest day", () => {

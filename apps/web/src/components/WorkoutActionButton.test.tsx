@@ -6,7 +6,7 @@ import type { ReactElement } from "react";
 import type { WorkoutAction } from "../server/workout-action";
 import { WorkoutActionButton } from "./WorkoutActionButton";
 
-const start: WorkoutAction = { kind: "start" };
+const start: WorkoutAction = { alternatives: [], kind: "start" };
 const done: WorkoutAction = { kind: "done" };
 
 // The workout action's trigger reads the app router on render, so mount the

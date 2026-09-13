@@ -47,6 +47,20 @@ export const sessionVariantSchema = z.object({
 
 export type SessionVariant = z.infer<typeof sessionVariantSchema>;
 
+/** A user-selectable alternative for a session — equivalent ways to satisfy the
+ *  same training objective (Saturday's Long Easy Cardio: row, trail run, hike,
+ *  or bike). Unlike {@link SessionVariant} nothing rotates: the athlete picks
+ *  one when they start the workout, and the pick applies to that session alone.
+ *  The `id` is what the pick is made by, so it is stable across program edits in
+ *  a way a label is not. */
+export const sessionAlternativeSchema = z.object({
+  id: idSchema,
+  label: z.string(),
+  slots: z.array(exerciseSlotSchema),
+});
+
+export type SessionAlternative = z.infer<typeof sessionAlternativeSchema>;
+
 /** Constraint-based scheduling metadata (see the spec's "Scheduler"). */
 export const sessionConstraintsSchema = z.object({
   /** ISO weekdays (1=Mon…7=Sun) the session may be scheduled on. */
@@ -61,13 +75,16 @@ export const sessionConstraintsSchema = z.object({
 export type SessionConstraints = z.infer<typeof sessionConstraintsSchema>;
 
 export const sessionTemplateSchema = z.object({
+  /** Equivalent sessions the athlete chooses between on the day; the engine
+   *  resolves the one they picked. */
+  alternatives: z.array(sessionAlternativeSchema).optional(),
   constraints: sessionConstraintsSchema,
   /** The dominant movement pattern, used by scheduler constraints and tagging. */
   focus: movementPatternSchema.optional(),
   id: idSchema,
   name: z.string(),
-  /** Fixed slots for a non-rotating session. Exactly one of `slots`/`variants`
-   *  is populated. */
+  /** Fixed slots for a non-rotating session. Exactly one of
+   *  `slots`/`variants`/`alternatives` is populated. */
   slots: z.array(exerciseSlotSchema).optional(),
   /** Freeform coaching tags used by scheduler constraints (e.g. "hard-row",
    *  "heavy-lower"). */

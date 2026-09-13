@@ -24,7 +24,7 @@ describe("describePrescription", () => {
       describePrescription(
         Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 150 }),
       ),
-    ).toBe("3 × 40 sec @ 150 lb");
+    ).toBe("3 × 40s @ 150 lb");
   });
 
   it("describes weighted bodyweight", () => {

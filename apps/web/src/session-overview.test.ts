@@ -75,7 +75,7 @@ describe("sessionOverview", () => {
       prescribedExercises: [prescribed("slot-1", "farmer-carry", carry)],
       results: [],
     });
-    expect(current?.target).toBe("3 × 40 sec @ 150 lb");
+    expect(current?.target).toBe("3 × 40s @ 150 lb");
     expect(current?.sets).toEqual([
       { label: "Set 1", rpe: 7, value: "40 sec × 150 lb" },
     ]);

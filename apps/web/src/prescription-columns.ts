@@ -53,7 +53,7 @@ export const prescriptionColumns = (
     case "timed-carry": {
       return {
         load: formatWeight(prescription.weight, prescription.unit),
-        scheme: `${prescription.sets} × ${prescription.durationSec} sec`,
+        scheme: `${prescription.sets} × ${prescription.durationSec}s`,
       };
     }
     case "timed-cardio": {

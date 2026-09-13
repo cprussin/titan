@@ -28,6 +28,9 @@ export type ResolvedSession = {
 };
 
 export type ResolveSessionInput = {
+  /** The alternative the athlete chose, for a session that offers a choice
+   *  (Long Easy Cardio). Absent until they choose, which resolves the first. */
+  alternativeId?: string | undefined;
   /** The recorded history for a slot, oldest → newest. */
   historyBySlot: (slotId: string) => readonly ExerciseResult[];
   isDeloadWeek: boolean;
@@ -44,7 +47,11 @@ export type ResolveSessionInput = {
  * returned as an explained {@link SessionDecision}.
  */
 export const resolveSession = (input: ResolveSessionInput): ResolvedSession => {
-  const { slots, label } = selectVariant(input.template, input.weekInBlock);
+  const { slots, label } = selectVariant(
+    input.template,
+    input.weekInBlock,
+    input.alternativeId,
+  );
   const resolved = slots.map((slot) =>
     resolveSlot(slot, input.historyBySlot(slot.id), input.isDeloadWeek),
   );

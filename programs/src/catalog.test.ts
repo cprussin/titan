@@ -14,7 +14,10 @@ const templateSlots = (template: SessionTemplate): readonly ExerciseSlot[] => {
   const rotating = (template.variants ?? []).flatMap(
     (variant) => variant.slots,
   );
-  return [...fixed, ...rotating];
+  const chooseable = (template.alternatives ?? []).flatMap(
+    (alternative) => alternative.slots,
+  );
+  return [...fixed, ...rotating, ...chooseable];
 };
 
 const slotExerciseIds = (template: SessionTemplate): readonly string[] =>
@@ -93,6 +96,9 @@ const slotOrdersWithCarry = (): readonly (readonly string[])[] =>
       version.sessionTemplates.flatMap((template) => [
         template.slots ?? [],
         ...(template.variants ?? []).map((variant) => variant.slots),
+        ...(template.alternatives ?? []).map(
+          (alternative) => alternative.slots,
+        ),
       ]),
     )
     .map((slots) => slots.map((slot) => slot.exerciseId))

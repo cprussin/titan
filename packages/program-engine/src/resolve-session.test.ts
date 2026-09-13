@@ -130,4 +130,55 @@ describe("resolveSession", () => {
     });
     expect(resolved.variantLabel).toBe("Week A");
   });
+
+  it("resolves the alternative the athlete chose for the session", () => {
+    const chooseable: SessionTemplate = {
+      alternatives: [
+        {
+          id: "row",
+          label: "Row — 75 min",
+          slots: [
+            {
+              base: Prescription.TimedCardio({ durationSec: 4500 }),
+              exerciseId: "rower",
+              generateWarmup: false,
+              id: "row-slot",
+              progression: ProgressionPolicy.None(),
+              role: "primary",
+            },
+          ],
+        },
+        {
+          id: "hike",
+          label: "Mountain Hike — 90 min",
+          slots: [
+            {
+              base: Prescription.TimedCardio({ durationSec: 5400 }),
+              exerciseId: "hike",
+              generateWarmup: false,
+              id: "hike-slot",
+              progression: ProgressionPolicy.None(),
+              role: "primary",
+            },
+          ],
+        },
+      ],
+      constraints: {},
+      id: "long-easy-cardio",
+      name: "Long Easy Cardio",
+      tags: ["easy-cardio"],
+      targetDurationMin: 75,
+    };
+    const resolved = resolveSession({
+      alternativeId: "hike",
+      historyBySlot: noHistory,
+      isDeloadWeek: false,
+      template: chooseable,
+      weekInBlock: 1,
+    });
+    expect(resolved.variantLabel).toBe("Mountain Hike — 90 min");
+    expect(
+      resolved.prescribedExercises.map((exercise) => exercise.exerciseId),
+    ).toEqual(["hike"]);
+  });
 });

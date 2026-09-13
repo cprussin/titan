@@ -269,7 +269,7 @@ describe("loggedSessionView", () => {
     );
     expect(view.exercises[0]).toMatchObject({
       done: "3× 40 sec ✓",
-      prescribed: "3 × 40 sec @ 150 lb",
+      prescribed: "3 × 40s @ 150 lb",
     });
   });
 

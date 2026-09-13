@@ -13,12 +13,15 @@ const templateById = (id: string): SessionTemplate => {
   }
 };
 
-/** Every slot across the whole program version — fixed slots and every
- *  variant's slots. */
+/** Every slot across the whole program version — fixed slots, every variant's
+ *  slots, and every alternative's slots. */
 const allSlots: readonly ExerciseSlot[] =
   athleticHealthFoundationV1.sessionTemplates.flatMap((template) => [
     ...(template.slots ?? []),
     ...(template.variants ?? []).flatMap((variant) => variant.slots),
+    ...(template.alternatives ?? []).flatMap(
+      (alternative) => alternative.slots,
+    ),
   ]);
 
 const slotIdsFor = (exerciseId: string): Set<string> =>
@@ -268,5 +271,168 @@ describe("athletic day workout A", () => {
       reps: 3,
       sets: 3,
     });
+  });
+});
+
+describe("athletic day workout B", () => {
+  const conditioningSlots = (): readonly ExerciseSlot[] => {
+    const conditioning = templateById("foundation-athletic-day").variants?.[1];
+    if (conditioning === undefined) {
+      throw new Error("missing athletic day conditioning variant");
+    } else {
+      return conditioning.slots;
+    }
+  };
+
+  const slotFor = (exerciseId: string): ExerciseSlot => {
+    const found = conditioningSlots().find(
+      (slot) => slot.exerciseId === exerciseId,
+    );
+    if (found === undefined) {
+      throw new Error(`missing conditioning slot for ${exerciseId}`);
+    } else {
+      return found;
+    }
+  };
+
+  it("opens with burpee intervals, then works the whole body", () => {
+    // The full-body work-capacity variant of athletic day: the burpee intervals
+    // carry the conditioning (and all the pressing volume the day needs), then
+    // a squat, a pull, and a carry fill it out before the arm work.
+    expect(conditioningSlots().map((slot) => slot.exerciseId)).toEqual([
+      "burpee",
+      "goblet-squat",
+      "inverted-row",
+      "farmer-carry",
+      "hammer-curl",
+      "lateral-raise",
+    ]);
+  });
+
+  it("prescribes the burpees as six 45-second intervals with 75s recovery", () => {
+    // A single timed interval exercise, not a circuit: rounds, work, and
+    // recovery all read off the one prescription.
+    expect(slotFor("burpee").base).toEqual({
+      count: 6,
+      recoverySec: 75,
+      type: "intervals",
+      workSec: 45,
+    });
+    expect(slotFor("burpee").role).toBe("primary");
+  });
+
+  it("spells out the full burpee, with no rep target inside an interval", () => {
+    const note = slotFor("burpee").note ?? "";
+    expect(note).toContain("push-up");
+    expect(note).toContain("jump");
+    expect(note).toContain("No rep target");
+  });
+
+  it("holds the goblet squat at 3×15 and autoregulates its load by RPE", () => {
+    expect(slotFor("goblet-squat").base).toEqual({
+      reps: 15,
+      sets: 3,
+      type: "strength",
+      unit: "lb",
+      weight: 50,
+    });
+    expect(slotFor("goblet-squat").progression).toEqual({
+      bands: [{ increment: 5, maxRpe: 7 }],
+      kind: "rpe-banded",
+      reps: 15,
+      sets: 3,
+    });
+  });
+
+  it("walks the inverted row from 12 reps to 15 before adding load", () => {
+    expect(slotFor("inverted-row").base).toEqual({
+      reps: 12,
+      sets: 3,
+      type: "bodyweight",
+      unit: "lb",
+    });
+    expect(slotFor("inverted-row").progression).toEqual({
+      increment: 5,
+      kind: "double",
+      maxReps: 15,
+      minReps: 12,
+      rpeCap: 8,
+      sets: 3,
+    });
+  });
+
+  it("carries for three 45-second sets, progressing by load", () => {
+    expect(slotFor("farmer-carry").base).toEqual({
+      durationSec: 45,
+      sets: 3,
+      type: "timed-carry",
+      unit: "lb",
+      weight: 150,
+    });
+    expect(slotFor("farmer-carry").progression).toEqual({
+      durationSec: 45,
+      increment: 5,
+      kind: "timed-carry",
+      rpeCap: 8,
+      sets: 3,
+    });
+  });
+});
+
+describe("saturday long easy cardio", () => {
+  const saturday = (): SessionTemplate =>
+    templateById("foundation-long-easy-cardio");
+
+  it("offers four equivalent choices rather than a weekly rotation", () => {
+    // Nothing about the day changes week to week: the athlete picks whichever
+    // of the four they want that Saturday.
+    expect(saturday().variants).toBeUndefined();
+    expect(saturday().alternatives?.map((entry) => entry.label)).toEqual([
+      "Row — 75 min",
+      "Trail Run — 60 min",
+      "Mountain Hike — 90 min",
+      "Bike Ride — 75 min",
+    ]);
+  });
+
+  it("prescribes each choice as one Zone 2 piece at its own duration", () => {
+    expect(
+      saturday().alternatives?.map((alternative) => [
+        alternative.id,
+        alternative.slots.map((slot) => [slot.exerciseId, slot.base]),
+      ]),
+    ).toEqual([
+      [
+        "foundation-long-easy-cardio-row",
+        [
+          [
+            "rower",
+            { durationSec: 4500, targetHrZone: 2, type: "timed-cardio" },
+          ],
+        ],
+      ],
+      [
+        "foundation-long-easy-cardio-trail-run",
+        [["run", { durationSec: 3600, targetHrZone: 2, type: "timed-cardio" }]],
+      ],
+      [
+        "foundation-long-easy-cardio-hike",
+        [
+          [
+            "hike",
+            { durationSec: 5400, targetHrZone: 2, type: "timed-cardio" },
+          ],
+        ],
+      ],
+      [
+        "foundation-long-easy-cardio-bike",
+        [
+          [
+            "bike",
+            { durationSec: 4500, targetHrZone: 2, type: "timed-cardio" },
+          ],
+        ],
+      ],
+    ]);
   });
 });

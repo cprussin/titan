@@ -39,7 +39,7 @@ const loggedView: LoggedSessionView = {
 };
 
 const base = {
-  action: { kind: "start" } as const,
+  action: { alternatives: [], kind: "start" } as const,
   isFuture: false,
   isToday: true,
   logged: undefined,
@@ -60,7 +60,7 @@ describe("dashboardView", () => {
     expect(view.eyebrow.status).toBeUndefined();
     expect(view.title).toBe("Heavy Lower");
     expect(view.primary).toEqual({
-      action: { kind: "start" },
+      action: { alternatives: [], kind: "start" },
       kind: "start-workout",
     });
     expect(view.session?.label).toBe("Today's session");

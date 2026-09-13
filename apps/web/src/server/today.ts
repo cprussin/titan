@@ -32,11 +32,16 @@ export type Today =
  * their training history puts them in, and that history. Pure of side effects
  * beyond reads; the resolution itself is deterministic (see the program
  * engine).
+ *
+ * @param alternativeId - The alternative the athlete chose for the day, on a
+ *   session that offers a choice. Absent resolves the first one, so a preview
+ *   still reads as a concrete plan.
  */
 export const resolveToday = async (
   db: Db,
   userId: string,
   scheduledDate: string,
+  alternativeId?: string,
 ): Promise<Today> => {
   const [state, completedDates] = await Promise.all([
     getAthleteState(db, userId),
@@ -54,6 +59,7 @@ export const resolveToday = async (
           scheduledDate,
         ),
         scheduledDate,
+        alternativeId,
       );
 };
 
@@ -68,6 +74,7 @@ export const resolveScheduledDay = async (
   userId: string,
   absoluteWeek: number,
   scheduledDate: string,
+  alternativeId?: string,
 ): Promise<Today> => {
   const state = await getAthleteState(db, userId);
   if (state === undefined) {
@@ -82,6 +89,7 @@ export const resolveScheduledDay = async (
           programVersion,
           absoluteWeek,
           scheduledDate,
+          alternativeId,
         );
   }
 };
@@ -92,6 +100,7 @@ const resolveForVersion = async (
   programVersion: ProgramVersion,
   absoluteWeek: number,
   scheduledDate: string,
+  alternativeId: string | undefined,
 ): Promise<Today> => {
   const dayOfWeek = isoDayOfWeek(scheduledDate);
   const position = resolvePosition(programVersion, absoluteWeek, dayOfWeek);
@@ -108,6 +117,7 @@ const resolveForVersion = async (
     } else {
       const history = await buildSlotHistory(db, userId);
       const resolved = resolveSession({
+        alternativeId,
         historyBySlot: historyLookup(history),
         isDeloadWeek: position.isDeloadWeek,
         template,

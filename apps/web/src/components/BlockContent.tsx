@@ -21,7 +21,8 @@ import {
   blockSchedule,
   blockWeekSchedules,
   blockWeekSummary,
-  sessionRotations,
+  SessionOptionsKind,
+  sessionOptions,
   showsWeekSections,
   stripWeekPrefix,
 } from "../server/program-explorer";
@@ -283,49 +284,66 @@ const FixedSchedule = ({
   );
 };
 
-/** A workout's exercises — either a week-rotating set of labeled columns or a
- *  single two-column list. The day header/collapse is the accordion's job. */
+/** A workout's exercises — a single two-column list when the day has one shape,
+ *  or a labeled column per option when it has several. What picks between those
+ *  options is the one thing the two multi-option cases don't share, so it leads
+ *  the columns as a hint. The day header/collapse is the accordion's job. */
 const renderWorkoutContent = (
   workout: ScheduledWorkout,
   names: Map<string, string>,
 ) => {
-  const rotations = sessionRotations(workout.template);
-  // More than one rotation means the workout swaps week to week (Week A / B /
-  // …); each rotation gets its own labeled column so the alternatives read as
-  // distinct choices rather than one long run of exercises.
-  const rotatesByWeek = rotations.length > 1;
-  return rotatesByWeek ? (
-    <div className={variantsStyles}>
-      <p className={variantsHintStyles}>
-        Rotates by week — one option runs each week.
-      </p>
-      <div className={variantsGridStyles}>
-        {rotations.map((rotation, index) =>
-          renderVariant(rotation, index, names),
-        )}
-      </div>
-    </div>
-  ) : (
-    <ul className={slotListStyles}>
-      {renderSlots(
-        rotations.flatMap((rotation) => rotation.slots),
+  const options = sessionOptions(workout.template);
+  switch (options.kind) {
+    case SessionOptionsKind.Fixed: {
+      return (
+        <ul className={slotListStyles}>{renderSlots(options.slots, names)}</ul>
+      );
+    }
+    case SessionOptionsKind.WeeklyRotation: {
+      return renderOptions(
+        options.options,
+        "Rotates by week — one option runs each week.",
         names,
-      )}
-    </ul>
-  );
+      );
+    }
+    case SessionOptionsKind.AthleteChoice: {
+      return renderOptions(
+        options.options,
+        "Choose one — equivalent options for the same session, picked when the workout starts.",
+        names,
+      );
+    }
+  }
 };
 
-/** One week-variant of a rotating workout: a labeled column over its own slot
- *  list, set apart so Week A vs Week B is obvious at a glance. */
-const renderVariant = (
-  rotation: SelectedVariant,
+/** A day's several options, each a labeled column over its own exercises so
+ *  they read as distinct rather than one long run, under the `hint` that says
+ *  what picks between them. */
+const renderOptions = (
+  options: readonly SelectedVariant[],
+  hint: string,
+  names: Map<string, string>,
+) => (
+  <div className={variantsStyles}>
+    <p className={variantsHintStyles}>{hint}</p>
+    <div className={variantsGridStyles}>
+      {options.map((option, index) => renderOption(option, index, names))}
+    </div>
+  </div>
+);
+
+/** One option of a multi-option workout: a labeled column over its own slot
+ *  list, set apart so Week A vs Week B — or row vs hike — is obvious at a
+ *  glance. */
+const renderOption = (
+  option: SelectedVariant,
   index: number,
   names: Map<string, string>,
 ) => (
-  <div className={variantStyles} key={rotation.label ?? index}>
-    <span className={variantLabelStyles}>{rotation.label}</span>
+  <div className={variantStyles} key={option.label ?? index}>
+    <span className={variantLabelStyles}>{option.label}</span>
     <ul className={variantSlotListStyles}>
-      {renderSlots(rotation.slots, names)}
+      {renderSlots(option.slots, names)}
     </ul>
   </div>
 );

@@ -4,12 +4,17 @@ import { PlayIcon } from "@phosphor-icons/react/dist/ssr/Play";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
+import type { AlternativeChoice } from "../server/workout-action";
 import { Button, ModalDialog } from "../ui";
 import { ReadinessCheckIn } from "./ReadinessCheckIn";
+import { SessionAlternativePicker } from "./SessionAlternativePicker";
 
 const responseSchema = z.object({ id: z.string() });
 
 type Props = {
+  /** The equivalent sessions today offers a choice between, empty for a day
+   *  with one fixed session. */
+  alternatives: readonly AlternativeChoice[];
   /** Pill the trigger for the mobile FAB; leave square for the sidebar. */
   rounded: boolean;
   /** Trigger height — `xl` for the prominent mobile FAB, `lg` inline. */
@@ -24,14 +29,21 @@ type Props = {
  * it in records the check-in for the day (which the new session links to);
  * skipping starts straight away. Either path creates the session server-side
  * and navigates into it.
+ *
+ * On a day whose session is a choice between equivalent alternatives, the
+ * check-in leads with that choice — the first is preselected, so skipping
+ * straight past it still starts a real session. The pick rides along with the
+ * start request and applies to that session only; the program is untouched.
  */
 export const StartWorkout = ({
+  alternatives,
   rounded,
   size = "lg",
   iconOnly = false,
 }: Props) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [alternativeId, setAlternativeId] = useState(alternatives[0]?.id);
   const [energy, setEnergy] = useState(3);
   const [soreness, setSoreness] = useState(3);
   const [sleepQuality, setSleepQuality] = useState(3);
@@ -59,7 +71,15 @@ export const StartWorkout = ({
         })
       : Promise.resolve(undefined);
     readied
-      .then(() => fetch("/api/workouts", { method: "POST" }))
+      .then(() =>
+        fetch("/api/workouts", {
+          body: JSON.stringify(
+            alternativeId === undefined ? {} : { alternativeId },
+          ),
+          headers: { "content-type": "application/json" },
+          method: "POST",
+        }),
+      )
       .then(async (response) => {
         if (response.ok) {
           const { id } = responseSchema.parse(await response.json());
@@ -116,6 +136,13 @@ export const StartWorkout = ({
         )
       }
     >
+      {alternativeId !== undefined && (
+        <SessionAlternativePicker
+          alternatives={alternatives}
+          onChange={setAlternativeId}
+          value={alternativeId}
+        />
+      )}
       <ReadinessCheckIn
         availableMinutes={availableMinutes}
         energy={energy}
