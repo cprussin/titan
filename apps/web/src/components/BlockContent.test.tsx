@@ -25,7 +25,7 @@ const slot = (exerciseId: string): ExerciseSlot => ({
 
 const template = (
   id: string,
-  rest: Pick<SessionTemplate, "slots" | "variants">,
+  rest: Pick<SessionTemplate, "alternatives" | "slots" | "variants">,
 ): SessionTemplate => ({
   constraints: {},
   id,
@@ -77,6 +77,9 @@ const blockData = (
         .flatMap((entry) => [
           ...(entry.slots ?? []),
           ...(entry.variants ?? []).flatMap((variant) => variant.slots),
+          ...(entry.alternatives ?? []).flatMap(
+            (alternative) => alternative.slots,
+          ),
         ])
         .map((entry) => [entry.exerciseId, exerciseName(entry.exerciseId)]),
     ),
@@ -177,6 +180,45 @@ describe(BlockContent, () => {
     expect(ordinals("bench")).toEqual(["2"]);
     expect(ordinals("clean")).toEqual(["1"]);
     expect(ordinals("press")).toEqual(["2"]);
+  });
+
+  it("says a rotating day's options are the week's, not the athlete's", () => {
+    renderBlock(
+      blockData(
+        [
+          template("a", {
+            variants: [
+              { label: "Day A", slots: [slot("squat")] },
+              { label: "Day B", slots: [slot("clean")] },
+            ],
+          }),
+        ],
+        "repeating",
+      ),
+    );
+    expect(screen.getAllByText(/Rotates by week/).length).toBeGreaterThan(0);
+  });
+
+  it("presents a day's alternatives as the athlete's choice", () => {
+    renderBlock(
+      blockData(
+        [
+          template("a", {
+            alternatives: [
+              { id: "row", label: "Row", slots: [slot("rower")] },
+              { id: "hike", label: "Hike", slots: [slot("trail")] },
+            ],
+          }),
+        ],
+        "repeating",
+      ),
+    );
+    // Both options are shown under their labels, and nothing claims a week
+    // decides between them.
+    expect(screen.getAllByText("Row").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Hike").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Choose one/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/Rotates by week/)).toBeNull();
   });
 
   it("numbers each day's exercises within a week-sectioned block", () => {

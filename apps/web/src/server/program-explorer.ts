@@ -1,4 +1,5 @@
 import type {
+  ExerciseSlot,
   Program,
   ProgramVersion,
   SessionTemplate,
@@ -43,6 +44,35 @@ export type BlockWeek = {
   week: number;
   workouts: readonly WeekWorkout[];
 };
+
+/** How a session template's exercises are laid out: one `Fixed` list, a
+ *  `WeeklyRotation` the week index picks from, or an `AthleteChoice` the athlete
+ *  picks from on the day. The block view reads the same options either way; only
+ *  what decides between them differs, and that is what it tells the reader. */
+export enum SessionOptionsKind {
+  Fixed,
+  WeeklyRotation,
+  AthleteChoice,
+}
+
+export const SessionOptions = {
+  AthleteChoice: (options: readonly SelectedVariant[]) => ({
+    kind: SessionOptionsKind.AthleteChoice as const,
+    options,
+  }),
+  Fixed: (slots: readonly ExerciseSlot[]) => ({
+    kind: SessionOptionsKind.Fixed as const,
+    slots,
+  }),
+  WeeklyRotation: (options: readonly SelectedVariant[]) => ({
+    kind: SessionOptionsKind.WeeklyRotation as const,
+    options,
+  }),
+};
+
+export type SessionOptions = ReturnType<
+  (typeof SessionOptions)[keyof typeof SessionOptions]
+>;
 
 /** What happens when a block finishes: roll into the next block, complete the
  *  program (a bounded final block), or nothing to announce (a repeating block
@@ -100,18 +130,25 @@ export const blockSchedule = (
     }));
 
 /**
- * Every rotation a session template prescribes: one unlabeled entry for a fixed
- * template, or one labeled entry per variant for a rotating one. Reuses the
- * engine's variant selection so the explorer shows exactly what the scheduler
- * would pick each week.
+ * The exercises a session template prescribes, and what picks between them when
+ * it prescribes more than one list. Reuses the engine's own selection so the
+ * explorer shows exactly what the scheduler would resolve — each week for a
+ * rotation, each alternative for a choice.
  */
-export const sessionRotations = (
-  template: SessionTemplate,
-): readonly SelectedVariant[] => {
-  const count = template.variants?.length ?? 1;
-  return Array.from({ length: count }, (_, index) =>
-    selectVariant(template, index + 1),
-  );
+export const sessionOptions = (template: SessionTemplate): SessionOptions => {
+  if (template.alternatives !== undefined && template.alternatives.length > 0) {
+    return SessionOptions.AthleteChoice(
+      template.alternatives.map((alternative) =>
+        selectVariant(template, 1, alternative.id),
+      ),
+    );
+  } else if (template.variants !== undefined && template.variants.length > 0) {
+    return SessionOptions.WeeklyRotation(
+      template.variants.map((_, index) => selectVariant(template, index + 1)),
+    );
+  } else {
+    return SessionOptions.Fixed(selectVariant(template, 1).slots);
+  }
 };
 
 /**

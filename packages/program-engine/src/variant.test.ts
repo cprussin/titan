@@ -34,6 +34,18 @@ const fixed: SessionTemplate = {
   targetDurationMin: 60,
 };
 
+const chooseable: SessionTemplate = {
+  alternatives: [
+    { id: "row", label: "Row — 75 min", slots: [slot("row")] },
+    { id: "hike", label: "Mountain Hike — 90 min", slots: [slot("hike")] },
+  ],
+  constraints: {},
+  id: "long-easy-cardio",
+  name: "Long Easy Cardio",
+  tags: ["easy-cardio"],
+  targetDurationMin: 75,
+};
+
 describe("selectVariant", () => {
   it("cycles variants by week for a rotating session", () => {
     expect(selectVariant(rotating, 1).label).toBe("Week A");
@@ -49,5 +61,25 @@ describe("selectVariant", () => {
 
   it("throws for a template with neither slots nor variants", () => {
     expect(() => selectVariant({ ...fixed, slots: undefined }, 1)).toThrow();
+  });
+
+  it("returns the alternative the athlete chose, whatever the week", () => {
+    const selected = selectVariant(chooseable, 3, "hike");
+    expect(selected.label).toBe("Mountain Hike — 90 min");
+    expect(selected.slots.map((entry) => entry.id)).toEqual(["hike"]);
+  });
+
+  it("stands the first alternative in when the athlete hasn't chosen", () => {
+    // Previews (the dashboard, the week picker) resolve the day before there is
+    // a choice to honor, so the session still reads as a concrete plan.
+    expect(selectVariant(chooseable, 2).label).toBe("Row — 75 min");
+  });
+
+  it("throws when the chosen alternative isn't one the session offers", () => {
+    expect(() => selectVariant(chooseable, 1, "swim")).toThrow();
+  });
+
+  it("throws when an alternative is chosen for a session offering none", () => {
+    expect(() => selectVariant(rotating, 1, "row")).toThrow();
   });
 });

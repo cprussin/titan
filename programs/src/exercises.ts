@@ -135,6 +135,20 @@ export const exercises: readonly Exercise[] = [
     name: "Dumbbell Swing",
   },
   {
+    id: "goblet-squat",
+    isUnilateral: false,
+    modality: "dumbbell",
+    movementPattern: "squat",
+    name: "Goblet Squat",
+  },
+  {
+    id: "inverted-row",
+    isUnilateral: false,
+    modality: "bodyweight",
+    movementPattern: "horizontal-pull",
+    name: "Inverted Row",
+  },
+  {
     id: "pushup",
     isUnilateral: false,
     modality: "bodyweight",

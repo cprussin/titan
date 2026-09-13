@@ -16,7 +16,8 @@ import {
   blockWeekSummary,
   findBlockContext,
   latestPrograms,
-  sessionRotations,
+  SessionOptionsKind,
+  sessionOptions,
   showsWeekSections,
 } from "./program-explorer";
 
@@ -48,6 +49,22 @@ const rowIntervals: SessionTemplate = {
     { label: "Week A", slots: [slot("row-a")] },
     { label: "Week B", slots: [slot("row-b")] },
   ],
+};
+
+const longEasyCardio: SessionTemplate = {
+  alternatives: [
+    { id: "row", label: "Row — 75 min", slots: [slot("cardio-row")] },
+    {
+      id: "hike",
+      label: "Mountain Hike — 90 min",
+      slots: [slot("cardio-hike")],
+    },
+  ],
+  constraints: {},
+  id: "long-easy-cardio",
+  name: "Long Easy Cardio",
+  tags: [],
+  targetDurationMin: 75,
 };
 
 const block: TrainingBlock = {
@@ -128,25 +145,46 @@ describe("blockSchedule", () => {
   });
 });
 
-describe("sessionRotations", () => {
-  it("returns a single unlabeled rotation for a fixed template", () => {
-    const rotations = sessionRotations(push);
-    expect(rotations).toHaveLength(1);
-    expect(rotations[0]?.label).toBeUndefined();
-    expect(rotations[0]?.slots.map((entry) => entry.id)).toEqual([
-      "push-bench",
+describe("sessionOptions", () => {
+  it("returns the one slot list a fixed template prescribes", () => {
+    const options = sessionOptions(push);
+    expect(options).toEqual({
+      kind: SessionOptionsKind.Fixed,
+      slots: [slot("push-bench")],
+    });
+  });
+
+  it("returns one labeled option per variant for a rotating template", () => {
+    const options = sessionOptions(rowIntervals);
+    expect(options.kind).toBe(SessionOptionsKind.WeeklyRotation);
+    expect(labelsAndSlots(options)).toEqual([
+      ["Week A", ["row-a"]],
+      ["Week B", ["row-b"]],
     ]);
   });
 
-  it("returns one labeled rotation per variant for a rotating template", () => {
-    const rotations = sessionRotations(rowIntervals);
-    expect(rotations.map((entry) => entry.label)).toEqual(["Week A", "Week B"]);
-    expect(rotations.flatMap((entry) => entry.slots.map((s) => s.id))).toEqual([
-      "row-a",
-      "row-b",
+  it("returns one labeled option per alternative, as the athlete's choice", () => {
+    // The distinction the block view turns on: these are equivalent options the
+    // athlete picks between, not a rotation the week decides.
+    const options = sessionOptions(longEasyCardio);
+    expect(options.kind).toBe(SessionOptionsKind.AthleteChoice);
+    expect(labelsAndSlots(options)).toEqual([
+      ["Row — 75 min", ["cardio-row"]],
+      ["Mountain Hike — 90 min", ["cardio-hike"]],
     ]);
   });
 });
+
+/** Each option's label paired with the slot ids it runs. */
+const labelsAndSlots = (
+  options: ReturnType<typeof sessionOptions>,
+): readonly (readonly [string | undefined, readonly string[]])[] =>
+  options.kind === SessionOptionsKind.Fixed
+    ? []
+    : options.options.map(
+        (option) =>
+          [option.label, option.slots.map((entry) => entry.id)] as const,
+      );
 
 describe("blockWeekSchedules", () => {
   it("resolves one entry per week with the variant the scheduler picks", () => {

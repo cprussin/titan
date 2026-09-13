@@ -47,7 +47,7 @@ export const prescriptionParts = (
     }
     case "timed-carry": {
       return {
-        primary: `${prescription.sets} × ${prescription.durationSec} sec @ ${formatWeight(prescription.weight, prescription.unit)}`,
+        primary: `${prescription.sets} × ${prescription.durationSec}s @ ${formatWeight(prescription.weight, prescription.unit)}`,
         recovery: undefined,
       };
     }

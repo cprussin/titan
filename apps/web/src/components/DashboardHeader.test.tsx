@@ -99,7 +99,10 @@ describe(DashboardHeader, () => {
       <DashboardHeader
         load={loaded({
           eyebrow: { ...eyebrow, status: undefined },
-          primary: { action: { kind: "start" }, kind: "start-workout" },
+          primary: {
+            action: { alternatives: [], kind: "start" },
+            kind: "start-workout",
+          },
           title: "Heavy Lower",
         })}
       />,

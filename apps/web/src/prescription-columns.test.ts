@@ -15,7 +15,7 @@ describe("prescriptionColumns", () => {
     const columns = prescriptionColumns(
       Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 150 }),
     );
-    expect(columns.scheme).toBe("3 × 40 sec");
+    expect(columns.scheme).toBe("3 × 40s");
     expect(columns.load).toBe("150 lb");
   });
 

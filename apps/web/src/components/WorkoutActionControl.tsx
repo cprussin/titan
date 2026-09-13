@@ -43,7 +43,14 @@ export const WorkoutActionControl = ({
       );
     }
     case "start": {
-      return <StartWorkout iconOnly={iconOnly} rounded={rounded} size={size} />;
+      return (
+        <StartWorkout
+          alternatives={action.alternatives}
+          iconOnly={iconOnly}
+          rounded={rounded}
+          size={size}
+        />
+      );
     }
     case "done": {
       return undefined;

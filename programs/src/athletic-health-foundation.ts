@@ -552,21 +552,62 @@ const athleticDay: SessionTemplate = {
       label: "Workout B — Conditioning",
       slots: [
         {
-          base: Prescription.Circuit({
-            restSec: 90,
-            rounds: 5,
-            stations: [
-              { distanceMeters: 250, exerciseId: "rower" },
-              { exerciseId: "burpee", reps: 10 },
-              { exerciseId: "dumbbell-swing", reps: 15 },
-            ],
+          base: Prescription.Intervals({
+            count: 6,
+            recoverySec: 75,
+            workSec: 45,
           }),
           exerciseId: "burpee",
           generateWarmup: false,
-          id: "foundation-athletic-day-conditioning-circuit",
-          note: "Progress by reducing rest first, then adding rounds.",
+          id: "foundation-athletic-day-conditioning-burpee",
+          note: "Full burpees: stand, down to the floor, push-up, back to the feet, vertical jump, repeat. No rep target — work continuously for the full 45 seconds and let the pace be whatever keeps the movement clean.",
           progression: ProgressionPolicy.None(),
           role: "primary",
+        },
+        {
+          base: Prescription.Strength({ reps: 15, sets: 3, weight: 50 }),
+          exerciseId: "goblet-squat",
+          generateWarmup: false,
+          id: "foundation-athletic-day-conditioning-goblet-squat",
+          note: "A moderate load worked for reps, not a max: the sets should finish strong.",
+          progression: ProgressionPolicy.RpeBanded({
+            bands: [{ increment: 5, maxRpe: 7 }],
+            reps: 15,
+            sets: 3,
+          }),
+          role: "secondary",
+        },
+        {
+          base: Prescription.Bodyweight({ reps: 12, sets: 3 }),
+          exerciseId: "inverted-row",
+          generateWarmup: false,
+          id: "foundation-athletic-day-conditioning-inverted-row",
+          progression: ProgressionPolicy.Double({
+            increment: 5,
+            maxReps: 15,
+            minReps: 12,
+            rpeCap: 8,
+            sets: 3,
+          }),
+          role: "secondary",
+        },
+        {
+          base: Prescription.TimedCarry({
+            durationSec: 45,
+            sets: 3,
+            weight: 150,
+          }),
+          exerciseId: "farmer-carry",
+          generateWarmup: false,
+          id: "foundation-athletic-day-conditioning-farmer-carry",
+          note: "Same carry as the power day, five seconds longer: tall torso, controlled steps, stable shoulders for the full 45. If any of that breaks down, stay at this load. 90 seconds between carries.",
+          progression: ProgressionPolicy.TimedCarry({
+            durationSec: 45,
+            increment: 5,
+            rpeCap: 8,
+            sets: 3,
+          }),
+          role: "accessory",
         },
         ...athleticDayIsolation,
       ],
@@ -634,16 +675,17 @@ const athleticDay: SessionTemplate = {
   ],
 };
 
+/** Saturday's long easy aerobic session. The four options are equivalent ways
+ *  to hit the same Zone 2 objective, so they are alternatives the athlete picks
+ *  between on the day rather than a rotation the program dictates — nothing
+ *  about the week decides which one runs. Each keeps its own slot id, so a
+ *  choice's history (and its Concept2 matching, for the row) carries across the
+ *  Saturdays it is picked. */
 const longEasyCardio: SessionTemplate = {
-  constraints: { preferredDay: 6 },
-  focus: "cardio",
-  id: "foundation-long-easy-cardio",
-  name: "Long Easy Cardio",
-  tags: ["easy-cardio"],
-  targetDurationMin: 75,
-  variants: [
+  alternatives: [
     {
-      label: "Week 1 — 75-minute row",
+      id: "foundation-long-easy-cardio-row",
+      label: "Row — 75 min",
       slots: [
         {
           base: Prescription.TimedCardio({
@@ -659,7 +701,8 @@ const longEasyCardio: SessionTemplate = {
       ],
     },
     {
-      label: "Week 2 — trail run",
+      id: "foundation-long-easy-cardio-trail-run",
+      label: "Trail Run — 60 min",
       slots: [
         {
           base: Prescription.TimedCardio({
@@ -675,7 +718,8 @@ const longEasyCardio: SessionTemplate = {
       ],
     },
     {
-      label: "Week 3 — mountain hike",
+      id: "foundation-long-easy-cardio-hike",
+      label: "Mountain Hike — 90 min",
       slots: [
         {
           base: Prescription.TimedCardio({
@@ -691,7 +735,8 @@ const longEasyCardio: SessionTemplate = {
       ],
     },
     {
-      label: "Week 4 — bike ride",
+      id: "foundation-long-easy-cardio-bike",
+      label: "Bike Ride — 75 min",
       slots: [
         {
           base: Prescription.TimedCardio({
@@ -707,6 +752,12 @@ const longEasyCardio: SessionTemplate = {
       ],
     },
   ],
+  constraints: { preferredDay: 6 },
+  focus: "cardio",
+  id: "foundation-long-easy-cardio",
+  name: "Long Easy Cardio",
+  tags: ["easy-cardio"],
+  targetDurationMin: 75,
 };
 
 const recovery: SessionTemplate = {
