@@ -11,7 +11,7 @@ architecture and [`docs/`](docs/) for engineering guidelines.
 
 ## Prerequisites
 
-- **[Bun](https://bun.sh) ≥ 1.3.14** — package manager, test runner, and script
+- **[Bun](https://bun.sh) ≥ 1.4.2** — package manager, test runner, and script
   runner. Everything else (TypeScript, Next.js, Panda, Biome, Turbo, Storybook)
   is a workspace dependency installed via `bun install`.
 - **[Node.js](https://nodejs.org) ≥ 24** — Next.js's build/runtime toolchain.
@@ -25,7 +25,7 @@ architecture and [`docs/`](docs/) for engineering guidelines.
 curl -fsSL https://bun.sh/install | bash   # macOS / Linux
 ```
 
-Verify with `bun --version` (should print ≥ 1.3.14).
+Verify with `bun --version` (should print ≥ 1.4.2).
 
 ## Common tasks
 

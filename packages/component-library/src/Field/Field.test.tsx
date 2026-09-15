@@ -183,7 +183,12 @@ describe(Field, () => {
           </Field>,
         );
         const input = screen.getByRole("textbox") as HTMLInputElement;
-        input.focus();
+        // base-ui suppresses a bare `valueMissing` (required) error until the
+        // control has been dirtied, to avoid flagging a field the user
+        // hasn't touched yet. Typing a too-short value both dirties the
+        // control and trips the `minLength` constraint, so the native
+        // message actually surfaces on blur.
+        await user.type(input, "ab");
         await user.tab();
         const message = input.validationMessage;
         await waitFor(() => {
