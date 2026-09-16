@@ -81,6 +81,23 @@ describe("sessionOverview", () => {
     ]);
   });
 
+  it("shows the sets logged so far against band work in progress", () => {
+    const pushdown = Prescription.Band({ reps: 10, sets: 3 });
+    const [current] = sessionOverview({
+      currentIndex: 0,
+      exerciseNames: {},
+      logged: [set({ bands: ["green"], reps: 10, rpe: 7, setIndex: 0 })],
+      prescribedExercises: [
+        prescribed("slot-1", "band-triceps-pushdown", pushdown),
+      ],
+      results: [],
+    });
+    expect(current?.target).toBe("3×10");
+    expect(current?.sets).toEqual([
+      { label: "Set 1", rpe: 7, value: "10 reps · Green" },
+    ]);
+  });
+
   it("lists every set logged against a finished exercise with its rating", () => {
     const [first] = sessionOverview({
       currentIndex: 1,

@@ -2,6 +2,7 @@
 
 import { MinusIcon } from "@phosphor-icons/react/dist/ssr/Minus";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
+import type { BandLevel } from "@titan/domain/band";
 import type { LoadUnit } from "@titan/domain/load-unit";
 import { coarseLoadStep, fineLoadStep } from "@titan/domain/load-unit";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
@@ -12,8 +13,10 @@ import { hstack, vstack } from "../../styled-system/patterns";
 import type { SetBasedPrescription } from "../set-based-prescription";
 import type { ScheduleTick } from "../tick-scheduler";
 import { Button } from "../ui";
+import { BandPicker } from "./BandPicker";
 import { EffortTimer } from "./EffortTimer";
 import {
+  nextSetBands,
   nextSetReps,
   nextSetSeconds,
   nextSetWeight,
@@ -66,6 +69,7 @@ export const StrengthLogger = ({
   const [weight, setWeight] = useState(nextSetWeight(prescription, logged));
   const [reps, setReps] = useState(nextSetReps(prescription));
   const [seconds, setSeconds] = useState(nextSetSeconds(prescription));
+  const [bands, setBands] = useState(nextSetBands(logged));
   const [rpe, setRpe] = useState<number | undefined>(undefined);
 
   // Carryover is scoped to a single exercise: within one movement the inputs
@@ -80,6 +84,7 @@ export const StrengthLogger = ({
     setWeight(nextSetWeight(prescription, logged));
     setReps(nextSetReps(prescription));
     setSeconds(nextSetSeconds(prescription));
+    setBands(nextSetBands(logged));
     setRpe(undefined);
   }
 
@@ -93,7 +98,7 @@ export const StrengthLogger = ({
         completed: true,
         rpe,
         setIndex: done,
-        ...setMetrics(prescription, { reps, seconds, weight }),
+        ...setMetrics(prescription, { bands, reps, seconds, weight }),
       });
       setRpe(undefined);
     }
@@ -114,6 +119,7 @@ export const StrengthLogger = ({
       if (lastSeconds !== undefined) {
         setSeconds(lastSeconds);
       }
+      setBands(last.bands);
       setRpe(last.rpe);
       onUndoLastSet();
     }
@@ -153,6 +159,9 @@ export const StrengthLogger = ({
               step={coarseLoadStep}
               value={weight}
             />
+          )}
+          {prescription.type === "band" && (
+            <BandPicker onChange={setBands} value={bands} />
           )}
           {isTimed ? (
             <div className={vstack({ alignItems: "stretch", gap: 3 })}>
@@ -231,11 +240,11 @@ const loadUnitOf = (
     ? prescription.unit
     : undefined;
 
-/** Whether a logged set of this shape shows a load to edit. A hold is the one
- *  set-based shape carrying no load at all; everything else — a carry's
- *  dumbbells included — is worked against one. */
+/** Whether a logged set of this shape shows a load to edit. A hold and band work
+ *  carry no load at all — a band's resistance is its colour, not a figure —
+ *  while everything else, a carry's dumbbells included, is worked against one. */
 const logsLoad = (prescription: SetBasedPrescription): boolean =>
-  prescription.type !== "timed-hold";
+  prescription.type !== "timed-hold" && prescription.type !== "band";
 
 /** What the seconds are called for a timed movement: a plank is held, a carry
  *  is walked for a duration. */
@@ -250,12 +259,17 @@ const secondsLabel = (prescription: TimedPrescription): string =>
  *  hold in seconds alone, and rep work in reps. */
 type SetMetrics = Pick<
   SetResult,
-  "durationSec" | "holdSec" | "reps" | "weight"
+  "bands" | "durationSec" | "holdSec" | "reps" | "weight"
 >;
 
 const setMetrics = (
   prescription: SetBasedPrescription,
-  entered: { reps: number; seconds: number; weight: number },
+  entered: {
+    bands: readonly BandLevel[] | undefined;
+    reps: number;
+    seconds: number;
+    weight: number;
+  },
 ): SetMetrics => {
   switch (prescription.type) {
     case "timed-hold": {
@@ -263,6 +277,13 @@ const setMetrics = (
     }
     case "timed-carry": {
       return { durationSec: entered.seconds, weight: entered.weight };
+    }
+    case "band": {
+      // The bands are recorded only when the athlete picked them; an unchosen
+      // band is left off the set rather than stored as an empty choice.
+      return entered.bands === undefined
+        ? { reps: entered.reps }
+        : { bands: [...entered.bands], reps: entered.reps };
     }
     case "strength":
     case "bodyweight": {

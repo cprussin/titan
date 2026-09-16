@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { bandLevelSchema } from "./band";
 import { idSchema } from "./ids";
 import { prescriptionSchema } from "./prescription";
 
@@ -12,6 +13,9 @@ import { prescriptionSchema } from "./prescription";
  */
 
 export const setResultSchema = z.object({
+  /** For band work — the bands the set was worked against, stacked when more
+   *  than one was used. Optional: recording them is offered, never required. */
+  bands: z.array(bandLevelSchema).min(1).optional(),
   completed: z.boolean(),
   /** For timed carries (farmer carry) — the seconds the load was carried. */
   durationSec: z.number().nonnegative().optional(),

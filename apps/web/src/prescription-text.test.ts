@@ -27,6 +27,12 @@ describe("describePrescription", () => {
     ).toBe("3 × 40s @ 150 lb");
   });
 
+  it("describes band work by its sets and reps alone", () => {
+    expect(describePrescription(Prescription.Band({ reps: 10, sets: 3 }))).toBe(
+      "3×10",
+    );
+  });
+
   it("describes weighted bodyweight", () => {
     expect(
       describePrescription(

@@ -101,7 +101,8 @@ const doneOutcome = (result: ExerciseResult): DoneOutcome => {
     case "strength": {
       return strengthDone(prescription, sets);
     }
-    case "bodyweight": {
+    case "bodyweight":
+    case "band": {
       return repDone(prescription.sets, prescription.reps, sets);
     }
     case "timed-hold": {

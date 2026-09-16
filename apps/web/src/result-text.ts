@@ -4,6 +4,7 @@ import type {
   ExerciseResult,
   SetResult,
 } from "@titan/domain/result";
+import { bandLabel } from "./band-label";
 import { cardioSummary } from "./cardio-summary";
 import { formatWeight } from "./format";
 
@@ -40,6 +41,9 @@ export const loggedExerciseLines = (work: LoggedWork): LoggedLine[] => {
     case "bodyweight": {
       return setLines(work.sets, repSet);
     }
+    case "band": {
+      return setLines(work.sets, bandSet);
+    }
     case "timed-hold": {
       return setLines(work.sets, holdSet);
     }
@@ -70,6 +74,14 @@ const strengthSet = (set: SetResult, unit: LoadUnit): string =>
 
 const repSet = (set: SetResult): string =>
   `${requireField(set.reps, "reps")} reps`;
+
+/** A band set reads as its reps, plus the bands it was worked against when the
+ *  athlete recorded them — recording is optional, so an unrecorded set simply
+ *  says nothing about bands rather than guessing at one. */
+const bandSet = (set: SetResult): string =>
+  set.bands === undefined
+    ? repSet(set)
+    : `${repSet(set)} · ${bandLabel(set.bands)}`;
 
 const holdSet = (set: SetResult): string =>
   `${requireField(set.holdSec, "holdSec")}s hold`;

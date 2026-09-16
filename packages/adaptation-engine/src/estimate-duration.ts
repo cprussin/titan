@@ -23,6 +23,7 @@ export const estimatePrescriptionMinutes = (
   switch (prescription.type) {
     case "strength":
     case "bodyweight":
+    case "band":
     case "timed-hold":
     case "timed-carry": {
       return prescription.sets * MINUTES_PER_SET;

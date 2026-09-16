@@ -155,6 +155,11 @@ const trimOneSet = (prescription: Prescription): Prescription | undefined => {
         ? Rx.Bodyweight({ ...prescription, sets: prescription.sets - 1 })
         : undefined;
     }
+    case "band": {
+      return prescription.sets > 1
+        ? Rx.Band({ ...prescription, sets: prescription.sets - 1 })
+        : undefined;
+    }
     case "timed-hold": {
       return prescription.sets > 1
         ? Rx.TimedHold({ ...prescription, sets: prescription.sets - 1 })

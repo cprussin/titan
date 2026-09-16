@@ -179,6 +179,26 @@ describe("catalog", () => {
     expect(carry?.notes).toContain("Tall, tight, quiet.");
   });
 
+  it("classifies the banded triceps pushdown as band work", () => {
+    expect(
+      catalog.exercises.find(
+        (exercise) => exercise.id === "band-triceps-pushdown",
+      ),
+    ).toMatchObject({
+      modality: "band",
+      movementPattern: "triceps",
+      name: "Band Triceps Pushdown",
+    });
+  });
+
+  it("keeps the retired weighted triceps pushdown so old sessions still name it", () => {
+    // Completed workouts reference the exercise they were done with by id; drop
+    // it from the catalog and a historical session loses the movement's name.
+    expect(
+      catalog.exercises.find((exercise) => exercise.id === "triceps-pushdown"),
+    ).toMatchObject({ modality: "machine", name: "Triceps Pushdown" });
+  });
+
   it("holds valid exercise data", () => {
     for (const exercise of catalog.exercises) {
       expect(exerciseSchema.parse(exercise)).toEqual(exercise);

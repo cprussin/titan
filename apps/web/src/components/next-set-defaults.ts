@@ -1,3 +1,4 @@
+import type { BandLevel } from "@titan/domain/band";
 import type { Prescription } from "@titan/domain/prescription";
 import type { SetResult } from "@titan/domain/result";
 
@@ -23,9 +24,26 @@ export const nextSetSeconds = (prescription: Prescription): number =>
 
 /** The rep count to prefill for every set — always the prescribed target. */
 export const nextSetReps = (prescription: Prescription): number =>
-  prescription.type === "strength" || prescription.type === "bodyweight"
-    ? prescription.reps
-    : 0;
+  isRepBased(prescription) ? prescription.reps : 0;
+
+/** The bands to prefill for the next set: the ones the most recently logged set
+ *  was worked against, since the athlete rarely changes band mid-exercise.
+ *  `undefined` for the first set, and for a set the athlete logged without
+ *  recording its bands — there is nothing to carry forward, and a band is never
+ *  guessed on their behalf. */
+export const nextSetBands = (
+  logged: readonly SetResult[],
+): readonly BandLevel[] | undefined => logged.at(-1)?.bands;
+
+const isRepBased = (
+  prescription: Prescription,
+): prescription is Extract<
+  Prescription,
+  { type: "strength" | "bodyweight" | "band" }
+> =>
+  prescription.type === "strength" ||
+  prescription.type === "bodyweight" ||
+  prescription.type === "band";
 
 const carriedSeconds = (prescription: Prescription): number =>
   prescription.type === "timed-carry" ? prescription.durationSec : 0;

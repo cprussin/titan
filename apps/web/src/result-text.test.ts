@@ -89,6 +89,23 @@ describe("loggedExerciseLines", () => {
     ).toEqual([{ label: "Set 1", value: "12 reps" }]);
   });
 
+  it("logs a band set as reps and the bands it was worked against", () => {
+    expect(
+      loggedExerciseLines(
+        result({
+          prescription: Prescription.Band({ reps: 10, sets: 2 }),
+          sets: [
+            set({ bands: ["green", "red"], reps: 10, setIndex: 0 }),
+            set({ reps: 9, setIndex: 1 }),
+          ],
+        }),
+      ),
+    ).toEqual([
+      { label: "Set 1", value: "10 reps · Green + Red" },
+      { label: "Set 2", value: "9 reps" },
+    ]);
+  });
+
   it("logs a timed hold in seconds", () => {
     expect(
       loggedExerciseLines(

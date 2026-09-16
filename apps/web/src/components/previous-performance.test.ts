@@ -116,6 +116,29 @@ describe("describePreviousPerformance", () => {
     });
   });
 
+  describe("band", () => {
+    const pushdown = Prescription.Band({ reps: 10, sets: 3 });
+
+    it("shows the best set's reps and the bands it was worked against", () => {
+      expect(
+        describePreviousPerformance(
+          result(pushdown, [
+            set({ bands: ["green"], reps: 10, setIndex: 0 }),
+            set({ bands: ["green", "red"], reps: 12, setIndex: 1 }),
+          ]),
+        ),
+      ).toBe("12 reps · Green + Red");
+    });
+
+    it("shows reps alone when the bands went unrecorded", () => {
+      expect(
+        describePreviousPerformance(
+          result(pushdown, [set({ reps: 10, setIndex: 0 })]),
+        ),
+      ).toBe("10 reps");
+    });
+  });
+
   describe("bodyweight", () => {
     it("shows reps only, never a phantom set weight", () => {
       // Regression: a bodyweight set can carry a stray `weight` (0, or a value

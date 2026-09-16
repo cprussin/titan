@@ -219,10 +219,20 @@ export const exercises: readonly Exercise[] = [
     name: "Hammer Curl",
   },
   {
+    // Retired from the programs in favour of the banded pushdown below, and
+    // kept so completed sessions that were worked on the cable stack still
+    // resolve the movement's name.
     id: "triceps-pushdown",
     isUnilateral: false,
     modality: "machine",
     movementPattern: "triceps",
     name: "Triceps Pushdown",
+  },
+  {
+    id: "band-triceps-pushdown",
+    isUnilateral: false,
+    modality: "band",
+    movementPattern: "triceps",
+    name: "Band Triceps Pushdown",
   },
 ];

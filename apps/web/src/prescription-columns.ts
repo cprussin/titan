@@ -44,6 +44,12 @@ export const prescriptionColumns = (
         scheme: `${prescription.sets}×${prescription.reps}`,
       };
     }
+    case "band": {
+      return {
+        load: "Band",
+        scheme: `${prescription.sets}×${prescription.reps}`,
+      };
+    }
     case "timed-hold": {
       return {
         load: `${prescription.holdSec}s hold${addedLoad(prescription.addedWeightLb, "lb")}`,

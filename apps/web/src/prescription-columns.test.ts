@@ -39,6 +39,14 @@ describe("prescriptionColumns", () => {
     expect(columns.load).toBe("+10 kg");
   });
 
+  it("labels band work as a band rather than a load", () => {
+    const columns = prescriptionColumns(
+      Prescription.Band({ reps: 10, sets: 3 }),
+    );
+    expect(columns.scheme).toBe("3×10");
+    expect(columns.load).toBe("Band");
+  });
+
   it("labels an unweighted bodyweight movement as bodyweight", () => {
     const columns = prescriptionColumns(
       Prescription.Bodyweight({ reps: 12, sets: 3 }),

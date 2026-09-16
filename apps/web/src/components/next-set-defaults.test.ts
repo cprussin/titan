@@ -3,6 +3,7 @@ import { Prescription } from "@titan/domain/prescription";
 import type { SetResult } from "@titan/domain/result";
 
 import {
+  nextSetBands,
   nextSetReps,
   nextSetSeconds,
   nextSetWeight,
@@ -71,5 +72,28 @@ describe("nextSetReps", () => {
 
   it("uses the prescribed reps for a bodyweight prescription", () => {
     expect(nextSetReps(Prescription.Bodyweight({ reps: 8, sets: 3 }))).toBe(8);
+  });
+
+  it("uses the prescribed reps for band work", () => {
+    expect(nextSetReps(Prescription.Band({ reps: 10, sets: 3 }))).toBe(10);
+  });
+});
+
+describe("nextSetBands", () => {
+  it("has no bands to prefill for the first set", () => {
+    expect(nextSetBands([])).toBeUndefined();
+  });
+
+  it("carries the last logged set's bands forward", () => {
+    expect(
+      nextSetBands([
+        set({ bands: ["green"], reps: 10, setIndex: 0 }),
+        set({ bands: ["green", "red"], reps: 10, setIndex: 1 }),
+      ]),
+    ).toEqual(["green", "red"]);
+  });
+
+  it("has nothing to carry forward when the last set recorded no bands", () => {
+    expect(nextSetBands([set({ reps: 10 })])).toBeUndefined();
   });
 });

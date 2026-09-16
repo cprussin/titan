@@ -21,6 +21,7 @@ describe("isSetBased", () => {
     expect(isSetBased(Prescription.TimedHold({ holdSec: 45, sets: 3 }))).toBe(
       true,
     );
+    expect(isSetBased(Prescription.Band({ reps: 10, sets: 3 }))).toBe(true);
   });
 
   it("leaves out a cardio piece recorded as one effort", () => {
