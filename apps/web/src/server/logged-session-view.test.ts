@@ -48,6 +48,19 @@ const partialBodyweight = (): ExerciseResult =>
     slotId: "split-slot",
   }) as unknown as ExerciseResult;
 
+const bandResult = (): ExerciseResult =>
+  ({
+    exerciseId: "pushdown-ex",
+    prescription: Prescription.Band({ reps: 10, sets: 3 }),
+    role: "accessory",
+    sets: [
+      { bands: ["green"], completed: true, reps: 10, rpe: 8 },
+      { bands: ["green"], completed: true, reps: 10 },
+      { bands: ["green"], completed: true, reps: 10 },
+    ],
+    slotId: "pushdown-slot",
+  }) as unknown as ExerciseResult;
+
 const holdResult = (): ExerciseResult =>
   ({
     exerciseId: "plank-ex",
@@ -245,6 +258,15 @@ describe("loggedSessionView", () => {
       prescribed: "3×10 +25 lb",
     });
     expect(split?.avgRpe).toBe("8.5");
+  });
+
+  it("collapses band work done as prescribed, with no load column", () => {
+    const view = loggedSessionView(session([bandResult()]), names, []);
+    expect(view.exercises[0]).toMatchObject({
+      done: "3×10 ✓",
+      isAsPrescribed: true,
+      prescribed: "3×10",
+    });
   });
 
   it("collapses a timed hold done as prescribed", () => {

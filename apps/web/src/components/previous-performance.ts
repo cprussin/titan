@@ -6,6 +6,7 @@ import type {
   TimedHoldPrescription,
 } from "@titan/domain/prescription";
 import type { ExerciseResult, SetResult } from "@titan/domain/result";
+import { bandLabel } from "../band-label";
 import { formatWeight } from "../format";
 
 /**
@@ -34,6 +35,9 @@ export const describePreviousPerformance = (
     }
     case "bodyweight": {
       return bodyweightLine(result.sets, prescription);
+    }
+    case "band": {
+      return bandLine(result.sets);
     }
     case "timed-hold": {
       return timedHoldLine(result.sets, prescription);
@@ -85,6 +89,15 @@ const bodyweightLine = (
   return top === undefined || top.reps === undefined
     ? undefined
     : `${top.reps} reps${addedLoad(prescription.addedWeight, prescription.unit)}`;
+};
+
+/** The best band set: its reps, and the bands it was worked against when they
+ *  were recorded. */
+const bandLine = (sets: readonly SetResult[]): string | undefined => {
+  const top = topBy(sets, (set) => set.reps ?? 0);
+  return top === undefined || top.reps === undefined
+    ? undefined
+    : `${top.reps} reps${top.bands === undefined ? "" : ` · ${bandLabel(top.bands)}`}`;
 };
 
 const timedHoldLine = (

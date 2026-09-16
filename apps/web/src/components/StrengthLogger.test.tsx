@@ -1,9 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import { act, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { Prescription } from "@titan/domain/prescription";
 import type { SetResult } from "@titan/domain/result";
 import type { PrescribedExercise } from "@titan/domain/workout-session";
 
+import type { SetBasedPrescription } from "../set-based-prescription";
 import { StrengthLogger } from "./StrengthLogger";
 
 // A scheduler the test drives by hand so it can advance the hold timer a second
@@ -41,8 +43,6 @@ const pickRpe = (value: number) => {
   fireEvent.click(screen.getByRole("button", { name: String(value) }));
 };
 
-type StrengthPrescription = ReturnType<typeof Prescription.Strength>;
-
 type Overrides = {
   busy?: boolean;
   logged?: readonly SetResult[];
@@ -50,7 +50,7 @@ type Overrides = {
   onEditSet?: (index: number, set: SetResult) => void;
   onLogSet?: (set: SetResult) => void;
   onUndoLastSet?: () => void;
-  prescription?: StrengthPrescription;
+  prescription?: SetBasedPrescription;
 };
 
 const renderLogger = (overrides: Overrides = {}) => {
@@ -276,6 +276,83 @@ describe(StrengthLogger, () => {
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(set).toMatchObject({ reps: 5, setIndex: 0, weight: 50 });
+  });
+
+  describe("band work", () => {
+    const pushdown = Prescription.Band({ reps: 10, sets: 3 });
+
+    const chooseBand = async (name: string) => {
+      const user = userEvent.setup();
+      await user.click(screen.getByRole("combobox", { name: "Band" }));
+      await user.click(screen.getByRole("option", { name }));
+    };
+
+    it("asks for a band instead of a weight", () => {
+      renderLogger({ prescription: pushdown });
+      expect(
+        screen.queryByRole("button", { name: "Increase Weight (lb)" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("combobox", { name: "Band" }),
+      ).toBeInTheDocument();
+    });
+
+    it("logs the bands chosen against the set, and no load", async () => {
+      const logged: SetResult[] = [];
+      renderLogger({
+        onLogSet: (set) => logged.push(set),
+        prescription: pushdown,
+      });
+      await chooseBand("Green + Red");
+      pickRpe(8);
+      fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+      expect(logged[0]).toEqual({
+        bands: ["green", "red"],
+        completed: true,
+        reps: 10,
+        rpe: 8,
+        setIndex: 0,
+      });
+    });
+
+    it("logs a set the athlete recorded no band for", () => {
+      const logged: SetResult[] = [];
+      renderLogger({
+        onLogSet: (set) => logged.push(set),
+        prescription: pushdown,
+      });
+      pickRpe(8);
+      fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+      expect(logged[0]).toEqual({
+        completed: true,
+        reps: 10,
+        rpe: 8,
+        setIndex: 0,
+      });
+    });
+
+    it("carries the last logged set's bands into the next one", () => {
+      renderLogger({
+        logged: [loggedSet({ bands: ["green", "purple"], reps: 10 })],
+        prescription: pushdown,
+      });
+      expect(
+        screen.getByRole("combobox", { name: "Band" }).textContent,
+      ).toContain("Green + Purple");
+    });
+
+    it("leaves a logged band set no weight to edit", () => {
+      renderLogger({
+        logged: [loggedSet({ bands: ["green"], reps: 10 })],
+        prescription: pushdown,
+      });
+      expect(
+        screen.queryByRole("button", { name: "Increase Set 1 weight" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Increase Set 1 reps" }),
+      ).toBeInTheDocument();
+    });
   });
 
   it("offers the hold timer alongside the manual stepper for a timed hold", () => {

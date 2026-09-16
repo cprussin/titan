@@ -38,6 +38,12 @@ export const prescriptionParts = (
         recovery: undefined,
       };
     }
+    case "band": {
+      return {
+        primary: `${prescription.sets}×${prescription.reps}`,
+        recovery: undefined,
+      };
+    }
     case "timed-hold": {
       const added = addedLoad(prescription.addedWeightLb, "lb");
       return {

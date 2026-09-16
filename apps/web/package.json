@@ -18,6 +18,7 @@
     "@pandacss/dev": "catalog:",
     "@pandacss/preset-panda": "catalog:",
     "@testing-library/react": "catalog:",
+    "@testing-library/user-event": "catalog:",
     "@titan/test-support": "workspace:*",
     "@types/node": "catalog:",
     "@types/react": "catalog:",

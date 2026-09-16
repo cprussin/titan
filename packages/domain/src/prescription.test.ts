@@ -53,6 +53,11 @@ describe("prescriptionSchema", () => {
     ).toEqual(Prescription.Bodyweight({ addedWeight: 25, reps: 6, sets: 4 }));
   });
 
+  it("parses a band prescription", () => {
+    const value = Prescription.Band({ reps: 10, sets: 3 });
+    expect(prescriptionSchema.parse(value)).toEqual(value);
+  });
+
   it("parses a timed-carry prescription", () => {
     const value = Prescription.TimedCarry({
       durationSec: 40,

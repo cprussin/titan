@@ -8,7 +8,7 @@ import type { Prescription } from "@titan/domain/prescription";
  */
 export type SetBasedPrescription = Extract<
   Prescription,
-  { type: "strength" | "bodyweight" | "timed-hold" | "timed-carry" }
+  { type: "strength" | "bodyweight" | "band" | "timed-hold" | "timed-carry" }
 >;
 
 /** Whether a prescription is worked (and logged) set by set. */
@@ -17,5 +17,6 @@ export const isSetBased = (
 ): prescription is SetBasedPrescription =>
   prescription.type === "strength" ||
   prescription.type === "bodyweight" ||
+  prescription.type === "band" ||
   prescription.type === "timed-hold" ||
   prescription.type === "timed-carry";

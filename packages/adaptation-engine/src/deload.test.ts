@@ -31,6 +31,13 @@ describe("deloadPrescription", () => {
     expect(deloadPrescription(zone2)).toEqual(zone2);
   });
 
+  it("cuts band sets while holding the reps", () => {
+    const deloaded = deloadPrescription(
+      Prescription.Band({ reps: 10, sets: 3 }),
+    );
+    expect(deloaded).toMatchObject({ reps: 10, sets: 2 });
+  });
+
   it("cuts timed-carry sets while holding the load and duration", () => {
     const deloaded = deloadPrescription(
       Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 150 }),

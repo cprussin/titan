@@ -150,6 +150,7 @@ const isCardioMatch = (
     case "timed-cardio": {
       return normalized.summary.durationSec === prescription.durationSec;
     }
+    case "band":
     case "bodyweight":
     case "circuit":
     case "strength":

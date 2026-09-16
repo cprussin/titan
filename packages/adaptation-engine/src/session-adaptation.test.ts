@@ -95,6 +95,27 @@ describe("adaptSession", () => {
     primaryPreserved(result);
   });
 
+  it("trims a set from a secondary band exercise", () => {
+    const bandPlan: readonly PrescribedExercise[] = [
+      slot("squat", "primary", 5),
+      {
+        exerciseId: "band-triceps-pushdown",
+        prescription: Prescription.Band({ reps: 10, sets: 3 }),
+        progression: ProgressionPolicy.None(),
+        role: "secondary",
+        slotId: "slot-band-triceps-pushdown",
+      },
+    ];
+    const { plan: result } = adaptSession(
+      bandPlan,
+      readiness({ availableMinutes: 15 }),
+    );
+    expect(result[1]?.prescription).toEqual(
+      Prescription.Band({ reps: 10, sets: 1 }),
+    );
+    primaryPreserved(result);
+  });
+
   it("never increases workload when readiness is high", () => {
     const { plan: result } = adaptSession(plan, readiness({ energy: 5 }));
     expect(result).toEqual(plan);

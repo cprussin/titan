@@ -33,6 +33,7 @@ export const modalitySchema = z.enum([
   "dumbbell",
   "kettlebell",
   "bodyweight",
+  "band",
   "machine",
   "rower",
   "run",

@@ -31,6 +31,12 @@ export const deloadPrescription = (
         sets: retain(prescription.sets, SET_RETENTION),
       });
     }
+    case "band": {
+      return Rx.Band({
+        ...prescription,
+        sets: retain(prescription.sets, SET_RETENTION),
+      });
+    }
     case "timed-hold": {
       return Rx.TimedHold({
         ...prescription,

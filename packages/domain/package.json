@@ -9,6 +9,7 @@
   },
   "exports": {
     "./adaptation-decision": "./src/adaptation-decision.ts",
+    "./band": "./src/band.ts",
     "./body-metric": "./src/body-metric.ts",
     "./equipment": "./src/equipment.ts",
     "./exercise": "./src/exercise.ts",

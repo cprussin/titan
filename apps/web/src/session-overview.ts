@@ -118,6 +118,7 @@ const inProgressSets = (
   switch (prescription.type) {
     case "strength":
     case "bodyweight":
+    case "band":
     case "timed-hold":
     case "timed-carry": {
       return loggedSets({ prescription, sets: logged });

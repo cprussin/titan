@@ -45,6 +45,18 @@ const bodyweightSchema = z.object({
 
 export type BodyweightPrescription = z.infer<typeof bodyweightSchema>;
 
+/** Resistance-band work: sets and reps against a band, carrying no numeric
+ *  load. A band's resistance is its colour, not a figure in pounds or
+ *  kilograms, so the band worked against is recorded on the set (see
+ *  {@link SetResult}) instead of being prescribed as a weight. */
+const bandSchema = z.object({
+  reps: z.number().int().positive(),
+  sets: z.number().int().positive(),
+  type: z.literal("band"),
+});
+
+export type BandPrescription = z.infer<typeof bandSchema>;
+
 const timedHoldSchema = z.object({
   addedWeightLb: z.number().nonnegative().optional(),
   holdSec: z.number().positive(),
@@ -150,6 +162,7 @@ export const prescriptionSchema = z.preprocess(
   z.discriminatedUnion("type", [
     strengthSchema,
     bodyweightSchema,
+    bandSchema,
     timedHoldSchema,
     timedCarrySchema,
     timedCardioSchema,
@@ -162,6 +175,10 @@ export const prescriptionSchema = z.preprocess(
 export type Prescription = z.infer<typeof prescriptionSchema>;
 
 export const Prescription = {
+  Band: (args: Omit<BandPrescription, "type">): BandPrescription => ({
+    ...args,
+    type: "band",
+  }),
   Bodyweight: (
     args: Omit<BodyweightPrescription, "type" | "unit"> & { unit?: LoadUnit },
   ): BodyweightPrescription => ({

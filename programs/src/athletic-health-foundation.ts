@@ -392,15 +392,18 @@ const heavyUpper: SessionTemplate = {
       sets: 3,
       weight: 25,
     }),
-    isolationSlot({
-      exerciseId: "triceps-pushdown",
-      extraNote: "An overhead triceps extension is an equal substitute.",
-      id: "foundation-heavy-upper-triceps-pushdown",
-      maxReps: 12,
-      minReps: 10,
-      sets: 3,
-      weight: 40,
-    }),
+    {
+      // Worked against a band rather than the cable stack: a band carries no
+      // load to add, so the slot holds its 3×10 and progresses by the band the
+      // athlete picks up rather than by a number the engine could move.
+      base: Prescription.Band({ reps: 10, sets: 3 }),
+      exerciseId: "band-triceps-pushdown",
+      generateWarmup: false,
+      id: "foundation-heavy-upper-band-triceps-pushdown",
+      note: `${isolationNote} An overhead band extension is an equal substitute.`,
+      progression: ProgressionPolicy.None(),
+      role: "accessory",
+    },
   ],
   tags: ["heavy-upper"],
   targetDurationMin: 75,

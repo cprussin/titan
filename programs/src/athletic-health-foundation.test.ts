@@ -121,7 +121,7 @@ describe("foundation block aesthetic accessories", () => {
       "ab-wheel",
       "lateral-raise",
       "biceps-curl",
-      "triceps-pushdown",
+      "band-triceps-pushdown",
     ]);
   });
 
@@ -156,7 +156,6 @@ describe("foundation block aesthetic accessories", () => {
     for (const [slotId, sets, minReps, maxReps] of [
       ["foundation-heavy-upper-lateral-raise", 3, 15, 20],
       ["foundation-heavy-upper-biceps-curl", 3, 10, 12],
-      ["foundation-heavy-upper-triceps-pushdown", 3, 10, 12],
       ["foundation-athletic-day-hammer-curl", 3, 10, 15],
       ["foundation-athletic-day-lateral-raise", 3, 12, 20],
     ] as const) {
@@ -174,11 +173,22 @@ describe("foundation block aesthetic accessories", () => {
     }
   });
 
+  it("works the triceps pushdown against a band, at no prescribed load", () => {
+    const slot = allSlots.find(
+      (entry) => entry.id === "foundation-heavy-upper-band-triceps-pushdown",
+    );
+    // A band has no load to progress, so the slot holds its 3×10 rather than
+    // climbing a rep range toward a weight jump it can never make.
+    expect(slot?.base).toEqual({ reps: 10, sets: 3, type: "band" });
+    expect(slot?.progression).toEqual({ kind: "none" });
+    expect(slot?.exerciseId).toBe("band-triceps-pushdown");
+  });
+
   it("marks the accessories sheddable so recovery costs them first", () => {
     const roles = [
       "foundation-heavy-upper-lateral-raise",
       "foundation-heavy-upper-biceps-curl",
-      "foundation-heavy-upper-triceps-pushdown",
+      "foundation-heavy-upper-band-triceps-pushdown",
       "foundation-athletic-day-hammer-curl",
       "foundation-athletic-day-lateral-raise",
     ].map((slotId) => allSlots.find((slot) => slot.id === slotId)?.role);
