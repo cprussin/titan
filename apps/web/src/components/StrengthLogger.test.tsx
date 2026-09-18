@@ -488,7 +488,7 @@ describe(StrengthLogger, () => {
     expect(edited).toMatchObject({ durationSec: 35, weight: 150 });
   });
 
-  it("asks timed-effort work for its bout in seconds, with no load or reps", () => {
+  it("asks timed-effort work for its bout in seconds and the reps done, never a load", () => {
     const burpees = Prescription.TimedEffort({
       restSec: 75,
       sets: 6,
@@ -497,11 +497,13 @@ describe(StrengthLogger, () => {
     renderLogger({ prescription: burpees });
     expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
     expect(screen.getByLabelText("Work (sec)")).toHaveValue("45");
-    expect(screen.queryByLabelText("Reps")).not.toBeInTheDocument();
+    // The bout has no rep target, so the count starts from nothing and records
+    // whatever the athlete got through.
+    expect(screen.getByLabelText("Reps")).toHaveValue("0");
     expect(screen.queryByLabelText("Weight (lb)")).not.toBeInTheDocument();
   });
 
-  it("logs a timed-effort bout as the seconds it was worked", async () => {
+  it("logs a timed-effort bout as its seconds and the reps completed", async () => {
     const burpees = Prescription.TimedEffort({
       restSec: 75,
       sets: 6,
@@ -509,29 +511,36 @@ describe(StrengthLogger, () => {
     });
     const set = await new Promise<SetResult>((resolve) => {
       renderLogger({ onLogSet: resolve, prescription: burpees });
+      fireEvent.change(screen.getByLabelText("Reps"), {
+        target: { value: "12" },
+      });
       pickRpe(8);
       fireEvent.click(screen.getByRole("button", { name: "Log set" }));
     });
     expect(set).toEqual({
       completed: true,
       durationSec: 45,
+      reps: 12,
       rpe: 8,
       setIndex: 0,
     });
   });
 
-  it("leaves a logged timed-effort bout no weight to edit", () => {
+  it("edits a logged bout's seconds and reps, but never a load", () => {
     const burpees = Prescription.TimedEffort({
       restSec: 75,
       sets: 6,
       workSec: 45,
     });
     renderLogger({
-      logged: [loggedSet({ durationSec: 45, setIndex: 0 })],
+      logged: [loggedSet({ durationSec: 45, reps: 12, setIndex: 0 })],
       prescription: burpees,
     });
     expect(
       screen.getByRole("button", { name: "Decrease Set 1 work" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Decrease Set 1 reps" }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Decrease Set 1 weight" }),

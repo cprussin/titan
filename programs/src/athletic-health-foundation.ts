@@ -563,7 +563,7 @@ const athleticDay: SessionTemplate = {
           exerciseId: "burpee",
           generateWarmup: false,
           id: "foundation-athletic-day-conditioning-burpee",
-          note: "Full burpees: stand, down to the floor, push-up, back to the feet, vertical jump, repeat. No rep target — work continuously for the full 45 seconds and let the pace be whatever keeps the movement clean. Rest 75 seconds between bouts, and rate each one as you log it.",
+          note: "Full burpees: stand, down to the floor, push-up, back to the feet, vertical jump, repeat. No rep target — work continuously for the full 45 seconds and let the pace be whatever keeps the movement clean. Rest 75 seconds between bouts; count the reps you get through and log them with the rating — the count is the record of the bout, not a bar to clear.",
           progression: ProgressionPolicy.None(),
           role: "primary",
         },

@@ -163,7 +163,7 @@ export const StrengthLogger = ({
           {prescription.type === "band" && (
             <BandPicker onChange={setBands} value={bands} />
           )}
-          {isTimed ? (
+          {isTimed && (
             <div className={vstack({ alignItems: "stretch", gap: 3 })}>
               <EffortTimer
                 onUse={setSeconds}
@@ -177,7 +177,8 @@ export const StrengthLogger = ({
                 value={seconds}
               />
             </div>
-          ) : (
+          )}
+          {logsReps(prescription) && (
             <Stepper label="Reps" onChange={setReps} step={1} value={reps} />
           )}
           <RpePicker onChange={setRpe} value={rpe} />
@@ -252,6 +253,13 @@ const logsLoad = (prescription: SetBasedPrescription): boolean =>
   prescription.type !== "band" &&
   prescription.type !== "timed-effort";
 
+/** Whether a set of this shape records a rep count. Conditioning bouts count
+ *  their reps like rep work does — there is no target to hit, but what the
+ *  athlete got through in the time is the measure of the bout. A hold and a
+ *  carry are judged on time alone. */
+const logsReps = (prescription: SetBasedPrescription): boolean =>
+  prescription.type !== "timed-hold" && prescription.type !== "timed-carry";
+
 /** What the seconds are called for a timed movement: a plank is held, a carry
  *  is walked for a duration, a conditioning bout is worked. */
 const secondsNoun = (prescription: TimedPrescription): string => {
@@ -296,7 +304,7 @@ const setMetrics = (
       return { durationSec: entered.seconds, weight: entered.weight };
     }
     case "timed-effort": {
-      return { durationSec: entered.seconds };
+      return { durationSec: entered.seconds, reps: entered.reps };
     }
     case "band": {
       // The bands are recorded only when the athlete picked them; an unchosen
@@ -392,7 +400,7 @@ const LoggedSetRow = ({
           value={set.weight ?? 0}
         />
       )}
-      {isTimedPrescription(prescription) ? (
+      {isTimedPrescription(prescription) && (
         <MiniStepper
           disabled={busy}
           label={`Set ${index + 1} ${secondsNoun(prescription).toLowerCase()}`}
@@ -403,7 +411,8 @@ const LoggedSetRow = ({
           suffix="s"
           value={loggedSeconds(set) ?? 0}
         />
-      ) : (
+      )}
+      {logsReps(prescription) && (
         <MiniStepper
           disabled={busy}
           label={`Set ${index + 1} reps`}

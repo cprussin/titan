@@ -331,11 +331,14 @@ describe("athletic day workout B", () => {
     expect(slotFor("burpee").role).toBe("primary");
   });
 
-  it("spells out the full burpee, with no rep target inside a bout", () => {
+  it("spells out the full burpee, counting reps against no rep target", () => {
     const note = slotFor("burpee").note ?? "";
     expect(note).toContain("push-up");
     expect(note).toContain("jump");
     expect(note).toContain("No rep target");
+    // The count is still logged: it is the record of the bout, not a bar to
+    // clear.
+    expect(note).toContain("count");
   });
 
   it("holds the goblet squat at 3×15 and autoregulates its load by RPE", () => {

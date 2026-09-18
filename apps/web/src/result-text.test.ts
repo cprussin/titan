@@ -117,7 +117,22 @@ describe("loggedExerciseLines", () => {
     ).toEqual([{ label: "Set 1", value: "50s hold" }]);
   });
 
-  it("logs a timed-effort bout in the seconds it was worked", () => {
+  it("logs a timed-effort bout as the reps completed in its seconds", () => {
+    expect(
+      loggedExerciseLines(
+        result({
+          prescription: Prescription.TimedEffort({
+            restSec: 75,
+            sets: 1,
+            workSec: 45,
+          }),
+          sets: [set({ durationSec: 45, reps: 12 })],
+        }),
+      ),
+    ).toEqual([{ label: "Set 1", value: "12 reps · 45s work" }]);
+  });
+
+  it("logs a bout counted before reps were tracked as its seconds alone", () => {
     expect(
       loggedExerciseLines(
         result({
