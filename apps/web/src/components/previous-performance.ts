@@ -45,6 +45,9 @@ export const describePreviousPerformance = (
     case "timed-carry": {
       return timedCarryLine(result.sets, prescription);
     }
+    case "timed-effort": {
+      return timedEffortLine(result.sets);
+    }
     case "timed-cardio":
     case "distance-cardio":
     case "intervals":
@@ -108,6 +111,15 @@ const timedHoldLine = (
   return top === undefined || top.holdSec === undefined
     ? undefined
     : `${top.holdSec}s${addedLoad(prescription.addedWeightLb, "lb")}`;
+};
+
+/** The longest bout worked. A conditioning bout carries no load, so its seconds
+ *  are the whole line. */
+const timedEffortLine = (sets: readonly SetResult[]): string | undefined => {
+  const top = topBy(sets, (set) => set.durationSec ?? 0);
+  return top === undefined || top.durationSec === undefined
+    ? undefined
+    : `${top.durationSec}s`;
 };
 
 const timedCarryLine = (

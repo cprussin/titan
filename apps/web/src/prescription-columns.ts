@@ -1,6 +1,7 @@
 import type { LoadUnit } from "@titan/domain/load-unit";
 import type { Prescription } from "@titan/domain/prescription";
 import {
+  formatClock,
   formatDistance,
   formatMinutes,
   formatSplit,
@@ -60,6 +61,12 @@ export const prescriptionColumns = (
       return {
         load: formatWeight(prescription.weight, prescription.unit),
         scheme: `${prescription.sets} × ${prescription.durationSec}s`,
+      };
+    }
+    case "timed-effort": {
+      return {
+        load: `${formatClock(prescription.restSec)} rest`,
+        scheme: `${prescription.sets} × ${prescription.workSec}s`,
       };
     }
     case "timed-cardio": {

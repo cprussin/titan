@@ -23,6 +23,14 @@ describe("deloadPrescription", () => {
     expect(deloaded).toMatchObject({ count: 4 });
   });
 
+  it("cuts timed-effort sets while holding the work and rest", () => {
+    const deloaded = deloadPrescription(
+      Prescription.TimedEffort({ restSec: 75, sets: 6, workSec: 45 }),
+    );
+    // 6 × 0.6 = 3.6 → 4, the bout and its rest preserved
+    expect(deloaded).toMatchObject({ restSec: 75, sets: 4, workSec: 45 });
+  });
+
   it("leaves Zone 2 cardio unchanged", () => {
     const zone2 = Prescription.TimedCardio({
       durationSec: 3600,

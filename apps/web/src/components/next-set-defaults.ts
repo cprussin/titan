@@ -15,12 +15,31 @@ export const nextSetWeight = (
   logged: readonly SetResult[],
 ): number => logged.at(-1)?.weight ?? prescribedWeight(prescription);
 
-/** The seconds to prefill for every timed set — always the prescribed target,
- *  a hold's duration or a carry's. Rep-based work has none. */
-export const nextSetSeconds = (prescription: Prescription): number =>
-  prescription.type === "timed-hold"
-    ? prescription.holdSec
-    : carriedSeconds(prescription);
+/** The seconds to prefill for every timed set — always the prescribed target: a
+ *  hold's duration, a carry's, or a conditioning bout's work time. Rep-based
+ *  work and cardio pieces have none. */
+export const nextSetSeconds = (prescription: Prescription): number => {
+  switch (prescription.type) {
+    case "timed-hold": {
+      return prescription.holdSec;
+    }
+    case "timed-carry": {
+      return prescription.durationSec;
+    }
+    case "timed-effort": {
+      return prescription.workSec;
+    }
+    case "strength":
+    case "bodyweight":
+    case "band":
+    case "timed-cardio":
+    case "distance-cardio":
+    case "intervals":
+    case "circuit": {
+      return 0;
+    }
+  }
+};
 
 /** The rep count to prefill for every set — always the prescribed target. */
 export const nextSetReps = (prescription: Prescription): number =>
@@ -44,9 +63,6 @@ const isRepBased = (
   prescription.type === "strength" ||
   prescription.type === "bodyweight" ||
   prescription.type === "band";
-
-const carriedSeconds = (prescription: Prescription): number =>
-  prescription.type === "timed-carry" ? prescription.durationSec : 0;
 
 const prescribedWeight = (prescription: Prescription): number =>
   prescription.type === "strength" || prescription.type === "timed-carry"

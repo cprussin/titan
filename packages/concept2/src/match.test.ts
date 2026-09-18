@@ -199,6 +199,13 @@ describe("matchSlot", () => {
         [rowingFor(9523, 40)],
       ),
     ).toEqual(unmatched);
+    expect(
+      matchSlot(
+        Rx.TimedEffort({ restSec: 75, sets: 6, workSec: 45 }),
+        scheduledDate,
+        [rowingFor(9523, 45)],
+      ),
+    ).toEqual(unmatched);
   });
 
   it("reports every piece that hits the target when more than one does", () => {

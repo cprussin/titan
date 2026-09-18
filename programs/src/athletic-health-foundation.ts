@@ -555,15 +555,15 @@ const athleticDay: SessionTemplate = {
       label: "Workout B — Conditioning",
       slots: [
         {
-          base: Prescription.Intervals({
-            count: 6,
-            recoverySec: 75,
+          base: Prescription.TimedEffort({
+            restSec: 75,
+            sets: 6,
             workSec: 45,
           }),
           exerciseId: "burpee",
           generateWarmup: false,
           id: "foundation-athletic-day-conditioning-burpee",
-          note: "Full burpees: stand, down to the floor, push-up, back to the feet, vertical jump, repeat. No rep target — work continuously for the full 45 seconds and let the pace be whatever keeps the movement clean.",
+          note: "Full burpees: stand, down to the floor, push-up, back to the feet, vertical jump, repeat. No rep target — work continuously for the full 45 seconds and let the pace be whatever keeps the movement clean. Rest 75 seconds between bouts, and rate each one as you log it.",
           progression: ProgressionPolicy.None(),
           role: "primary",
         },

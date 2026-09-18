@@ -361,8 +361,16 @@ const ProgressBar = ({
   </div>
 );
 
+/** How long to rest after a set. Work that prescribes its own rest — timed
+ *  conditioning, where the rest is part of the dose — is timed on that; the rest
+ *  of the room gets the role's default. */
 const restSeconds = (prescribed: PrescribedExercise): number =>
-  prescribed.role === "primary" ? 150 : 90;
+  prescribed.prescription.type === "timed-effort"
+    ? prescribed.prescription.restSec
+    : roleRestSeconds(prescribed.role);
+
+const roleRestSeconds = (role: PrescribedExercise["role"]): number =>
+  role === "primary" ? 150 : 90;
 
 // Flat: no card around the outline — a ruled "Session" heading over the list.
 const outlineStyles = vstack({ alignItems: "stretch", gap: 3 });

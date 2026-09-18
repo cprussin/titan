@@ -57,6 +57,12 @@ export const prescriptionParts = (
         recovery: undefined,
       };
     }
+    case "timed-effort": {
+      return {
+        primary: `${prescription.sets} × ${prescription.workSec}s`,
+        recovery: `${formatClock(prescription.restSec)} rest`,
+      };
+    }
     case "timed-cardio": {
       const zone =
         prescription.targetHrZone === undefined

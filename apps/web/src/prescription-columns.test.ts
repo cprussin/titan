@@ -70,6 +70,14 @@ describe("prescriptionColumns", () => {
     expect(columns.load).toBe("45s hold +20 lb");
   });
 
+  it("puts timed-effort bouts in the scheme and the rest in the load", () => {
+    const columns = prescriptionColumns(
+      Prescription.TimedEffort({ restSec: 75, sets: 6, workSec: 45 }),
+    );
+    expect(columns.scheme).toBe("6 × 45s");
+    expect(columns.load).toBe("1:15 rest");
+  });
+
   it("splits a distance-cardio piece into distance and split", () => {
     const columns = prescriptionColumns(
       Prescription.DistanceCardio({

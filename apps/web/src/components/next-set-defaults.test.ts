@@ -60,6 +60,14 @@ describe("nextSetSeconds", () => {
     ).toBe(45);
   });
 
+  it("uses the prescribed bout for timed-effort work", () => {
+    expect(
+      nextSetSeconds(
+        Prescription.TimedEffort({ restSec: 75, sets: 6, workSec: 45 }),
+      ),
+    ).toBe(45);
+  });
+
   it("has no seconds to prefill for rep-based work", () => {
     expect(nextSetSeconds(strength)).toBe(0);
   });

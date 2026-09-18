@@ -170,6 +170,11 @@ const trimOneSet = (prescription: Prescription): Prescription | undefined => {
         ? Rx.TimedCarry({ ...prescription, sets: prescription.sets - 1 })
         : undefined;
     }
+    case "timed-effort": {
+      return prescription.sets > 1
+        ? Rx.TimedEffort({ ...prescription, sets: prescription.sets - 1 })
+        : undefined;
+    }
     case "timed-cardio":
     case "distance-cardio":
     case "intervals":

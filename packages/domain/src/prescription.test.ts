@@ -73,6 +73,15 @@ describe("prescriptionSchema", () => {
     ).toBe("lb");
   });
 
+  it("parses a timed-effort prescription", () => {
+    const value = Prescription.TimedEffort({
+      restSec: 75,
+      sets: 6,
+      workSec: 45,
+    });
+    expect(prescriptionSchema.parse(value)).toEqual(value);
+  });
+
   it("parses an intervals prescription with a work distance", () => {
     const value = Prescription.Intervals({
       count: 6,
