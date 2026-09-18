@@ -113,13 +113,23 @@ const timedHoldLine = (
     : `${top.holdSec}s${addedLoad(prescription.addedWeightLb, "lb")}`;
 };
 
-/** The longest bout worked. A conditioning bout carries no load, so its seconds
- *  are the whole line. */
+/** The best bout: the most reps got through, the longer bout breaking a tie. A
+ *  conditioning bout carries no load, so the reps and the seconds are the whole
+ *  line — and a bout logged before reps were counted reports its seconds alone
+ *  rather than a count nobody recorded. */
 const timedEffortLine = (sets: readonly SetResult[]): string | undefined => {
-  const top = topBy(sets, (set) => set.durationSec ?? 0);
-  return top === undefined || top.durationSec === undefined
-    ? undefined
-    : `${top.durationSec}s`;
+  const top = topBy(
+    sets,
+    (set) => set.reps ?? 0,
+    (set) => set.durationSec ?? 0,
+  );
+  if (top === undefined || top.durationSec === undefined) {
+    return undefined;
+  } else if (top.reps === undefined) {
+    return `${top.durationSec}s`;
+  } else {
+    return `${top.reps} reps · ${top.durationSec}s`;
+  }
 };
 
 const timedCarryLine = (

@@ -89,8 +89,13 @@ const bandSet = (set: SetResult): string =>
 const holdSet = (set: SetResult): string =>
   `${requireField(set.holdSec, "holdSec")}s hold`;
 
-const effortSet = (set: SetResult): string =>
-  `${requireField(set.durationSec, "durationSec")}s work`;
+/** A conditioning bout: the reps it got through in its seconds. A bout logged
+ *  before reps were counted reports the seconds alone rather than inventing a
+ *  count for it. */
+const effortSet = (set: SetResult): string => {
+  const work = `${requireField(set.durationSec, "durationSec")}s work`;
+  return set.reps === undefined ? work : `${set.reps} reps · ${work}`;
+};
 
 const carrySet = (set: SetResult, unit: LoadUnit): string =>
   `${requireField(set.durationSec, "durationSec")} sec × ${formatWeight(requireField(set.weight, "weight"), unit)}`;

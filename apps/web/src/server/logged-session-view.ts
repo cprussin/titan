@@ -2,6 +2,7 @@ import type { LoadUnit } from "@titan/domain/load-unit";
 import type {
   StrengthPrescription,
   TimedCarryPrescription,
+  TimedEffortPrescription,
 } from "@titan/domain/prescription";
 import type {
   CardioResult,
@@ -109,12 +110,7 @@ const doneOutcome = (result: ExerciseResult): DoneOutcome => {
       return timedDone(prescription.sets, prescription.holdSec, sets, holdSec);
     }
     case "timed-effort": {
-      return timedDone(
-        prescription.sets,
-        prescription.workSec,
-        sets,
-        workedSec,
-      );
+      return effortDone(prescription, sets);
     }
     case "timed-carry": {
       return carryDone(prescription, sets);
@@ -229,6 +225,27 @@ const timedDone = (
 const holdSec = (set: SetResult): number => set.holdSec ?? 0;
 
 const workedSec = (set: SetResult): number => set.durationSec ?? 0;
+
+/** Timed-effort done: the bouts as any timed work reads, plus the reps they
+ *  totalled — the bout has no rep target, so the count is reported, never
+ *  judged. Bouts logged before reps were counted total nothing and show no rep
+ *  clause at all. */
+const effortDone = (
+  prescription: TimedEffortPrescription,
+  sets: readonly SetResult[],
+): DoneOutcome => {
+  const { body, isAsPrescribed } = timedDone(
+    prescription.sets,
+    prescription.workSec,
+    sets,
+    workedSec,
+  );
+  const reps = sets.reduce((total, entry) => total + (entry.reps ?? 0), 0);
+  return {
+    body: reps === 0 ? body : `${body} · ${reps} reps`,
+    isAsPrescribed,
+  };
+};
 
 /** Timed-carry done: `3× 40 sec` when every carry held its target, else the
  *  per-set seconds (`3× 40, 25, 40 sec`), plus the load actually carried
