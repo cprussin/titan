@@ -49,6 +49,12 @@ export const deloadPrescription = (
         sets: retain(prescription.sets, SET_RETENTION),
       });
     }
+    case "timed-effort": {
+      return Rx.TimedEffort({
+        ...prescription,
+        sets: retain(prescription.sets, SET_RETENTION),
+      });
+    }
     case "intervals": {
       return Rx.Intervals({
         ...prescription,

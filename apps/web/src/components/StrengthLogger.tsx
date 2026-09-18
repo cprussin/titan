@@ -220,16 +220,19 @@ export const StrengthLogger = ({
 };
 
 /** The timed shapes: the seconds the athlete works for are the set's measure,
- *  whether the load is held still or walked. */
+ *  whether the load is held still, walked, or worked through a conditioning
+ *  bout. */
 type TimedPrescription = Extract<
   SetBasedPrescription,
-  { type: "timed-hold" | "timed-carry" }
+  { type: "timed-hold" | "timed-carry" | "timed-effort" }
 >;
 
 const isTimedPrescription = (
   prescription: SetBasedPrescription,
 ): prescription is TimedPrescription =>
-  prescription.type === "timed-hold" || prescription.type === "timed-carry";
+  prescription.type === "timed-hold" ||
+  prescription.type === "timed-carry" ||
+  prescription.type === "timed-effort";
 
 /** The unit the load input works in, or `undefined` for a movement the athlete
  *  enters no load for — bodyweight reps, an unweighted hold. */
@@ -240,16 +243,30 @@ const loadUnitOf = (
     ? prescription.unit
     : undefined;
 
-/** Whether a logged set of this shape shows a load to edit. A hold and band work
- *  carry no load at all — a band's resistance is its colour, not a figure —
- *  while everything else, a carry's dumbbells included, is worked against one. */
+/** Whether a logged set of this shape shows a load to edit. A hold, band work,
+ *  and a conditioning bout carry no load at all — a band's resistance is its
+ *  colour, not a figure — while everything else, a carry's dumbbells included,
+ *  is worked against one. */
 const logsLoad = (prescription: SetBasedPrescription): boolean =>
-  prescription.type !== "timed-hold" && prescription.type !== "band";
+  prescription.type !== "timed-hold" &&
+  prescription.type !== "band" &&
+  prescription.type !== "timed-effort";
 
 /** What the seconds are called for a timed movement: a plank is held, a carry
- *  is walked for a duration. */
-const secondsNoun = (prescription: TimedPrescription): string =>
-  prescription.type === "timed-hold" ? "Hold" : "Duration";
+ *  is walked for a duration, a conditioning bout is worked. */
+const secondsNoun = (prescription: TimedPrescription): string => {
+  switch (prescription.type) {
+    case "timed-hold": {
+      return "Hold";
+    }
+    case "timed-carry": {
+      return "Duration";
+    }
+    case "timed-effort": {
+      return "Work";
+    }
+  }
+};
 
 const secondsLabel = (prescription: TimedPrescription): string =>
   `${secondsNoun(prescription)} (sec)`;
@@ -278,6 +295,9 @@ const setMetrics = (
     case "timed-carry": {
       return { durationSec: entered.seconds, weight: entered.weight };
     }
+    case "timed-effort": {
+      return { durationSec: entered.seconds };
+    }
     case "band": {
       // The bands are recorded only when the athlete picked them; an unchosen
       // band is left off the set rather than stored as an empty choice.
@@ -296,7 +316,9 @@ const setMetrics = (
 const loggedSeconds = (set: SetResult): number | undefined =>
   set.durationSec ?? set.holdSec;
 
-/** The seconds field an edit to an already-logged timed set writes back to. */
+/** The seconds field an edit to an already-logged timed set writes back to: a
+ *  hold records its seconds under `holdSec`, work against the clock under
+ *  `durationSec`. */
 const editedSeconds = (
   prescription: TimedPrescription,
   seconds: number,

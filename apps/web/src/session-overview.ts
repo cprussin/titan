@@ -120,7 +120,8 @@ const inProgressSets = (
     case "bodyweight":
     case "band":
     case "timed-hold":
-    case "timed-carry": {
+    case "timed-carry":
+    case "timed-effort": {
       return loggedSets({ prescription, sets: logged });
     }
     case "timed-cardio":

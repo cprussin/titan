@@ -93,6 +93,19 @@ const carryResult = (
     slotId: "carry-slot",
   }) as unknown as ExerciseResult;
 
+const effortResult = (seconds: readonly number[]): ExerciseResult =>
+  ({
+    exerciseId: "burpee-ex",
+    prescription: Prescription.TimedEffort({
+      restSec: 75,
+      sets: 3,
+      workSec: 45,
+    }),
+    role: "primary",
+    sets: seconds.map((durationSec) => ({ completed: true, durationSec })),
+    slotId: "burpee-slot",
+  }) as unknown as ExerciseResult;
+
 const rowResult = (): ExerciseResult =>
   ({
     cardio: { distanceMeters: 5000, splitSecPer500: 111.4 },
@@ -292,6 +305,30 @@ describe("loggedSessionView", () => {
     expect(view.exercises[0]).toMatchObject({
       done: "3× 40 sec ✓",
       prescribed: "3 × 40s @ 150 lb",
+    });
+  });
+
+  it("collapses timed-effort work done as prescribed", () => {
+    const view = loggedSessionView(
+      session([effortResult([45, 45, 45])]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "3× 45s ✓",
+      prescribed: "3 × 45s · 1:15 rest",
+    });
+  });
+
+  it("lists the per-bout seconds of timed-effort work cut short, no tick", () => {
+    const view = loggedSessionView(
+      session([effortResult([45, 30])]),
+      names,
+      [],
+    );
+    expect(view.exercises[0]).toMatchObject({
+      done: "2× 45, 30s",
+      isAsPrescribed: false,
     });
   });
 

@@ -81,6 +81,25 @@ describe("sessionOverview", () => {
     ]);
   });
 
+  it("shows the bouts logged so far against timed-effort work in progress", () => {
+    const burpees = Prescription.TimedEffort({
+      restSec: 75,
+      sets: 6,
+      workSec: 45,
+    });
+    const [current] = sessionOverview({
+      currentIndex: 0,
+      exerciseNames: {},
+      logged: [set({ durationSec: 45, rpe: 8, setIndex: 0 })],
+      prescribedExercises: [prescribed("slot-1", "burpee", burpees)],
+      results: [],
+    });
+    expect(current?.target).toBe("6 × 45s · 1:15 rest");
+    expect(current?.sets).toEqual([
+      { label: "Set 1", rpe: 8, value: "45s work" },
+    ]);
+  });
+
   it("shows the sets logged so far against band work in progress", () => {
     const pushdown = Prescription.Band({ reps: 10, sets: 3 });
     const [current] = sessionOverview({

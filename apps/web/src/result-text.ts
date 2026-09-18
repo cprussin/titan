@@ -50,6 +50,9 @@ export const loggedExerciseLines = (work: LoggedWork): LoggedLine[] => {
     case "timed-carry": {
       return setLines(work.sets, (each) => carrySet(each, prescription.unit));
     }
+    case "timed-effort": {
+      return setLines(work.sets, effortSet);
+    }
     case "timed-cardio":
     case "distance-cardio":
     case "intervals":
@@ -85,6 +88,9 @@ const bandSet = (set: SetResult): string =>
 
 const holdSet = (set: SetResult): string =>
   `${requireField(set.holdSec, "holdSec")}s hold`;
+
+const effortSet = (set: SetResult): string =>
+  `${requireField(set.durationSec, "durationSec")}s work`;
 
 const carrySet = (set: SetResult, unit: LoadUnit): string =>
   `${requireField(set.durationSec, "durationSec")} sec × ${formatWeight(requireField(set.weight, "weight"), unit)}`;

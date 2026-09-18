@@ -155,6 +155,7 @@ const isCardioMatch = (
     case "circuit":
     case "strength":
     case "timed-carry":
+    case "timed-effort":
     case "timed-hold": {
       return false;
     }

@@ -117,6 +117,21 @@ describe("loggedExerciseLines", () => {
     ).toEqual([{ label: "Set 1", value: "50s hold" }]);
   });
 
+  it("logs a timed-effort bout in the seconds it was worked", () => {
+    expect(
+      loggedExerciseLines(
+        result({
+          prescription: Prescription.TimedEffort({
+            restSec: 75,
+            sets: 1,
+            workSec: 45,
+          }),
+          sets: [set({ durationSec: 45 })],
+        }),
+      ),
+    ).toEqual([{ label: "Set 1", value: "45s work" }]);
+  });
+
   it("summarizes a cardio effort as a single line of its optics", () => {
     expect(
       loggedExerciseLines(

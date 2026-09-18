@@ -28,6 +28,11 @@ export const estimatePrescriptionMinutes = (
     case "timed-carry": {
       return prescription.sets * MINUTES_PER_SET;
     }
+    case "timed-effort": {
+      return (
+        (prescription.sets * (prescription.workSec + prescription.restSec)) / 60
+      );
+    }
     case "timed-cardio": {
       return prescription.durationSec / 60 + CARDIO_SETUP_MIN;
     }

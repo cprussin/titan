@@ -54,6 +54,14 @@ describe("describePrescription", () => {
     ).toBe("4×6 +10 kg");
   });
 
+  it("describes timed-effort work by its bouts, with the rest alongside", () => {
+    expect(
+      describePrescription(
+        Prescription.TimedEffort({ restSec: 75, sets: 6, workSec: 45 }),
+      ),
+    ).toBe("6 × 45s · 1:15 rest");
+  });
+
   it("describes an interval target", () => {
     expect(
       describePrescription(

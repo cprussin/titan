@@ -138,6 +138,22 @@ describe(WorkoutExecution, () => {
     expect(overview.getByText("2,000 m")).toBeInTheDocument();
   });
 
+  it("rests for the time timed-effort work prescribes between its bouts", () => {
+    renderScreen({
+      prescribedExercises: [
+        prescribed(
+          "slot-1",
+          "burpee",
+          Prescription.TimedEffort({ restSec: 75, sets: 6, workSec: 45 }),
+        ),
+      ],
+    });
+    pickRpe(8);
+    fireEvent.click(screen.getByRole("button", { name: "Log set" }));
+    expect(screen.getByText("Rest")).toBeInTheDocument();
+    expect(screen.getByText("1:15")).toBeInTheDocument();
+  });
+
   it("saves the sets logged so far as each set is logged", () => {
     const { saved } = renderScreen();
     pickRpe(8);

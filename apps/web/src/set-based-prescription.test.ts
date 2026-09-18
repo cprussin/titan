@@ -24,6 +24,14 @@ describe("isSetBased", () => {
     expect(isSetBased(Prescription.Band({ reps: 10, sets: 3 }))).toBe(true);
   });
 
+  it("counts timed-effort conditioning, worked bout by bout", () => {
+    expect(
+      isSetBased(
+        Prescription.TimedEffort({ restSec: 75, sets: 6, workSec: 45 }),
+      ),
+    ).toBe(true);
+  });
+
   it("leaves out a cardio piece recorded as one effort", () => {
     expect(
       isSetBased(Prescription.DistanceCardio({ distanceMeters: 5000 })),

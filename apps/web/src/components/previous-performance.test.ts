@@ -217,6 +217,24 @@ describe("describePreviousPerformance", () => {
     });
   });
 
+  describe("timed effort", () => {
+    it("shows the longest bout worked", () => {
+      const burpees = Prescription.TimedEffort({
+        restSec: 75,
+        sets: 6,
+        workSec: 45,
+      });
+      expect(
+        describePreviousPerformance(
+          result(burpees, [
+            set({ durationSec: 45, setIndex: 0 }),
+            set({ durationSec: 38, setIndex: 1 }),
+          ]),
+        ),
+      ).toBe("45s");
+    });
+  });
+
   describe("nothing to show", () => {
     it("returns undefined when no sets were logged", () => {
       const strength = Prescription.Strength({ reps: 5, sets: 3, weight: 100 });

@@ -82,6 +82,23 @@ const timedCarrySchema = z.object({
 
 export type TimedCarryPrescription = z.infer<typeof timedCarrySchema>;
 
+/** Timed conditioning worked in sets rather than on a machine: a fixed number
+ *  of timed work bouts with a prescribed rest between them (burpee intervals,
+ *  and any other "work for N seconds, rest, repeat" piece). It is logged set by
+ *  set — a timer per bout, a rating per bout — which is what separates it from
+ *  {@link IntervalsPrescription}, the machine-measured piece recorded as one
+ *  effort with splits. */
+const timedEffortSchema = z.object({
+  /** The prescribed rest between work bouts. */
+  restSec: z.number().nonnegative(),
+  sets: z.number().int().positive(),
+  type: z.literal("timed-effort"),
+  /** How long each work bout lasts. */
+  workSec: z.number().positive(),
+});
+
+export type TimedEffortPrescription = z.infer<typeof timedEffortSchema>;
+
 const timedCardioSchema = z.object({
   durationSec: z.number().positive(),
   strokeRateMax: z.number().positive().optional(),
@@ -165,6 +182,7 @@ export const prescriptionSchema = z.preprocess(
     bandSchema,
     timedHoldSchema,
     timedCarrySchema,
+    timedEffortSchema,
     timedCardioSchema,
     distanceCardioSchema,
     intervalsSchema,
@@ -213,6 +231,9 @@ export const Prescription = {
     type: "timed-carry",
     unit: args.unit ?? "lb",
   }),
+  TimedEffort: (
+    args: Omit<TimedEffortPrescription, "type">,
+  ): TimedEffortPrescription => ({ ...args, type: "timed-effort" }),
   TimedHold: (
     args: Omit<TimedHoldPrescription, "type">,
   ): TimedHoldPrescription => ({ ...args, type: "timed-hold" }),

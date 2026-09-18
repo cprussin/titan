@@ -106,7 +106,15 @@ const doneOutcome = (result: ExerciseResult): DoneOutcome => {
       return repDone(prescription.sets, prescription.reps, sets);
     }
     case "timed-hold": {
-      return holdDone(prescription.sets, prescription.holdSec, sets);
+      return timedDone(prescription.sets, prescription.holdSec, sets, holdSec);
+    }
+    case "timed-effort": {
+      return timedDone(
+        prescription.sets,
+        prescription.workSec,
+        sets,
+        workedSec,
+      );
     }
     case "timed-carry": {
       return carryDone(prescription, sets);
@@ -194,24 +202,33 @@ const repDone = (
   return { body, isAsPrescribed };
 };
 
-/** Timed-hold done: `3× 45s` when every hold met its target. */
-const holdDone = (
+/** Timed done: `3× 45s` when every set met its target seconds, else the per-set
+ *  list (`3× 45, 30s`). The seconds are read through `secondsOf` because each
+ *  timed shape records them under its own key — a hold is held, a conditioning
+ *  bout is worked. */
+const timedDone = (
   targetSets: number,
-  targetHoldSec: number,
+  targetSec: number,
   sets: readonly SetResult[],
+  secondsOf: (set: SetResult) => number,
 ): DoneOutcome => {
-  const holds = sets.map((entry) => entry.holdSec ?? 0);
+  const seconds = sets.map(secondsOf);
   const isAsPrescribed =
     sets.length >= targetSets &&
     sets.every((entry) => entry.completed) &&
-    holds.every((held) => held >= targetHoldSec);
+    seconds.every((worked) => worked >= targetSec);
   const uniform =
-    sets.length === targetSets && holds.every((held) => held === targetHoldSec);
+    sets.length === targetSets &&
+    seconds.every((worked) => worked === targetSec);
   const body = uniform
-    ? `${targetSets}× ${targetHoldSec}s`
-    : `${sets.length}× ${holds.join(", ")}s`;
+    ? `${targetSets}× ${targetSec}s`
+    : `${sets.length}× ${seconds.join(", ")}s`;
   return { body, isAsPrescribed };
 };
+
+const holdSec = (set: SetResult): number => set.holdSec ?? 0;
+
+const workedSec = (set: SetResult): number => set.durationSec ?? 0;
 
 /** Timed-carry done: `3× 40 sec` when every carry held its target, else the
  *  per-set seconds (`3× 40, 25, 40 sec`), plus the load actually carried

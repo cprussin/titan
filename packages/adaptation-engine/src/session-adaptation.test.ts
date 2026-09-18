@@ -95,6 +95,31 @@ describe("adaptSession", () => {
     primaryPreserved(result);
   });
 
+  it("trims a set from a secondary timed-effort piece", () => {
+    const effortPlan: readonly PrescribedExercise[] = [
+      slot("squat", "primary", 5),
+      {
+        exerciseId: "burpee",
+        prescription: Prescription.TimedEffort({
+          restSec: 75,
+          sets: 6,
+          workSec: 45,
+        }),
+        progression: ProgressionPolicy.None(),
+        role: "secondary",
+        slotId: "slot-burpee",
+      },
+    ];
+    const { plan: result } = adaptSession(
+      effortPlan,
+      readiness({ availableMinutes: 15 }),
+    );
+    expect(result[1]?.prescription).toEqual(
+      Prescription.TimedEffort({ restSec: 75, sets: 1, workSec: 45 }),
+    );
+    primaryPreserved(result);
+  });
+
   it("trims a set from a secondary band exercise", () => {
     const bandPlan: readonly PrescribedExercise[] = [
       slot("squat", "primary", 5),

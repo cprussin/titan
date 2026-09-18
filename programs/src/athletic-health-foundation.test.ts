@@ -305,8 +305,8 @@ describe("athletic day workout B", () => {
     }
   };
 
-  it("opens with burpee intervals, then works the whole body", () => {
-    // The full-body work-capacity variant of athletic day: the burpee intervals
+  it("opens with the burpee sets, then works the whole body", () => {
+    // The full-body work-capacity variant of athletic day: the burpee bouts
     // carry the conditioning (and all the pressing volume the day needs), then
     // a squat, a pull, and a carry fill it out before the arm work.
     expect(conditioningSlots().map((slot) => slot.exerciseId)).toEqual([
@@ -319,19 +319,19 @@ describe("athletic day workout B", () => {
     ]);
   });
 
-  it("prescribes the burpees as six 45-second intervals with 75s recovery", () => {
-    // A single timed interval exercise, not a circuit: rounds, work, and
-    // recovery all read off the one prescription.
+  it("prescribes the burpees as six 45-second bouts resting 75s", () => {
+    // Timed-effort work, not a machine interval: it is logged bout by bout, each
+    // one timed and rated, and the rest between them is the prescribed 75s.
     expect(slotFor("burpee").base).toEqual({
-      count: 6,
-      recoverySec: 75,
-      type: "intervals",
+      restSec: 75,
+      sets: 6,
+      type: "timed-effort",
       workSec: 45,
     });
     expect(slotFor("burpee").role).toBe("primary");
   });
 
-  it("spells out the full burpee, with no rep target inside an interval", () => {
+  it("spells out the full burpee, with no rep target inside a bout", () => {
     const note = slotFor("burpee").note ?? "";
     expect(note).toContain("push-up");
     expect(note).toContain("jump");
