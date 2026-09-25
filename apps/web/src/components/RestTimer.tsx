@@ -71,12 +71,12 @@ export const RestTimer = ({
       <div className={hstack({ gap: 2 })}>
         <Button
           onClick={() => setRemaining((current) => current + 30)}
-          size="sm"
+          size="lg"
           variant="outline"
         >
           +30s
         </Button>
-        <Button onClick={stop} size="sm" variant="ghost">
+        <Button onClick={stop} size="lg" variant="ghost">
           Stop
         </Button>
       </div>
