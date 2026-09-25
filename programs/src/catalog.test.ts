@@ -87,6 +87,13 @@ const carrySlots = (): readonly ExerciseSlot[] =>
       .filter((slot) => slot.exerciseId === "farmer-carry"),
   );
 
+const hillSprintSlots = (): readonly ExerciseSlot[] =>
+  catalog.programs.flatMap(({ version }) =>
+    version.sessionTemplates
+      .flatMap(templateSlots)
+      .filter((slot) => slot.exerciseId === "hill-sprint"),
+  );
+
 /** The exercise order of every fixed or rotating slot list that holds a farmer
  *  carry — one list per session or variant, since a variant is what the athlete
  *  actually works through in a day. */
@@ -157,6 +164,15 @@ describe("catalog", () => {
       expect(slot.base.type).toBe("timed-carry");
     }
     expect(carrySlots().length).toBeGreaterThan(0);
+  });
+
+  it("prescribes every hill sprint as timed reps, never a machine interval", () => {
+    // Each sprint is logged on its own against a countdown of the prescribed
+    // work, with the prescribed walk-down as the rest between them.
+    for (const slot of hillSprintSlots()) {
+      expect(slot.base.type).toBe("timed-effort");
+    }
+    expect(hillSprintSlots().length).toBeGreaterThan(0);
   });
 
   it("schedules every farmer carry after the session's grip-dependent pulling", () => {

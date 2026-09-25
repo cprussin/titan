@@ -133,7 +133,7 @@ const hillSprints: SessionTemplate = {
   name: "Hill Sprints",
   slots: [
     {
-      base: Prescription.Intervals({ count: 10, recoverySec: 60, workSec: 20 }),
+      base: Prescription.TimedEffort({ restSec: 60, sets: 10, workSec: 20 }),
       exerciseId: "hill-sprint",
       generateWarmup: false,
       id: "power-hill-sprints-hill-sprint",
