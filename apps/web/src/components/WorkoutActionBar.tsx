@@ -15,17 +15,18 @@ type Props = {
  * the bottom offset clears the phone tab bar (and the OS safe-area inset it
  * honors); through the `mdToLg` drawer window there's no bottom bar so it sits
  * at the edge above the safe area; from `lg` up it pins to the content column's
- * own bottom and lays the buttons out in a row.
+ * own bottom. The buttons share a single row, split evenly, at every width.
  */
 export const WorkoutActionBar = ({ children }: Props) => (
   <div className={barStyles}>{children}</div>
 );
 
 const barStyles = css({
+  "& > *": { flex: 1 },
   backgroundColor: "background",
   borderBlockStart: "1px solid {colors.border}",
   display: "flex",
-  flexDirection: "column",
+  flexDirection: "row",
   gap: 3,
   // Lands right on top of AppNav's phone tab bar rather than under it. That bar
   // is `paddingBlockStart 2 + item 14 + paddingBlockEnd max(2, safe-area)` tall,
@@ -43,9 +44,7 @@ const barStyles = css({
     "max({spacing.18}, calc(env(safe-area-inset-bottom) + {spacing.16}))",
   lg: {
     // From `lg` up the screen no longer fills the viewport; the bar pins to the
-    // content column's bottom and shares a row where there's width for it.
-    "& > *": { flex: 1 },
-    flexDirection: "row",
+    // content column's bottom.
     insetBlockEnd: 0,
     marginBlockStart: 0,
   },
