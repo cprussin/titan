@@ -186,7 +186,7 @@ export const StrengthLogger = ({
       )}
       {/* Back, log, and finish actions pin to the bottom of the screen so the
           primary controls stay under the thumb while the logged sets scroll
-          above. Stacked on phones, shared evenly across a row on desktop.
+          above, shared evenly across a single row.
           While the exercise is being recorded, every control that would change
           the sets stands down: the save reports them as they stood when it was
           issued, so a change made behind it would be lost. */}
