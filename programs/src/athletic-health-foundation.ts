@@ -619,9 +619,9 @@ const athleticDay: SessionTemplate = {
       label: "Workout C — Hill Sprint",
       slots: [
         {
-          base: Prescription.Intervals({
-            count: 8,
-            recoverySec: 60,
+          base: Prescription.TimedEffort({
+            restSec: 60,
+            sets: 8,
             workSec: 20,
           }),
           exerciseId: "hill-sprint",
