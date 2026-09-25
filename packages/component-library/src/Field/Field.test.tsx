@@ -168,8 +168,20 @@ describe(Field, () => {
           <Input defaultValue="x" type="text" />
         </Field>,
       );
+      // Check presence as a boolean rather than asserting directly on the
+      // query result. On the first poll here the popover is still mounted
+      // (its close transition hasn't settled yet), so the naive
+      // `expect(screen.queryByText(...)).not.toBeInTheDocument()` fails once
+      // before this resolves — and under bun:test, constructing that
+      // failure message serializes the still-mounted popover's live DOM
+      // node, which takes upwards of ten seconds against this element
+      // (measured independently of this component: bun:test's `expect`
+      // failure-message formatting is pathologically slow for a live DOM
+      // node in this environment, well past bun-test's 5s default per-test
+      // timeout). Comparing a plain boolean sidesteps that path entirely
+      // without weakening the assertion.
       await waitFor(() => {
-        expect(screen.queryByText("Too short")).not.toBeInTheDocument();
+        expect(screen.queryByText("Too short") === null).toBe(true);
       });
     });
 
