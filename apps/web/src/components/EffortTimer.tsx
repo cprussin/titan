@@ -103,17 +103,17 @@ export const EffortTimer = ({
       <div className={hstack({ gap: 2 })}>
         <Button
           onClick={() => setRunning((value) => !value)}
-          size="sm"
+          size="lg"
           variant={running ? "outline" : "accent"}
         >
           {primaryLabel(running, elapsed)}
         </Button>
         {!running && elapsed > 0 && (
           <>
-            <Button onClick={() => onUse(elapsed)} size="sm" variant="success">
+            <Button onClick={() => onUse(elapsed)} size="lg" variant="success">
               Use time
             </Button>
-            <Button onClick={reset} size="sm" variant="ghost">
+            <Button onClick={reset} size="lg" variant="ghost">
               Reset
             </Button>
           </>
