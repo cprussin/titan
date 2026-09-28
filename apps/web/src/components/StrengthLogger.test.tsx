@@ -102,6 +102,15 @@ describe(StrengthLogger, () => {
     expect(screen.getByRole("button", { name: "Log set" })).toBeEnabled();
   });
 
+  it("places the log action after the other actions", () => {
+    renderLogger({
+      logged: [loggedSet({ reps: 5, setIndex: 0, weight: 100 })],
+    });
+    expect(screen.getAllByRole("button").at(-1)).toHaveAccessibleName(
+      "Log set",
+    );
+  });
+
   it("logs the rated effort with the set", async () => {
     const set = await new Promise<SetResult>((resolve) => {
       renderLogger({ onLogSet: resolve });
