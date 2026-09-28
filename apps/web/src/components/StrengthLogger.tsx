@@ -186,7 +186,8 @@ export const StrengthLogger = ({
       )}
       {/* Back, log, and finish actions pin to the bottom of the screen so the
           primary controls stay under the thumb while the logged sets scroll
-          above, shared evenly across a single row.
+          above, shared evenly across a single row. "Log set" sits rightmost,
+          where the thumb rests.
           While the exercise is being recorded, every control that would change
           the sets stands down: the save reports them as they stood when it was
           issued, so a change made behind it would be lost. */}
@@ -194,16 +195,6 @@ export const StrengthLogger = ({
         {done > 0 && (
           <Button disabled={busy} onClick={back} size="lg" variant="outline">
             Back
-          </Button>
-        )}
-        {done < sets && (
-          <Button
-            disabled={busy || rpe === undefined}
-            onClick={logSet}
-            size="lg"
-            variant="accent"
-          >
-            Log set
           </Button>
         )}
         <Button
@@ -215,6 +206,16 @@ export const StrengthLogger = ({
         >
           {done >= sets ? "Complete exercise" : "Finish early"}
         </Button>
+        {done < sets && (
+          <Button
+            disabled={busy || rpe === undefined}
+            onClick={logSet}
+            size="lg"
+            variant="accent"
+          >
+            Log set
+          </Button>
+        )}
       </WorkoutActionBar>
     </div>
   );
