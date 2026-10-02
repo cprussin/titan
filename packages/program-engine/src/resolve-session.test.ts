@@ -95,6 +95,40 @@ describe("resolveSession", () => {
     expect(resolved.decisions[0]?.action).toBe("deload");
   });
 
+  it("deloads the slot's own shape when the last session was logged in another", () => {
+    // A farmer carry logged as reps before it was prescribed by time must not
+    // drag the old rep shape into the deload week.
+    const carrySlot: ExerciseSlot = {
+      base: Prescription.TimedCarry({ durationSec: 40, sets: 3, weight: 150 }),
+      exerciseId: "farmer-carry",
+      generateWarmup: false,
+      id: "carry",
+      progression: ProgressionPolicy.TimedCarry({
+        durationSec: 40,
+        increment: 5,
+        rpeCap: 8,
+        sets: 3,
+      }),
+      role: "accessory",
+    };
+    const repsCarry: ExerciseResult = {
+      exerciseId: "farmer-carry",
+      id: "r-carry",
+      prescription: Prescription.Strength({ reps: 1, sets: 3, weight: 150 }),
+      sets: [{ completed: true, reps: 1, rpe: 7, setIndex: 0, weight: 150 }],
+      slotId: "carry",
+    };
+    const resolved = resolveSession({
+      historyBySlot: () => [repsCarry],
+      isDeloadWeek: true,
+      template: { ...template, slots: [carrySlot] },
+      weekInBlock: 4,
+    });
+    expect(resolved.prescribedExercises[0]?.prescription).toEqual(
+      Prescription.TimedCarry({ durationSec: 40, sets: 2, weight: 150 }),
+    );
+  });
+
   it("labels the chosen variant for a rotating session", () => {
     const rotating: SessionTemplate = {
       constraints: {},

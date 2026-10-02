@@ -117,7 +117,7 @@ const deloadSlot = (
   slot: ExerciseSlot,
   history: readonly ExerciseResult[],
 ): { decision: SessionDecision; prescription: Prescription } => {
-  const held = history.at(-1)?.prescription ?? slot.base;
+  const held = heldPrescription(slot.base, history.at(-1)?.prescription);
   return {
     decision: {
       action: "deload",
@@ -130,3 +130,12 @@ const deloadSlot = (
     prescription: deloadPrescription(held),
   };
 };
+
+/** What a deload week holds: the last session's prescription, unless it was
+ *  logged in a different shape than the slot now prescribes (a carry recorded
+ *  as reps before it was prescribed by time) — then the slot's base. */
+const heldPrescription = (
+  base: Prescription,
+  last: Prescription | undefined,
+): Prescription =>
+  last === undefined || last.type !== base.type ? base : last;
