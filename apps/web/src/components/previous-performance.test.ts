@@ -207,13 +207,14 @@ describe("describePreviousPerformance", () => {
 
     it("appends the added load for a weighted hold", () => {
       const weighted = Prescription.TimedHold({
-        addedWeightLb: 10,
+        addedWeight: 5,
         holdSec: 45,
         sets: 3,
+        unit: "kg",
       });
       expect(
         describePreviousPerformance(result(weighted, [set({ holdSec: 45 })])),
-      ).toBe("45s +10 lb");
+      ).toBe("45s +5 kg");
     });
   });
 

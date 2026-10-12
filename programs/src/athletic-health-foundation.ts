@@ -103,7 +103,7 @@ const heavyLower: SessionTemplate = {
       role: "accessory",
     },
     {
-      base: Prescription.TimedHold({ holdSec: 60, sets: 3 }),
+      base: Prescription.TimedHold({ holdSec: 60, sets: 3, unit: "kg" }),
       exerciseId: "plank",
       generateWarmup: false,
       id: "ahf-plank",
@@ -660,7 +660,7 @@ const athleticDay: SessionTemplate = {
           role: "accessory",
         },
         {
-          base: Prescription.TimedHold({ holdSec: 45, sets: 3 }),
+          base: Prescription.TimedHold({ holdSec: 45, sets: 3, unit: "kg" }),
           exerciseId: "side-plank",
           generateWarmup: false,
           id: "foundation-athletic-day-hill-sprint-side-plank",

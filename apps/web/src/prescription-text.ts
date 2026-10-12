@@ -45,7 +45,7 @@ export const prescriptionParts = (
       };
     }
     case "timed-hold": {
-      const added = addedLoad(prescription.addedWeightLb, "lb");
+      const added = addedLoad(prescription.addedWeight, prescription.unit);
       return {
         primary: `${prescription.sets}× ${prescription.holdSec}s hold${added}`,
         recovery: undefined,

@@ -58,10 +58,16 @@ const bandSchema = z.object({
 export type BandPrescription = z.infer<typeof bandSchema>;
 
 const timedHoldSchema = z.object({
-  addedWeightLb: z.number().nonnegative().optional(),
+  /** Added load for a weighted hold (a plate on the back), expressed in
+   *  {@link unit}. */
+  addedWeight: z.number().nonnegative().optional(),
   holdSec: z.number().positive(),
   sets: z.number().int().positive(),
   type: z.literal("timed-hold"),
+  /** The unit `addedWeight` is in. Plates come off the same tree as the
+   *  barbell, so planks are prescribed in kilograms; defaults to pounds so
+   *  pre-unit data stays valid. */
+  unit: loadUnitSchema.default("lb"),
 });
 
 export type TimedHoldPrescription = z.infer<typeof timedHoldSchema>;
@@ -149,15 +155,15 @@ const circuitSchema = z.object({
 
 export type CircuitPrescription = z.infer<typeof circuitSchema>;
 
-/** A bodyweight prescription persisted before added load carried a unit, which
- *  stored the load under `addedWeightLb`. */
-type LegacyBodyweight = Record<string, unknown> & { addedWeightLb: number };
+/** A bodyweight or timed-hold prescription persisted before added load carried
+ *  a unit, which stored the load under `addedWeightLb`. */
+type LegacyAddedWeight = Record<string, unknown> & { addedWeightLb: number };
 
-const isLegacyBodyweight = (data: unknown): data is LegacyBodyweight =>
+const isLegacyAddedWeight = (data: unknown): data is LegacyAddedWeight =>
   typeof data === "object" &&
   data !== null &&
   "type" in data &&
-  data.type === "bodyweight" &&
+  (data.type === "bodyweight" || data.type === "timed-hold") &&
   "addedWeightLb" in data &&
   typeof data.addedWeightLb === "number";
 
@@ -166,7 +172,7 @@ const isLegacyBodyweight = (data: unknown): data is LegacyBodyweight =>
  *  pounds it was stored as. Runs before the union so every reader of a
  *  persisted prescription gets it, whichever document it was nested in. */
 const migrateLegacyAddedWeight = (data: unknown): unknown => {
-  if (isLegacyBodyweight(data)) {
+  if (isLegacyAddedWeight(data)) {
     const { addedWeightLb, ...rest } = data;
     return { ...rest, addedWeight: addedWeightLb };
   } else {
@@ -235,6 +241,10 @@ export const Prescription = {
     args: Omit<TimedEffortPrescription, "type">,
   ): TimedEffortPrescription => ({ ...args, type: "timed-effort" }),
   TimedHold: (
-    args: Omit<TimedHoldPrescription, "type">,
-  ): TimedHoldPrescription => ({ ...args, type: "timed-hold" }),
+    args: Omit<TimedHoldPrescription, "type" | "unit"> & { unit?: LoadUnit },
+  ): TimedHoldPrescription => ({
+    ...args,
+    type: "timed-hold",
+    unit: args.unit ?? "lb",
+  }),
 };

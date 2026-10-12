@@ -194,7 +194,7 @@ const fullBodyB: readonly ExerciseSlot[] = [
     role: "accessory",
   },
   {
-    base: Prescription.TimedHold({ holdSec: 60, sets: 2 }),
+    base: Prescription.TimedHold({ holdSec: 60, sets: 2, unit: "kg" }),
     exerciseId: "plank",
     generateWarmup: false,
     id: "ahf-plank",
@@ -312,7 +312,7 @@ const fullBodyBWeek3: readonly ExerciseSlot[] = [
     role: "accessory",
   },
   {
-    base: Prescription.TimedHold({ holdSec: 60, sets: 3 }),
+    base: Prescription.TimedHold({ holdSec: 60, sets: 3, unit: "kg" }),
     exerciseId: "plank",
     generateWarmup: false,
     id: "ahf-plank",
@@ -374,7 +374,7 @@ const week4Lower: readonly ExerciseSlot[] = [
     role: "accessory",
   },
   {
-    base: Prescription.TimedHold({ holdSec: 60, sets: 2 }),
+    base: Prescription.TimedHold({ holdSec: 60, sets: 2, unit: "kg" }),
     exerciseId: "plank",
     generateWarmup: false,
     id: "ahf-plank",

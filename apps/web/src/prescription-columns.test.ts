@@ -65,9 +65,14 @@ describe("prescriptionColumns", () => {
 
   it("carries a timed hold's added load onto its hold", () => {
     const columns = prescriptionColumns(
-      Prescription.TimedHold({ addedWeightLb: 20, holdSec: 45, sets: 3 }),
+      Prescription.TimedHold({
+        addedWeight: 10,
+        holdSec: 45,
+        sets: 3,
+        unit: "kg",
+      }),
     );
-    expect(columns.load).toBe("45s hold +20 lb");
+    expect(columns.load).toBe("45s hold +10 kg");
   });
 
   it("puts timed-effort bouts in the scheme and the rest in the load", () => {

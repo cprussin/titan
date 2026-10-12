@@ -53,6 +53,34 @@ describe("prescriptionSchema", () => {
     ).toEqual(Prescription.Bodyweight({ addedWeight: 25, reps: 6, sets: 4 }));
   });
 
+  it("parses a metric weighted timed-hold prescription", () => {
+    const value = Prescription.TimedHold({
+      addedWeight: 5,
+      holdSec: 120,
+      sets: 3,
+      unit: "kg",
+    });
+    expect(prescriptionSchema.parse(value)).toEqual(value);
+  });
+
+  it("reads a legacy `addedWeightLb` timed-hold prescription as pounds", () => {
+    expect(
+      prescriptionSchema.parse({
+        addedWeightLb: 10,
+        holdSec: 120,
+        sets: 3,
+        type: "timed-hold",
+      }),
+    ).toEqual(
+      Prescription.TimedHold({
+        addedWeight: 10,
+        holdSec: 120,
+        sets: 3,
+        unit: "lb",
+      }),
+    );
+  });
+
   it("parses a band prescription", () => {
     const value = Prescription.Band({ reps: 10, sets: 3 });
     expect(prescriptionSchema.parse(value)).toEqual(value);
