@@ -110,7 +110,7 @@ const timedHoldLine = (
   const top = topBy(sets, (set) => set.holdSec ?? 0);
   return top === undefined || top.holdSec === undefined
     ? undefined
-    : `${top.holdSec}s${addedLoad(prescription.addedWeightLb, "lb")}`;
+    : `${top.holdSec}s${addedLoad(prescription.addedWeight, prescription.unit)}`;
 };
 
 /** The best bout: the most reps got through, the longer bout breaking a tie. A

@@ -159,6 +159,20 @@ describe("catalog", () => {
     }
   });
 
+  it("loads timed holds in kilograms", () => {
+    const holds = catalog.programs.flatMap(({ version }) =>
+      version.sessionTemplates
+        .flatMap(templateSlots)
+        .flatMap((slot) =>
+          slot.base.type === "timed-hold" ? [slot.base] : [],
+        ),
+    );
+    for (const hold of holds) {
+      expect(hold.unit).toBe("kg");
+    }
+    expect(holds.length).toBeGreaterThan(0);
+  });
+
   it("prescribes every farmer carry by time under load, never by reps", () => {
     for (const slot of carrySlots()) {
       expect(slot.base.type).toBe("timed-carry");

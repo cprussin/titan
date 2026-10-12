@@ -54,6 +54,19 @@ describe("describePrescription", () => {
     ).toBe("4×6 +10 kg");
   });
 
+  it("describes a weighted plank in kilograms", () => {
+    expect(
+      describePrescription(
+        Prescription.TimedHold({
+          addedWeight: 5,
+          holdSec: 120,
+          sets: 3,
+          unit: "kg",
+        }),
+      ),
+    ).toBe("3× 120s hold +5 kg");
+  });
+
   it("describes timed-effort work by its bouts, with the rest alongside", () => {
     expect(
       describePrescription(

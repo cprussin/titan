@@ -53,7 +53,7 @@ export const prescriptionColumns = (
     }
     case "timed-hold": {
       return {
-        load: `${prescription.holdSec}s hold${addedLoad(prescription.addedWeightLb, "lb")}`,
+        load: `${prescription.holdSec}s hold${addedLoad(prescription.addedWeight, prescription.unit)}`,
         scheme: `${prescription.sets}×`,
       };
     }
