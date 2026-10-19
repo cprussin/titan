@@ -4,7 +4,7 @@
     "@biomejs/biome": "^2.5.12",
     "@cprussin/option-result": "^2.0.1",
     "@cprussin/tsconfig": "^5.0.0",
-    "@happy-dom/global-registrator": "^20.14.0",
+    "@happy-dom/global-registrator": "^21.0.1",
     "@pandacss/dev": "^1.12.1",
     "@pandacss/preset-panda": "^1.12.1",
     "@phosphor-icons/react": "^2.1.10",
@@ -36,14 +36,14 @@
     "turbo": "catalog:"
   },
   "engines": {
-    "bun": ">=1.4.2",
+    "bun": ">=1.4.3",
     "node": ">=24"
   },
   "name": "titan",
   "overrides": {
-    "happy-dom": "20.14.5"
+    "happy-dom": "21.0.1"
   },
-  "packageManager": "bun@1.4.2",
+  "packageManager": "bun@1.4.3",
   "private": true,
   "scripts": {
     "build:install-modules": "[ $CI ] && true || bun install",
