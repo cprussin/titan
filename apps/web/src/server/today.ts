@@ -37,9 +37,23 @@ export type Today =
  *   session that offers a choice. Absent resolves the first one, so a preview
  *   still reads as a concrete plan.
  */
-export const resolveToday = async (
+export const resolveToday = (
   db: Db,
   userId: string,
+  scheduledDate: string,
+  alternativeId?: string,
+): Promise<Today> =>
+  resolveDay(db, userId, scheduledDate, scheduledDate, alternativeId);
+
+/**
+ * Resolve any day as seen from `today`: the program week its calendar week was
+ * (or will be) trained at, per the athlete's history. Filling in a missed past
+ * day resolves it this way, so it gets the session the dashboard showed for it.
+ */
+export const resolveDay = async (
+  db: Db,
+  userId: string,
+  today: string,
   scheduledDate: string,
   alternativeId?: string,
 ): Promise<Today> => {
@@ -52,12 +66,7 @@ export const resolveToday = async (
     : resolveScheduledDay(
         db,
         userId,
-        athleteAbsoluteWeek(
-          state,
-          completedDates,
-          scheduledDate,
-          scheduledDate,
-        ),
+        athleteAbsoluteWeek(state, completedDates, today, scheduledDate),
         scheduledDate,
         alternativeId,
       );

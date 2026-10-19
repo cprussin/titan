@@ -3,13 +3,19 @@ import type { PrescribedExercise } from "@titan/domain/workout-session";
 import { isSetBased } from "../set-based-prescription";
 import type { LoggedSessionView } from "./logged-session-view";
 import type { Today } from "./today";
-import type { WorkoutAction } from "./workout-action";
+import type { AlternativeChoice, WorkoutAction } from "./workout-action";
 
 /** The headline's primary action on the trailing edge. The weigh-in button
  *  lives beside it but is driven separately (it is always offered until logged),
- *  so it is not part of this. */
+ *  so it is not part of this. `fill-workout` logs a missed past day's session
+ *  after the fact, dated to that day. */
 export type DashboardPrimary =
   | { action: WorkoutAction; kind: "start-workout" }
+  | {
+      alternatives: readonly AlternativeChoice[];
+      date: string;
+      kind: "fill-workout";
+    }
   | { kind: "back-to-today" }
   | { kind: "none" };
 
@@ -54,8 +60,10 @@ export type DashboardView = {
 };
 
 export type DashboardViewInput = {
-  /** Today's launch action, for the pre-workout state. */
+  /** The selected day's launch action, for an unlogged workout day. */
   action: WorkoutAction | undefined;
+  /** The selected day. */
+  date: string;
   isFuture: boolean;
   isToday: boolean;
   /** The completed session for the selected day, when one exists. */
@@ -119,13 +127,13 @@ const restView = (input: DashboardViewInput): DashboardView => ({
   title: "Recovery",
 });
 
-/** A day showing its prescription — today's to launch, or a future day's
- *  engine projection. */
+/** A day showing its prescription — today's to launch, a missed past day's
+ *  to fill in, or a future day's engine projection. */
 const prescriptionView = (
   input: DashboardViewInput,
   selected: Extract<Today, { kind: "workout" }>,
 ): DashboardView => {
-  const projected = !input.isToday;
+  const projected = input.isFuture;
   const { estimatedDurationMin, prescribedExercises } = selected.resolved;
   return {
     body: {
@@ -133,17 +141,10 @@ const prescriptionView = (
       kind: "prescription",
       loadHeader: projected ? "Projected load" : "Load",
     },
-    eyebrow: eyebrow(
-      input,
-      projected
-        ? { text: `${input.weekLabel} · Projected`, tone: "tertiary" }
-        : undefined,
-    ),
-    primary: projected
-      ? { kind: "back-to-today" }
-      : actionPrimary(input.action),
+    eyebrow: eyebrow(input, prescriptionStatus(input)),
+    primary: prescriptionPrimary(input),
     session: {
-      label: projected ? "Projected session" : "Today's session",
+      label: prescriptionLabel(input),
       summary: projected
         ? `${prescribedExercises.length} exercises · ~${estimatedDurationMin} min · loads adjust as earlier sessions are logged`
         : `${prescribedExercises.length} exercises · ${totalSets(prescribedExercises)} sets · ~${estimatedDurationMin} min`,
@@ -184,6 +185,61 @@ const eyebrow = (
 /** The pre-workout primary action: the launch control when there is one. */
 const actionPrimary = (action: WorkoutAction | undefined): DashboardPrimary =>
   action === undefined ? { kind: "none" } : { action, kind: "start-workout" };
+
+/** The prescription's eyebrow status: none today, otherwise whether the day is
+ *  a projection ahead or a missed day behind. */
+const prescriptionStatus = (
+  input: DashboardViewInput,
+): DashboardEyebrow["status"] => {
+  if (input.isToday) {
+    return undefined;
+  } else {
+    return {
+      text: `${input.weekLabel} · ${input.isFuture ? "Projected" : "Missed"}`,
+      tone: "tertiary",
+    };
+  }
+};
+
+/** The prescription's primary action: today launches, a future day only leads
+ *  back, and a missed day is filled in. */
+const prescriptionPrimary = (input: DashboardViewInput): DashboardPrimary => {
+  if (input.isToday) {
+    return actionPrimary(input.action);
+  } else if (input.isFuture) {
+    return { kind: "back-to-today" };
+  } else {
+    return missedPrimary(input.action, input.date);
+  }
+};
+
+/** A missed day's action: fill it in, or continue a fill already under way. */
+const missedPrimary = (
+  action: WorkoutAction | undefined,
+  date: string,
+): DashboardPrimary => {
+  switch (action?.kind) {
+    case "start": {
+      return { alternatives: action.alternatives, date, kind: "fill-workout" };
+    }
+    case "continue": {
+      return { action, kind: "start-workout" };
+    }
+    case "done":
+    case undefined: {
+      return { kind: "back-to-today" };
+    }
+  }
+};
+
+/** The session block's label for a prescription day. */
+const prescriptionLabel = (input: DashboardViewInput): string => {
+  if (input.isToday) {
+    return "Today's session";
+  } else {
+    return input.isFuture ? "Projected session" : "Missed session";
+  }
+};
 
 /** The logged-session summary: exercises, sets, minutes, and average RPE when
  *  recorded. */

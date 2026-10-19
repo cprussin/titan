@@ -110,6 +110,23 @@ describe(DashboardHeader, () => {
     expect(screen.getByRole("button", { name: "Start workout" })).toBeDefined();
   });
 
+  it("offers to log a missed day's workout", () => {
+    wrap(
+      <DashboardHeader
+        load={loaded({
+          eyebrow,
+          primary: {
+            alternatives: [],
+            date: "2026-03-09",
+            kind: "fill-workout",
+          },
+          title: "Volume Upper",
+        })}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Log workout" })).toBeDefined();
+  });
+
   it("stands in skeletons while loading, with no headline or actions", () => {
     const { container } = wrap(<DashboardHeader load={{ isLoading: true }} />);
     expect(screen.queryByRole("heading")).toBeNull();

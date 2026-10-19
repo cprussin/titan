@@ -40,6 +40,7 @@ const loggedView: LoggedSessionView = {
 
 const base = {
   action: { alternatives: [], kind: "start" } as const,
+  date: "2026-03-11",
   isFuture: false,
   isToday: true,
   logged: undefined,
@@ -89,6 +90,44 @@ describe("dashboardView", () => {
     expect(view.body.kind === "prescription" && view.body.loadHeader).toBe(
       "Projected load",
     );
+  });
+
+  it("past missed day: missed status, fill action for that date, missed-session header", () => {
+    const view = dashboardView({
+      ...base,
+      action: { alternatives: [{ id: "row", label: "Row" }], kind: "start" },
+      date: "2026-03-09",
+      isToday: false,
+      selected: workout("Volume Upper"),
+      weekLabel: "MON 9",
+    });
+    expect(view.eyebrow.status).toEqual({
+      text: "MON 9 · Missed",
+      tone: "tertiary",
+    });
+    expect(view.primary).toEqual({
+      alternatives: [{ id: "row", label: "Row" }],
+      date: "2026-03-09",
+      kind: "fill-workout",
+    });
+    expect(view.session?.label).toBe("Missed session");
+    expect(view.session?.summary).toBe("2 exercises · 8 sets · ~62 min");
+    expect(view.body.kind === "prescription" && view.body.loadHeader).toBe(
+      "Load",
+    );
+  });
+
+  it("past day with a fill in progress offers to continue it", () => {
+    const view = dashboardView({
+      ...base,
+      action: { kind: "continue", sessionId: "s1" },
+      isToday: false,
+      selected: workout("Volume Upper"),
+    });
+    expect(view.primary).toEqual({
+      action: { kind: "continue", sessionId: "s1" },
+      kind: "start-workout",
+    });
   });
 
   it("past logged day: logged status, logged-session header with summary, log grid", () => {
