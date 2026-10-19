@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.4.2"
+          bun-version: "1.4.3"
       # Persist turbo's local cache across runs via the GitHub Actions cache.
       # `restore-keys` lets a run fall back to main's cache, so unchanged
       # packages are a cache hit instead of a rebuild.
