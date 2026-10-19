@@ -118,6 +118,7 @@ const DashboardPage = async ({
 
   const view = dashboardView({
     action: resolveWorkoutAction(selected, sessions, selectedDate),
+    date: selectedDate,
     isFuture: selectedDate > today,
     isToday: selectedDate === today,
     logged,

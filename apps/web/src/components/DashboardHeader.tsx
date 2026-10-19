@@ -8,6 +8,7 @@ import type {
   DashboardPrimary,
 } from "../server/dashboard-view";
 import { Button, Skeleton } from "../ui";
+import { FillWorkout } from "./FillWorkout";
 import { WeighInButton } from "./WeighInButton";
 import { WorkoutActionControl } from "./WorkoutActionControl";
 
@@ -87,6 +88,11 @@ const PrimaryAction = ({ primary }: { primary: DashboardPrimary }) => {
     }
     case "start-workout": {
       return <WorkoutActionControl action={primary.action} size="xl" />;
+    }
+    case "fill-workout": {
+      return (
+        <FillWorkout alternatives={primary.alternatives} date={primary.date} />
+      );
     }
     case "back-to-today": {
       return (
