@@ -7,11 +7,11 @@ import { progressAmrap } from "./amrap";
 const policy = ProgressionPolicy.Amrap({ repCap: 15, sets: 3 });
 const base = Prescription.Bodyweight({ reps: 10, sets: 3 });
 
-const result = (reps: readonly number[]): ExerciseResult => ({
+const result = (reps: readonly number[], target = 10): ExerciseResult => ({
   exerciseId: "ab-wheel",
   id: `r-${reps.join("-")}`,
   prescription: Prescription.Bodyweight({
-    reps: reps[0] ?? 0,
+    reps: target,
     sets: reps.length,
   }),
   sets: reps.map((count, setIndex) => ({
@@ -29,23 +29,37 @@ describe("progressAmrap", () => {
     expect(outcome.explanation).toContain("Work toward 3×15");
   });
 
-  it("keeps working toward the cap when sets finished below it", () => {
-    const outcome = progressAmrap(policy, base, [result([10, 10, 10])]);
-    expect(outcome.explanation).toContain("Work toward 3×15");
-    expect(outcome.explanation).not.toContain("rep cap reached");
+  it("adds a rep over the weakest set once every set met its target", () => {
+    const outcome = progressAmrap(policy, base, [result([13, 12, 12], 12)]);
+    expect(outcome.action).toBe("increase-reps");
+    expect(outcome.prescription).toEqual(
+      Prescription.Bodyweight({ reps: 13, sets: 3 }),
+    );
   });
 
-  it("does not report the cap reached from a short, low session", () => {
+  it("holds the last target when a set fell short of it", () => {
+    const outcome = progressAmrap(policy, base, [result([12, 12, 9], 12)]);
+    expect(outcome.action).toBe("repeat");
+    expect(outcome.prescription).toEqual(
+      Prescription.Bodyweight({ reps: 12, sets: 3 }),
+    );
+  });
+
+  it("never prescribes below the base", () => {
     const outcome = progressAmrap(policy, base, [result([6, 6])]);
+    expect(outcome.prescription).toEqual(base);
     expect(outcome.explanation).not.toContain("rep cap reached");
   });
 
-  it("reports the cap reached only once every set hits it", () => {
-    const outcome = progressAmrap(policy, base, [result([15, 15, 15])]);
+  it("holds at the cap once every set hits it", () => {
+    const outcome = progressAmrap(policy, base, [result([15, 15, 15], 14)]);
+    expect(outcome.prescription).toEqual(
+      Prescription.Bodyweight({ reps: 15, sets: 3 }),
+    );
     expect(outcome.explanation).toContain("rep cap reached");
   });
 
-  it("still works toward the cap when only some sets hit it", () => {
+  it("does not report the cap reached when only some sets hit it", () => {
     const outcome = progressAmrap(policy, base, [result([15, 15, 10])]);
     expect(outcome.explanation).not.toContain("rep cap reached");
   });
