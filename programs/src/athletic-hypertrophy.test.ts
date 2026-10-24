@@ -7,6 +7,7 @@ import type {
 } from "@titan/domain/program";
 import { athleticHealthFoundationV1 } from "./athletic-health-foundation";
 import { athleticHypertrophyV1 } from "./athletic-hypertrophy";
+import { exercises } from "./exercises";
 
 const templateIn = (version: ProgramVersion, id: string): SessionTemplate => {
   const template = version.sessionTemplates.find((entry) => entry.id === id);
@@ -48,6 +49,15 @@ describe("athletic hypertrophy", () => {
 
   const fridaySlots = (): readonly ExerciseSlot[] =>
     templateById("athletic-hypertrophy-upper").slots ?? [];
+
+  const fridaySlot = (exerciseId: string): ExerciseSlot => {
+    const slot = fridaySlots().find((entry) => entry.exerciseId === exerciseId);
+    if (slot === undefined) {
+      throw new Error(`missing friday slot ${exerciseId}`);
+    } else {
+      return slot;
+    }
+  };
 
   it("lays the week out upper, long aerobic, lower, zone 2, upper, intervals, recovery", () => {
     const days = hypertrophyBlock().weekTemplate.days;
@@ -110,49 +120,90 @@ describe("athletic hypertrophy", () => {
     });
   });
 
-  it("works the friday upper day as a fixed hypertrophy session", () => {
+  it("works the friday upper day as a fixed hypertrophy session with a core finisher", () => {
     expect(
       fridaySlots().map((slot) => [
         slot.exerciseId,
-        slot.base.type === "strength" ? slot.base.sets : undefined,
+        slot.base.type,
+        "sets" in slot.base ? slot.base.sets : undefined,
         slot.progression.kind === "double"
           ? [slot.progression.minReps, slot.progression.maxReps]
-          : undefined,
+          : slot.progression.kind,
         slot.role,
       ]),
     ).toEqual([
-      ["incline-bench-press", 4, [8, 10], "primary"],
-      ["chest-supported-row", 3, [8, 12], "secondary"],
-      ["lateral-raise", 4, [12, 20], "accessory"],
-      ["rear-delt-fly", 3, [12, 20], "accessory"],
-      ["hammer-curl", 3, [8, 12], "accessory"],
-      ["overhead-triceps-extension", 3, [10, 15], "accessory"],
-      ["dumbbell-fly", 2, [12, 15], "accessory"],
+      ["incline-bench-press", "strength", 4, [8, 10], "primary"],
+      ["chest-supported-row", "strength", 3, [8, 12], "secondary"],
+      ["lateral-raise", "strength", 4, [12, 20], "accessory"],
+      ["rear-delt-fly", "strength", 3, [12, 20], "accessory"],
+      ["hammer-curl", "strength", 3, [8, 12], "accessory"],
+      ["overhead-triceps-extension", "strength", 3, [10, 15], "accessory"],
+      ["dumbbell-fly", "strength", 2, [12, 15], "accessory"],
+      ["hanging-knee-raise", "bodyweight", 3, [10, 15], "accessory"],
+      ["side-plank", "timed-hold", 2, "timed-hold", "accessory"],
     ]);
   });
 
+  it("totals 27 working sets in 70 minutes on friday, each side plank set covering both sides", () => {
+    expect(templateById("athletic-hypertrophy-upper").targetDurationMin).toBe(
+      70,
+    );
+    expect(
+      fridaySlots().reduce(
+        (total, slot) => total + ("sets" in slot.base ? slot.base.sets : 0),
+        0,
+      ),
+    ).toBe(27);
+    expect(
+      exercises.find((exercise) => exercise.id === "side-plank")?.isUnilateral,
+    ).toBe(true);
+    expect(fridaySlot("side-plank").note).toContain("each side");
+  });
+
   it("adds reps before load, starting each slot at the bottom of its range", () => {
-    for (const slot of fridaySlots()) {
+    for (const slot of fridaySlots().filter(
+      (entry) => entry.base.type !== "timed-hold",
+    )) {
       expect(slot.progression).toMatchObject({ kind: "double", rpeCap: 8 });
       expect(slot.base).toMatchObject({
         reps:
           slot.progression.kind === "double"
             ? slot.progression.minReps
             : undefined,
-        rpeTarget: 8,
       });
+    }
+    for (const slot of fridaySlots().filter(
+      (entry) => entry.base.type === "strength",
+    )) {
+      expect(slot.base).toMatchObject({ rpeTarget: 8 });
     }
   });
 
-  it("spells out rest and reps in reserve on every friday slot", () => {
-    const [incline, row, ...isolation] = fridaySlots();
+  it("caps the side plank hold at 45s, loading it rather than holding longer", () => {
+    expect(fridaySlot("side-plank")).toMatchObject({
+      base: { holdSec: 30, sets: 2, type: "timed-hold", unit: "kg" },
+      progression: {
+        addWeightAfterSec: 45,
+        holdIncrementSec: 5,
+        kind: "timed-hold",
+        sets: 2,
+        startSec: 30,
+      },
+    });
+  });
+
+  it("spells out rest on every friday slot", () => {
+    const [incline, row, ...rest] = fridaySlots();
     for (const compound of [incline, row]) {
       expect(compound?.note).toContain("Rest 2–3 min");
       expect(compound?.note).toContain("1–3 reps in reserve");
     }
-    for (const slot of isolation) {
+    for (const slot of rest.filter(
+      (entry) => entry.exerciseId !== "side-plank",
+    )) {
       expect(slot.note).toContain("Rest 60–90s");
     }
+    expect(fridaySlot("side-plank").note).toContain("Rest 30–60s");
   });
 
   it("offers an optional easy 10k beside the foundation recovery day", () => {

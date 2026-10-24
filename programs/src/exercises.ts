@@ -270,4 +270,13 @@ export const exercises: readonly Exercise[] = [
     movementPattern: "horizontal-push",
     name: "Dumbbell Fly",
   },
+  {
+    id: "hanging-knee-raise",
+    isUnilateral: false,
+    modality: "bodyweight",
+    movementPattern: "core",
+    name: "Hanging Knee Raise",
+    notes:
+      "Hang from the bar with arms extended. Raise the knees toward the chest with a slight posterior pelvic tilt at the top, then lower under control — no swinging or momentum.",
+  },
 ];
