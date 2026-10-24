@@ -18,7 +18,8 @@ import {
 /**
  * Program 5 — Athletic Hypertrophy. An eight-week evolution of the Foundation
  * Block that keeps its aerobic work and moves its sessions to new days, trading
- * Friday's rotating Athletic Day for a fixed upper-body hypertrophy session.
+ * Friday's rotating Athletic Day for a fixed upper-body hypertrophy session
+ * with a direct core finisher.
  *
  * It is its own program rather than a block after Foundation so the athlete
  * only reaches it by selecting it. The moved sessions spread the Foundation
@@ -151,9 +152,38 @@ const upperHypertrophy: SessionTemplate = {
       sets: 2,
       weight: 30,
     }),
+    {
+      base: Prescription.Bodyweight({ reps: 10, sets: 3 }),
+      exerciseId: "hanging-knee-raise",
+      generateWarmup: false,
+      id: "athletic-hypertrophy-upper-hanging-knee-raise",
+      note: "Rest 60–90s between sets. Build reps before difficulty; once 3×15 is clean, progress to hanging straight-leg raises.",
+      progression: ProgressionPolicy.Double({
+        increment: 5,
+        maxReps: 15,
+        minReps: 10,
+        rpeCap: 8,
+        sets: 3,
+      }),
+      role: "accessory",
+    },
+    {
+      base: Prescription.TimedHold({ holdSec: 30, sets: 2, unit: "kg" }),
+      exerciseId: "side-plank",
+      generateWarmup: false,
+      id: "athletic-hypertrophy-upper-side-plank",
+      note: "Each set is one hold on each side: body straight, hips up, ribs stacked over the pelvis. Rest 30–60s between sides as needed. Past 45s, progress to a harder variation rather than holding longer.",
+      progression: ProgressionPolicy.TimedHold({
+        addWeightAfterSec: 45,
+        holdIncrementSec: 5,
+        sets: 2,
+        startSec: 30,
+      }),
+      role: "accessory",
+    },
   ],
   tags: ["hypertrophy-upper"],
-  targetDurationMin: 60,
+  targetDurationMin: 70,
 };
 
 const hypertrophyRowIntervals: SessionTemplate = {
