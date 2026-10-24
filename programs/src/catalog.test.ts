@@ -112,8 +112,15 @@ const slotOrdersWithCarry = (): readonly (readonly string[])[] =>
     .filter((order) => order.includes("farmer-carry"));
 
 describe("catalog", () => {
-  it("contains the four initial programs", () => {
-    expect(catalog.programs).toHaveLength(4);
+  it("contains the four initial programs and athletic hypertrophy", () => {
+    expect(catalog.programs.map(({ program }) => program.id)).toEqual([
+      // First, because a fresh athlete is placed in the first program.
+      "athletic-health-foundation",
+      "rowing-performance",
+      "strength-power",
+      "fat-loss-maintenance",
+      "athletic-hypertrophy",
+    ]);
   });
 
   it("holds valid program and program-version data", () => {
