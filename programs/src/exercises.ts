@@ -1,7 +1,7 @@
 import type { Exercise } from "@titan/domain/exercise";
 
 /**
- * Every movement referenced by the four initial programs. Exercises are shared,
+ * Every movement referenced by the bundled programs. Exercises are shared,
  * global entities; a program references them by id and never embeds progression
  * logic (that lives on the slot's policy).
  */
@@ -234,5 +234,40 @@ export const exercises: readonly Exercise[] = [
     modality: "band",
     movementPattern: "triceps",
     name: "Band Triceps Pushdown",
+  },
+  {
+    id: "incline-bench-press",
+    isUnilateral: false,
+    modality: "barbell",
+    movementPattern: "horizontal-push",
+    name: "Incline Bench Press",
+  },
+  {
+    id: "chest-supported-row",
+    isUnilateral: false,
+    modality: "dumbbell",
+    movementPattern: "horizontal-pull",
+    name: "Chest-Supported Row",
+  },
+  {
+    id: "rear-delt-fly",
+    isUnilateral: false,
+    modality: "dumbbell",
+    movementPattern: "delt",
+    name: "Rear-Delt Fly",
+  },
+  {
+    id: "overhead-triceps-extension",
+    isUnilateral: false,
+    modality: "dumbbell",
+    movementPattern: "triceps",
+    name: "Overhead Triceps Extension",
+  },
+  {
+    id: "dumbbell-fly",
+    isUnilateral: false,
+    modality: "dumbbell",
+    movementPattern: "horizontal-push",
+    name: "Dumbbell Fly",
   },
 ];

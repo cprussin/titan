@@ -9,6 +9,7 @@
   },
   "exports": {
     "./athletic-health-foundation": "./src/athletic-health-foundation.ts",
+    "./athletic-hypertrophy": "./src/athletic-hypertrophy.ts",
     "./catalog": "./src/catalog.ts",
     "./exercises": "./src/exercises.ts",
     "./fat-loss-maintenance": "./src/fat-loss-maintenance.ts",

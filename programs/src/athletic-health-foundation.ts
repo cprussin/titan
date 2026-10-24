@@ -33,7 +33,7 @@ export const athleticHealthFoundation: Program = {
   name: "Athletic Health Foundation",
 };
 
-const heavyLower: SessionTemplate = {
+export const heavyLower: SessionTemplate = {
   constraints: { preferredDay: 1 },
   focus: "squat",
   id: "foundation-heavy-lower",
@@ -140,7 +140,7 @@ const rowIntervalProgression = ProgressionPolicy.Interval({
   rpeCap: 8.5,
 });
 
-const rowIntervals: SessionTemplate = {
+export const rowIntervals: SessionTemplate = {
   constraints: {
     allowedDays: [1, 2, 3, 4],
     avoidPreviousDayTags: ["hard-row", "heavy-lower"],
@@ -242,7 +242,7 @@ const isolationNote =
  *
  * @param extraNote - Slot-specific coaching appended to {@link isolationNote}.
  */
-const isolationSlot = ({
+export const isolationSlot = ({
   exerciseId,
   extraNote,
   id,
@@ -275,7 +275,7 @@ const isolationSlot = ({
   role: "accessory",
 });
 
-const heavyUpper: SessionTemplate = {
+export const heavyUpper: SessionTemplate = {
   constraints: { preferredDay: 3 },
   focus: "horizontal-push",
   id: "foundation-heavy-upper",
@@ -409,7 +409,7 @@ const heavyUpper: SessionTemplate = {
   targetDurationMin: 75,
 };
 
-const zone2Row: SessionTemplate = {
+export const zone2Row: SessionTemplate = {
   constraints: { preferredDay: 4 },
   focus: "cardio",
   id: "foundation-zone2-row",
@@ -684,7 +684,7 @@ const athleticDay: SessionTemplate = {
  *  about the week decides which one runs. Each keeps its own slot id, so a
  *  choice's history (and its Concept2 matching, for the row) carries across the
  *  Saturdays it is picked. */
-const longEasyCardio: SessionTemplate = {
+export const longEasyCardio: SessionTemplate = {
   alternatives: [
     {
       id: "foundation-long-easy-cardio-row",
@@ -763,22 +763,22 @@ const longEasyCardio: SessionTemplate = {
   targetDurationMin: 75,
 };
 
+export const recoveryEasyMovement: ExerciseSlot = {
+  base: Prescription.TimedCardio({ durationSec: 1200, targetHrZone: 1 }),
+  exerciseId: "rower",
+  generateWarmup: false,
+  id: "foundation-recovery-easy-row",
+  note: "Any easy movement — walk, mobility, or a sub-20-minute easy row.",
+  progression: ProgressionPolicy.None(),
+  role: "accessory",
+};
+
 const recovery: SessionTemplate = {
   constraints: { preferredDay: 7 },
   focus: "cardio",
   id: "foundation-recovery",
   name: "Recovery",
-  slots: [
-    {
-      base: Prescription.TimedCardio({ durationSec: 1200, targetHrZone: 1 }),
-      exerciseId: "rower",
-      generateWarmup: false,
-      id: "foundation-recovery-easy-row",
-      note: "Any easy movement — walk, mobility, or a sub-20-minute easy row.",
-      progression: ProgressionPolicy.None(),
-      role: "accessory",
-    },
-  ],
+  slots: [recoveryEasyMovement],
   tags: ["recovery"],
   targetDurationMin: 30,
 };
