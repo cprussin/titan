@@ -4,7 +4,9 @@ import {
   exchangeCode,
   fetchUserInfo,
   GOOGLE_TOKEN_URL,
+  GOOGLE_TOKENINFO_URL,
   GOOGLE_USERINFO_URL,
+  verifyIdToken,
 } from "./google";
 
 const recording = (response: Response) => {
@@ -109,5 +111,63 @@ describe("fetchUserInfo", () => {
   it("throws when the userinfo endpoint responds non-OK", () => {
     const { fetch } = recording(jsonResponse({ error: "bad" }, 401));
     expect(fetchUserInfo("access-123", fetch)).rejects.toThrow();
+  });
+});
+
+describe("verifyIdToken", () => {
+  const claims = {
+    aud: "client-1",
+    email: "athlete@example.com",
+    email_verified: "true",
+    exp: "1793000000",
+    iss: "https://accounts.google.com",
+    name: "Ada Lovelace",
+    picture: "https://example.com/ada.jpg",
+    sub: "12345",
+  };
+
+  it("asks Google to check the ID token and returns its profile", async () => {
+    const { calls, fetch } = recording(jsonResponse(claims));
+    expect(await verifyIdToken("id-123", "client-1", fetch)).toEqual({
+      email: "athlete@example.com",
+      email_verified: true,
+      name: "Ada Lovelace",
+      picture: "https://example.com/ada.jpg",
+      sub: "12345",
+    });
+    expect(String(calls[0]?.[0])).toBe(
+      `${GOOGLE_TOKENINFO_URL}?id_token=id-123`,
+    );
+  });
+
+  it("refuses a token issued to another client", async () => {
+    const { fetch } = recording(jsonResponse({ ...claims, aud: "other" }));
+    expect(await verifyIdToken("id-123", "client-1", fetch)).toBeUndefined();
+  });
+
+  it("refuses a token from another issuer", async () => {
+    const { fetch } = recording(
+      jsonResponse({ ...claims, iss: "https://evil.example" }),
+    );
+    expect(await verifyIdToken("id-123", "client-1", fetch)).toBeUndefined();
+  });
+
+  it("refuses a token Google rejects", async () => {
+    const { fetch } = recording(jsonResponse({ error: "invalid_token" }, 400));
+    expect(await verifyIdToken("id-123", "client-1", fetch)).toBeUndefined();
+  });
+
+  it("throws when Google is unavailable", () => {
+    const { fetch } = recording(jsonResponse({}, 503));
+    expect(verifyIdToken("id-123", "client-1", fetch)).rejects.toThrow();
+  });
+
+  it("reads an unverified email as unverified", async () => {
+    const { fetch } = recording(
+      jsonResponse({ ...claims, email_verified: "false" }),
+    );
+    expect(
+      (await verifyIdToken("id-123", "client-1", fetch))?.email_verified,
+    ).toBe(false);
   });
 });

@@ -89,6 +89,16 @@ private data class TokenBody(
 )
 
 @Serializable
+private data class GoogleSignInBody(
+    val idToken: String,
+)
+
+@Serializable
+data class AppConfig(
+    val googleClientId: String,
+)
+
+@Serializable
 private data class ActiveProgramBody(
     val blockId: String,
     val versionId: String,
@@ -189,6 +199,12 @@ class TitanApi(
         handoff: String,
         verifier: String,
     ): TokenResponse = send("POST", "/api/v1/auth/app/token", TokenBody(handoff, verifier))
+
+    suspend fun appConfig(): AppConfig = get("/api/v1/auth/app/config")
+
+    /** In-app sign-in: trade the Google ID token Credential Manager returned for a session. */
+    suspend fun signInWithGoogle(idToken: String): TokenResponse =
+        send("POST", "/api/v1/auth/app/google", GoogleSignInBody(idToken))
 
     private suspend inline fun <reified T> get(path: String): T = decode(serializer(), call("GET", path, null))
 

@@ -36,6 +36,15 @@ only install over a build signed with the same key, so set the secrets for a
 key that never expires out of the cache. Without any keystore, release builds
 fall back to the debug key.
 
+## Sign-in
+
+The app signs in with a Google account on the device (Credential Manager) and
+trades the ID token at `/api/v1/auth/app/google`. Google only issues that token
+to an app it knows, so the server's Google Cloud project needs an **Android**
+OAuth client for package `net.prussin.titan` with the release key's SHA-1
+(`keytool -list -v -keystore titan.jks -alias titan`). Without one, the app
+falls back to signing in through the browser.
+
 ## Install
 
 Download `titan.apk` from the latest `android-*` release on the phone, allow
