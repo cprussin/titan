@@ -1,7 +1,9 @@
 import { describe, expect, it } from "bun:test";
 import {
   APP_SIGN_IN_ORIGIN,
+  appDeepLink,
   codeChallenge,
+  forbiddenRedirect,
   handoffRedirect,
   redeemAppHandoff,
 } from "./app-sign-in";
@@ -19,17 +21,55 @@ describe("codeChallenge", () => {
   });
 });
 
+const proxy = "https://titan.example.com";
+
 describe("handoffRedirect", () => {
   it("returns a web deployment to its completion route", () => {
-    expect(handoffRedirect("https://titan.example.com", "tok")).toBe(
-      "https://titan.example.com/api/auth/complete?token=tok",
+    expect(handoffRedirect(proxy, "https://preview.example.com", "tok")).toBe(
+      "https://preview.example.com/api/auth/complete?token=tok",
     );
   });
 
-  it("returns the Android app to its sign-in deep link", () => {
-    expect(handoffRedirect(APP_SIGN_IN_ORIGIN, "tok")).toBe(
-      "titan://auth?token=tok",
+  it("returns the Android app through its https return page", () => {
+    expect(handoffRedirect(proxy, APP_SIGN_IN_ORIGIN, "tok")).toBe(
+      "https://titan.example.com/api/v1/auth/app/return?token=tok",
     );
+  });
+});
+
+describe("forbiddenRedirect", () => {
+  it("returns a web deployment to its login page", () => {
+    expect(forbiddenRedirect(proxy, "https://preview.example.com")).toBe(
+      "https://preview.example.com/login?error=forbidden",
+    );
+  });
+
+  it("returns the Android app through its https return page", () => {
+    expect(forbiddenRedirect(proxy, APP_SIGN_IN_ORIGIN)).toBe(
+      "https://titan.example.com/api/v1/auth/app/return?error=forbidden",
+    );
+  });
+});
+
+describe("appDeepLink", () => {
+  const link = (query: string) => appDeepLink(new URLSearchParams(query));
+
+  it("opens the app's deep link with the handoff", () => {
+    expect(link("token=eyJh.b-c_d")).toBe(
+      "intent://auth?token=eyJh.b-c_d#Intent;scheme=titan;package=net.prussin.titan;end",
+    );
+  });
+
+  it("opens the app's deep link with a refusal", () => {
+    expect(link("error=forbidden")).toBe(
+      "intent://auth?error=forbidden#Intent;scheme=titan;package=net.prussin.titan;end",
+    );
+  });
+
+  it("refuses anything else", () => {
+    expect(link("token=%22%3E%3Cscript%3E")).toBeUndefined();
+    expect(link("error=other")).toBeUndefined();
+    expect(link("")).toBeUndefined();
   });
 });
 
