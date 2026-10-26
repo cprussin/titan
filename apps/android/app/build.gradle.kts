@@ -63,6 +63,11 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     implementation(libs.activity.compose)
     implementation(libs.browser)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services)
+    implementation(libs.googleid)
+    // Play services auth pulls Fragment 1.1, which the ActivityResult lint rejects.
+    implementation(libs.fragment)
     implementation(libs.core.ktx)
     implementation(libs.work.runtime)
     implementation(libs.lifecycle.runtime.compose)

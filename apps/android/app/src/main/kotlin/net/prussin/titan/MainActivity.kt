@@ -16,9 +16,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import net.prussin.titan.auth.GoogleAccount
+import net.prussin.titan.auth.pickGoogleAccount
+import net.prussin.titan.core.api.HttpException
 import net.prussin.titan.core.api.TitanApi
 import net.prussin.titan.core.auth.Pkce
 import net.prussin.titan.core.auth.handoffFrom
+import net.prussin.titan.core.wire.TokenResponse
 import net.prussin.titan.reminder.Reminders
 import net.prussin.titan.ui.LocalGraph
 import net.prussin.titan.ui.TitanAppUi
@@ -79,17 +83,45 @@ class MainActivity : ComponentActivity() {
         val uri = intent?.data?.toString() ?: return
         intent.data = null
         when {
-            uri.contains("error=forbidden") -> signInError.value = "That Google account isn't allowed to sign in."
-            uri.contains("error=") -> signInError.value = "Sign-in failed. Please try again."
+            uri.contains("error=forbidden") -> signInError.value = FORBIDDEN
+            uri.contains("error=") -> signInError.value = FAILED
             else -> handoffFrom(uri)?.let(::redeem)
         }
     }
 
+    /** Sign in with an account on the device, falling back to the browser
+     *  when in-app sign-in isn't available. */
     private fun signIn(baseUrl: String) {
         graph.session.setBaseUrl(baseUrl)
+        signInError.value = null
+        signingIn.value = true
+        lifecycleScope.launch {
+            val account =
+                try {
+                    pickGoogleAccount(this@MainActivity, graph.api.appConfig().googleClientId)
+                } catch (_: Exception) {
+                    GoogleAccount.Unavailable
+                }
+            when (account) {
+                is GoogleAccount.Picked -> {
+                    complete { graph.api.signInWithGoogle(account.idToken) }
+                }
+
+                GoogleAccount.Cancelled -> {
+                    signingIn.value = false
+                }
+
+                GoogleAccount.Unavailable -> {
+                    signingIn.value = false
+                    browserSignIn()
+                }
+            }
+        }
+    }
+
+    private fun browserSignIn() {
         val pkce = Pkce.create()
         graph.session.pendingVerifier = pkce.verifier
-        signInError.value = null
         CustomTabsIntent
             .Builder()
             .build()
@@ -99,18 +131,23 @@ class MainActivity : ComponentActivity() {
     private fun redeem(handoff: String) {
         val verifier = graph.session.pendingVerifier ?: return
         signingIn.value = true
-        lifecycleScope.launch {
-            try {
-                val response = graph.api.redeemHandoff(handoff, verifier)
-                graph.session.signIn(response.token, response.user.email)
-                Reminders.schedule(this@MainActivity)
-                graph.sync.syncNow()
-                graph.repository.refreshPlan()
-            } catch (_: Exception) {
-                signInError.value = "Sign-in failed. Please try again."
-            } finally {
-                signingIn.value = false
-            }
+        lifecycleScope.launch { complete { graph.api.redeemHandoff(handoff, verifier) } }
+    }
+
+    private suspend fun complete(signIn: suspend () -> TokenResponse) {
+        try {
+            val response = signIn()
+            graph.session.signIn(response.token, response.user.email)
+            Reminders.schedule(this@MainActivity)
+            graph.sync.syncNow()
+            graph.repository.refreshPlan()
+        } catch (error: HttpException) {
+            signInError.value =
+                if (error.code == 403) FORBIDDEN else FAILED
+        } catch (_: Exception) {
+            signInError.value = FAILED
+        } finally {
+            signingIn.value = false
         }
     }
 
@@ -118,5 +155,7 @@ class MainActivity : ComponentActivity() {
         const val EXTRA_OPEN = "net.prussin.titan.OPEN"
         const val OPEN_WORKOUT = "workout"
         const val OPEN_WEIGH_IN = "weigh-in"
+        private const val FORBIDDEN = "That Google account isn't allowed to sign in."
+        private const val FAILED = "Sign-in failed. Please try again."
     }
 }
