@@ -11,6 +11,14 @@ import type { Today } from "./today";
 
 type WorkoutToday = Extract<Today, { kind: "workout" }>;
 
+/** The new session's id and start time. The Android app supplies both, so a
+ *  workout started offline keeps its id and the time it really began; the web
+ *  leaves them to the server. */
+export type WorkoutStart = {
+  id: string;
+  startedAt: string;
+};
+
 /**
  * Start today's workout, returning the session id to navigate into. Idempotent:
  * if an in-progress session already exists for the day it is returned as-is, so
@@ -23,13 +31,14 @@ export const startWorkout = async (
   userId: string,
   today: WorkoutToday,
   readinessId: string | undefined,
+  start: WorkoutStart,
 ): Promise<string> => {
   const existing = findResumableSession(
     await listWorkoutSessions(db, userId, 50),
     today.scheduledDate,
   );
   return existing === undefined
-    ? createWorkout(db, userId, today, readinessId)
+    ? createWorkout(db, userId, today, readinessId, start)
     : existing.id;
 };
 
@@ -38,10 +47,11 @@ const createWorkout = async (
   userId: string,
   today: WorkoutToday,
   readinessId: string | undefined,
+  start: WorkoutStart,
 ): Promise<string> => {
   const { decisions, session } = buildSession({
     blockId: today.position.block.id,
-    createdAt: new Date().toISOString(),
+    createdAt: start.startedAt,
     dayOfWeek: today.dayOfWeek,
     decisions: today.resolved.decisions,
     estimatedDurationMin: today.resolved.estimatedDurationMin,
@@ -50,6 +60,7 @@ const createWorkout = async (
     programVersionId: today.programVersion.id,
     readinessId,
     scheduledDate: today.scheduledDate,
+    sessionId: start.id,
     sessionTemplateId: today.template.id,
     userId,
     variantLabel: today.resolved.variantLabel,

@@ -46,3 +46,9 @@ describe("isOriginAllowed", () => {
     expect(isOriginAllowed(proxy, suffix, "not a url")).toBe(false);
   });
 });
+
+describe("isOriginAllowed for the Android app", () => {
+  it("allows the app's sign-in origin", () => {
+    expect(isOriginAllowed(proxy, undefined, "titan://auth")).toBe(true);
+  });
+});

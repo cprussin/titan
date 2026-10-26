@@ -1,6 +1,9 @@
+import { APP_SIGN_IN_ORIGIN } from "./app-sign-in";
+
 /** Guards which deployment origins may receive an authenticated session
  *  handoff. The production origin — where Google's single redirect URI is
- *  registered — is always allowed. Preview deployments are allowed only when a
+ *  registered — is always allowed, as is the Android app, whose handoff is
+ *  bound to a PKCE challenge only it can answer (see `app-sign-in.ts`). Preview deployments are allowed only when a
  *  host suffix is configured and the origin is an `https` URL whose host ends
  *  with it, scoping handoffs to the project's own preview domains. */
 export const isOriginAllowed = (
@@ -8,7 +11,7 @@ export const isOriginAllowed = (
   previewHostSuffix: string | undefined,
   origin: string,
 ): boolean => {
-  if (origin === proxyOrigin) {
+  if (origin === proxyOrigin || origin === APP_SIGN_IN_ORIGIN) {
     return true;
   } else if (previewHostSuffix === undefined) {
     return false;

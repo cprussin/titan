@@ -11,10 +11,12 @@ import type { WorkoutSession } from "@titan/domain/workout-session";
  * was lost, say — replaces its earlier result in place rather than logging the
  * slot twice, so recording is idempotent per slot.
  *
- * The time is stamped here, so only the server decides when a result was
- * recorded, and a replacement keeps the time its slot was first recorded: the
- * log is read as a timeline (see `session-duration.ts`), so a slot re-recorded
- * later must not jump ahead of the pieces that followed it.
+ * The time is stamped here: the time the app says it recorded the result —
+ * an exercise logged offline reaches the server only when the phone reconnects
+ * — but never later than the server's own clock, else `now`. A replacement
+ * keeps the time its slot was first recorded: the log is read as a timeline
+ * (see `session-duration.ts`), so a slot re-recorded later must not jump ahead
+ * of the pieces that followed it.
  */
 export const recordWorkoutResults = (
   session: WorkoutSession,
@@ -24,7 +26,10 @@ export const recordWorkoutResults = (
   const prior = session.results.find(
     (result) => result.slotId === recorded.slotId,
   );
-  const stamped = { ...recorded, recordedAt: prior?.recordedAt ?? now };
+  const stamped = {
+    ...recorded,
+    recordedAt: prior?.recordedAt ?? recordedTime(recorded, now),
+  };
   return {
     ...session,
     inProgress: undefined,
@@ -36,3 +41,11 @@ export const recordWorkoutResults = (
           ),
   };
 };
+
+/** When a result was recorded: the time the app sent with it, capped at the
+ *  server's clock so a skewed phone can't date work into the future, or `now`
+ *  for a result sent without one. */
+export const recordedTime = (recorded: ExerciseResult, now: string): string =>
+  recorded.recordedAt === undefined || recorded.recordedAt > now
+    ? now
+    : recorded.recordedAt;

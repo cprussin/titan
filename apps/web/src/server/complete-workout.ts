@@ -4,7 +4,10 @@ import { evaluateWeek } from "@titan/adaptation-engine/weekly-adaptation";
 import { insertAdaptationDecisions } from "@titan/db/adaptation-decisions";
 import { getAthleteState, setAthleteState } from "@titan/db/athlete-state";
 import type { Db } from "@titan/db/client";
-import { upsertPersonalRecord } from "@titan/db/personal-records";
+import {
+  listPersonalRecords as defaultListPersonalRecords,
+  upsertPersonalRecord,
+} from "@titan/db/personal-records";
 import { getProgramVersion } from "@titan/db/program-versions";
 import {
   getWorkoutSession as defaultGetSession,
@@ -19,6 +22,7 @@ import type { ExerciseResult } from "@titan/domain/result";
 import type { WorkoutSession } from "@titan/domain/workout-session";
 import { detectPersonalRecords } from "./detect-personal-records";
 import { finishWorkoutSession } from "./finish-workout-session";
+import { recordedTime } from "./record-workout-results";
 import { repeatWeekPlacement } from "./repeat-week-placement";
 
 export enum CompletionOutcome {
@@ -51,8 +55,11 @@ export type CompletionResult = ReturnType<
  * the completion runs only once the write has claimed the session — against the
  * very row this call read — so a second device finishing the same workout, or one
  * that recorded an exercise between this call's read and its write, mints no
- * duplicate records and reviews no week twice. The db reads/writes that decide it
- * are injected so the outcome is unit-testable (see TESTING.md).
+ * duplicate records and reviews no week twice. A finish replayed after its first
+ * attempt landed — the app resending a save whose response it never got — finds
+ * the session closed by this very exercise and reports it completed again. The
+ * db reads/writes that decide it are injected so the outcome is unit-testable
+ * (see TESTING.md).
  */
 export const completeWorkout = async (
   db: Db,
@@ -61,12 +68,18 @@ export const completeWorkout = async (
   recorded: ExerciseResult,
   getWorkoutSession: typeof defaultGetSession = defaultGetSession,
   updateInProgressWorkoutSession: typeof defaultUpdateSession = defaultUpdateSession,
+  listPersonalRecords: typeof defaultListPersonalRecords = defaultListPersonalRecords,
 ): Promise<CompletionResult> => {
   const session = await getWorkoutSession(db, sessionId);
   if (session === undefined) {
     return CompletionResult.SessionClosed();
+  } else if (isFinishedBy(session, recorded)) {
+    const records = await listPersonalRecords(db, userId);
+    return CompletionResult.Completed(
+      records.filter((record) => record.workoutSessionId === sessionId),
+    );
   } else {
-    const completedAt = new Date().toISOString();
+    const completedAt = recordedTime(recorded, new Date().toISOString());
     const completed = finishWorkoutSession(session, recorded, completedAt);
     const stored = await updateInProgressWorkoutSession(
       db,
@@ -92,6 +105,15 @@ export const completeWorkout = async (
     }
   }
 };
+
+/** Whether `session` was already closed by recording `recorded` — a finish
+ *  replayed after its first attempt landed, whose response never arrived. */
+const isFinishedBy = (
+  session: WorkoutSession,
+  recorded: ExerciseResult,
+): boolean =>
+  session.status === "completed" &&
+  session.results.some((result) => result.id === recorded.id);
 
 const priorOneRepMaxByExercise = async (
   db: Db,

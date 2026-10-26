@@ -17,7 +17,7 @@ const WEEKDAY_ABBREVIATIONS = [
 const atUtcMidnight = (date: string): Date => new Date(`${date}T00:00:00.000Z`);
 
 /** The `YYYY-MM-DD` date `offset` days from `date` (offset may be negative). */
-const addDays = (date: string, offset: number): string => {
+export const addDays = (date: string, offset: number): string => {
   const shifted = atUtcMidnight(date);
   shifted.setUTCDate(shifted.getUTCDate() + offset);
   return shifted.toISOString().slice(0, 10);

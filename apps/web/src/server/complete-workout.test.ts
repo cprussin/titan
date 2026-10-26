@@ -72,4 +72,51 @@ describe("completeWorkout", () => {
     expect(result.outcome).toBe(CompletionOutcome.SessionClosed);
     expect(attempted).toEqual([]);
   });
+
+  // A finish the app saved offline is replayed when it reconnects; if the
+  // first attempt landed but its response was lost, the replay finds the
+  // session already closed by this very exercise.
+  it("reports a replayed finish as completed, with the records it set", async () => {
+    const finished = {
+      id: "s1",
+      results: [{ id: "r1", slotId: "slot-1" }, recorded],
+      status: "completed",
+    } as unknown as WorkoutSession;
+    const record = { id: "pr1", workoutSessionId: "s1" };
+    const result = await completeWorkout(
+      watchedDb([]),
+      "u1",
+      "s1",
+      recorded,
+      () => Promise.resolve(finished),
+      () => Promise.resolve(false),
+      () =>
+        Promise.resolve([
+          record,
+          { id: "pr0", workoutSessionId: "older" },
+        ] as never),
+    );
+    expect(result).toEqual({
+      outcome: CompletionOutcome.Completed,
+      personalRecords: [record] as never,
+    });
+  });
+
+  it("dates the completion by the time the app recorded the last exercise", async () => {
+    const written: WorkoutSession[] = [];
+    await completeWorkout(
+      watchedDb([]),
+      "u1",
+      "s1",
+      { ...recorded, recordedAt: "2020-01-01T10:00:00.000Z" },
+      () => Promise.resolve(session),
+      (_db, document) => {
+        written.push(document);
+        return Promise.resolve(false);
+      },
+    );
+    expect(written.map((document) => document.completedAt)).toEqual([
+      "2020-01-01T10:00:00.000Z",
+    ]);
+  });
 });

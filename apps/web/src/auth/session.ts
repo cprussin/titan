@@ -1,8 +1,9 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { env } from "../env";
 import { ensureDbReady } from "../server/ensure-db";
+import { presentedSessionToken } from "./presented-session-token";
 import type { SessionUser } from "./token";
 import { verifySession } from "./token";
 
@@ -14,11 +15,15 @@ export const SESSION_COOKIE = "titan_session";
  *  completes there, binding it to the same browser (CSRF guard). */
 export const OAUTH_NONCE_COOKIE = "titan_oauth_nonce";
 
-/** The identity in the current request's session cookie, or `undefined` when
- *  the request carries no valid session. */
+/** The identity in the current request's session — the cookie the web app
+ *  carries or the bearer token the Android app sends — or `undefined` when the
+ *  request carries no valid session. */
 export const getSession = async (): Promise<SessionUser | undefined> => {
-  const store = await cookies();
-  const token = store.get(SESSION_COOKIE)?.value;
+  const [store, requestHeaders] = await Promise.all([cookies(), headers()]);
+  const token = presentedSessionToken(
+    store.get(SESSION_COOKIE)?.value,
+    requestHeaders.get("authorization") ?? undefined,
+  );
   return token === undefined
     ? undefined
     : verifySession(env.AUTH_SESSION_SECRET, token);

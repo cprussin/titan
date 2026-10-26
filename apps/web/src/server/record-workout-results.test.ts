@@ -48,6 +48,28 @@ describe("recordWorkoutResults", () => {
     ).toEqual([stored, { ...result("b", "bench"), recordedAt: now }]);
   });
 
+  // An exercise logged offline reaches the server when the phone reconnects, so
+  // the time the app recorded it is the one that places it on the timeline.
+  it("keeps the time the app recorded the exercise, when it sent one", () => {
+    const loggedOffline = {
+      ...result("b", "bench"),
+      recordedAt: "2026-08-11T17:30:00.000Z",
+    };
+    expect(
+      recordWorkoutResults(session({}), loggedOffline, now).results,
+    ).toEqual([loggedOffline]);
+  });
+
+  it("never stamps a result later than the server's own clock", () => {
+    const fromTheFuture = {
+      ...result("b", "bench"),
+      recordedAt: "2026-08-11T19:00:00.000Z",
+    };
+    expect(
+      recordWorkoutResults(session({}), fromTheFuture, now).results,
+    ).toEqual([{ ...fromTheFuture, recordedAt: now }]);
+  });
+
   // The replacement keeps its slot's position *and* the time that slot was first
   // recorded: results are read pairwise as a timeline (see `session-duration.ts`),
   // so a slot re-recorded later must not jump ahead of the pieces that followed it.
