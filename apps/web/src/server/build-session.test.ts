@@ -13,7 +13,7 @@ const prescribed: PrescribedExercise = {
 };
 
 const idSequence = () => {
-  const ids = ["session-1", "decision-1", "decision-2"];
+  const ids = ["decision-1", "decision-2"];
   let index = 0;
   return () => {
     const id = ids[index] ?? `extra-${index}`;
@@ -43,6 +43,7 @@ describe("buildSession", () => {
       programVersionId: "pv-1",
       readinessId: undefined,
       scheduledDate: "2026-01-05",
+      sessionId: "session-1",
       sessionTemplateId: "heavy-lower",
       userId: "default",
       variantLabel: undefined,
@@ -72,6 +73,7 @@ describe("buildSession", () => {
       programVersionId: "pv-1",
       readinessId: "readiness-9",
       scheduledDate: "2026-01-06",
+      sessionId: "session-1",
       sessionTemplateId: "row-intervals",
       userId: "default",
       variantLabel: "Week A",

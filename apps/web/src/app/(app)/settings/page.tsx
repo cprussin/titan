@@ -1,9 +1,8 @@
-import { getConnection } from "@titan/db/external-connections";
-import { listExternalWorkouts } from "@titan/db/external-workouts";
 import type { Metadata } from "next";
 import { requireAuth } from "../../../auth/session";
 import { SettingsContent } from "../../../components/SettingsContent";
 import { db } from "../../../db";
+import { loadSettings } from "../../../server/load-settings";
 import { USER_ID } from "../../../user";
 
 export const metadata: Metadata = {
@@ -13,23 +12,8 @@ export const metadata: Metadata = {
 
 const SettingsPage = async () => {
   const user = await requireAuth();
-  const [connection, externals] = await Promise.all([
-    getConnection(db, USER_ID, "concept2"),
-    listExternalWorkouts(db, USER_ID, 100),
-  ]);
-
-  return (
-    <SettingsContent
-      load={{
-        isLoading: false,
-        value: {
-          accountEmail: user.email,
-          concept2Connected: connection !== undefined,
-          concept2WorkoutCount: externals.length,
-        },
-      }}
-    />
-  );
+  const data = await loadSettings(db, USER_ID, user.email);
+  return <SettingsContent load={{ isLoading: false, value: data }} />;
 };
 
 export default SettingsPage;

@@ -6,7 +6,9 @@ import type {
 import type { SessionDecision } from "@titan/program-engine/resolve-session";
 
 /** Everything needed to turn a resolved plan into a persistable session. IO —
- *  id minting and the timestamp — is injected so this stays pure and testable. */
+ *  id minting and the timestamp — is injected so this stays pure and testable.
+ *  The session's own id is the caller's to choose: the Android app mints it so
+ *  a workout started offline keeps one id from the phone to the server. */
 export type BuildSessionInput = {
   createdAt: string;
   dayOfWeek: number;
@@ -19,6 +21,7 @@ export type BuildSessionInput = {
   weekNumber: number;
   readinessId: string | undefined;
   scheduledDate: string;
+  sessionId: string;
   sessionTemplateId: string;
   userId: string;
   variantLabel: string | undefined;
@@ -36,7 +39,7 @@ export type BuiltSession = {
  * show *why* every number is what it is (see the spec's "Product Philosophy").
  */
 export const buildSession = (input: BuildSessionInput): BuiltSession => {
-  const sessionId = input.newId();
+  const { sessionId } = input;
   const decisions = input.decisions.map(
     (decision): AdaptationDecision => ({
       action: decision.action,

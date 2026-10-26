@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { dayLabel, weekDates } from "./week-dates";
+import { addDays, dayLabel, weekDates } from "./week-dates";
 
 describe("weekDates", () => {
   it("returns Monday-through-Sunday of the ISO week containing the date", () => {
@@ -47,5 +47,12 @@ describe("dayLabel", () => {
 
   it("does not zero-pad the day of the month", () => {
     expect(dayLabel("2026-08-01")).toBe("SAT 1");
+  });
+});
+
+describe("addDays", () => {
+  it("steps across a month boundary in either direction", () => {
+    expect(addDays("2026-08-31", 1)).toBe("2026-09-01");
+    expect(addDays("2026-09-01", -1)).toBe("2026-08-31");
   });
 });

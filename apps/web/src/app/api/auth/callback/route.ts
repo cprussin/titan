@@ -4,6 +4,7 @@ import {
   parseAllowedEmails,
 } from "../../../../auth/allowed-emails";
 import { isOriginAllowed } from "../../../../auth/allowed-origin";
+import { handoffRedirect } from "../../../../auth/app-sign-in";
 import { exchangeCode, fetchUserInfo } from "../../../../auth/google";
 import { signHandoff } from "../../../../auth/oauth-handoff";
 import { verifyState } from "../../../../auth/oauth-state";
@@ -57,9 +58,7 @@ export const GET = async (request: Request): Promise<Response> => {
         },
         Date.now(),
       );
-      const target = new URL("/api/auth/complete", state.origin);
-      target.searchParams.set("token", handoff);
-      return NextResponse.redirect(target);
+      return NextResponse.redirect(handoffRedirect(state.origin, handoff));
     } else {
       return NextResponse.redirect(
         new URL("/login?error=forbidden", state.origin),

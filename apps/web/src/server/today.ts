@@ -3,6 +3,7 @@ import type { Db } from "@titan/db/client";
 import { getProgramVersion } from "@titan/db/program-versions";
 import { listCompletedWorkoutDates } from "@titan/db/workout-sessions";
 import type { ProgramVersion, SessionTemplate } from "@titan/domain/program";
+import type { ExerciseResult } from "@titan/domain/result";
 import type { ResolvedSession } from "@titan/program-engine/resolve-session";
 import { resolveSession } from "@titan/program-engine/resolve-session";
 import type { ProgramPosition } from "@titan/program-engine/schedule";
@@ -110,7 +111,27 @@ const resolveForVersion = async (
   absoluteWeek: number,
   scheduledDate: string,
   alternativeId: string | undefined,
-): Promise<Today> => {
+): Promise<Today> =>
+  planDay(
+    programVersion,
+    absoluteWeek,
+    scheduledDate,
+    historyLookup(await buildSlotHistory(db, userId)),
+    alternativeId,
+  );
+
+/**
+ * Resolve a day of `programVersion` at `absoluteWeek` against the athlete's
+ * per-slot history. Pure: every read is already done, so the offline plan can
+ * resolve a run of days from one set of rows.
+ */
+export const planDay = (
+  programVersion: ProgramVersion,
+  absoluteWeek: number,
+  scheduledDate: string,
+  historyBySlot: (slotId: string) => readonly ExerciseResult[],
+  alternativeId: string | undefined,
+): Today => {
   const dayOfWeek = isoDayOfWeek(scheduledDate);
   const position = resolvePosition(programVersion, absoluteWeek, dayOfWeek);
   if (position === undefined || position.sessionTemplateId === undefined) {
@@ -124,10 +145,9 @@ const resolveForVersion = async (
         `session template ${position.sessionTemplateId} missing from program version ${programVersion.id}`,
       );
     } else {
-      const history = await buildSlotHistory(db, userId);
       const resolved = resolveSession({
         alternativeId,
-        historyBySlot: historyLookup(history),
+        historyBySlot,
         isDeloadWeek: position.isDeloadWeek,
         template,
         weekInBlock: position.weekInBlock,
