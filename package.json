@@ -41,7 +41,7 @@
   },
   "name": "titan",
   "overrides": {
-    "happy-dom": "21.0.1"
+    "happy-dom": "21.0.3"
   },
   "packageManager": "bun@1.4.3",
   "private": true,
