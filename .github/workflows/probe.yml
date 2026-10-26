@@ -1,0 +1,12 @@
+name: probe
+on: push
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          for a in com/android/tools/build/gradle com/android/application/com.android.application.gradle.plugin androidx/compose/compose-bom androidx/activity/activity-compose androidx/lifecycle/lifecycle-viewmodel-compose androidx/lifecycle/lifecycle-runtime-compose androidx/navigation/navigation-compose androidx/work/work-runtime-ktx androidx/core/core-ktx androidx/browser/browser androidx/compose/material3/material3 androidx/compose/material3/material3-window-size-class androidx/compose/material3/adaptive/adaptive androidx/compose/material3/adaptive/adaptive-layout androidx/window/window androidx/test/ext/junit androidx/compose/ui/ui-test-junit4 androidx/core/core-splashscreen; do
+            echo "== $a: $(curl -s https://dl.google.com/android/maven2/$a/maven-metadata.xml | grep -oE '<version>[^<]+' | sed 's/<version>//' | tail -8 | tr '\n' ' ')"
+          done
+          echo "== sdkmanager"; ls $ANDROID_HOME/platforms $ANDROID_HOME/build-tools; $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list 2>/dev/null | grep -E "platforms;android-3[5-9]|build-tools;3[5-9]" | head -20
+          java -version 2>&1
