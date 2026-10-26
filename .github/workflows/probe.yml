@@ -5,8 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for a in com/android/tools/build/gradle androidx/compose/material3/material3 androidx/compose/compose-bom androidx/work/work-runtime-ktx androidx/lifecycle/lifecycle-viewmodel-compose; do
-            echo "== $a: $(curl -s https://dl.google.com/android/maven2/$a/maven-metadata.xml | grep -oE '<version>[^<]+' | sed 's/<version>//' | grep -vE 'alpha|beta|rc' | sort -V | tail -6 | tr '\n' ' ')"
+          for a in androidx/activity/activity-compose androidx/navigation/navigation-compose androidx/browser/browser androidx/core/core-ktx androidx/work/work-runtime androidx/lifecycle/lifecycle-runtime-compose androidx/compose/material3/adaptive/adaptive androidx/compose/material3/material3-window-size-class androidx/window/window androidx/datastore/datastore-preferences androidx/compose/ui/ui androidx/compose/material3/material3 androidx/core/core-splashscreen; do
+            echo "== $a: $(curl -s https://dl.google.com/android/maven2/$a/maven-metadata.xml | grep -oE '<version>[^<]+' | sed 's/<version>//' | grep -viE 'alpha|beta|rc|-' | sort -V | tail -3 | tr '\n' ' ')"
           done
-          curl -s https://dl.google.com/android/maven2/com/android/tools/build/gradle/9.4.0/gradle-9.4.0.pom | grep -A3 -i "kotlin\|<version>" | head -40
-          curl -s https://services.gradle.org/versions/current | head -5
+          curl -s https://dl.google.com/android/maven2/androidx/compose/compose-bom/2026.09.00/compose-bom-2026.09.00.pom | grep -B1 -A1 "material3<\|<artifactId>ui<" | head
+          ls $ANDROID_HOME/platforms $ANDROID_HOME/build-tools; $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list 2>/dev/null | grep -E "platforms;android-3[6-9]|build-tools;3[6-9]" | head -20
