@@ -1,0 +1,15 @@
+{
+  "devDependencies": {
+    "@phosphor-icons/react": "catalog:",
+    "@titan/component-library": "workspace:*",
+    "@types/bun": "catalog:"
+  },
+  "name": "@titan/android",
+  "private": true,
+  "scripts": {
+    "generate": "bun scripts/generate-theme.ts && bun scripts/generate-icons.ts",
+    "test:unit": "./gradlew --quiet -Ptitan.coreOnly=true :core:test :core:ktlintCheck"
+  },
+  "type": "module",
+  "version": "0.0.0"
+}

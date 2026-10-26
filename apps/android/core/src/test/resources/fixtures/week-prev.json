@@ -1,0 +1,81 @@
+{
+ "days": [
+  {
+   "date": "2026-10-12",
+   "dayOfWeek": 1,
+   "isPast": true,
+   "isToday": false,
+   "label": "MON 12",
+   "kind": "planned",
+   "name": "Reentry Strength",
+   "signature": "Back Squat 3×5",
+   "summary": "6 exercises · ~45 min"
+  },
+  {
+   "date": "2026-10-13",
+   "dayOfWeek": 2,
+   "isPast": true,
+   "isToday": false,
+   "label": "TUE 13",
+   "kind": "planned",
+   "name": "Reentry Row",
+   "signature": "10,000 m",
+   "summary": "1 exercises · ~47 min"
+  },
+  {
+   "date": "2026-10-14",
+   "dayOfWeek": 3,
+   "isPast": true,
+   "isToday": false,
+   "label": "WED 14",
+   "kind": "planned",
+   "name": "Reentry Strength",
+   "signature": "Deadlift 2×5",
+   "summary": "6 exercises · ~42 min"
+  },
+  {
+   "date": "2026-10-15",
+   "dayOfWeek": 4,
+   "isPast": true,
+   "isToday": false,
+   "label": "THU 15",
+   "kind": "planned",
+   "name": "Zone 2 Row",
+   "signature": "45 min",
+   "summary": "1 exercises · ~47 min"
+  },
+  {
+   "date": "2026-10-16",
+   "dayOfWeek": 5,
+   "isPast": true,
+   "isToday": false,
+   "label": "FRI 16",
+   "kind": "planned",
+   "name": "Reentry Strength",
+   "signature": "Back Squat 3×5",
+   "summary": "6 exercises · ~45 min"
+  },
+  {
+   "date": "2026-10-17",
+   "dayOfWeek": 6,
+   "isPast": true,
+   "isToday": false,
+   "label": "SAT 17",
+   "kind": "planned",
+   "name": "Easy Aerobic",
+   "signature": "50 min",
+   "summary": "1 exercises · ~52 min"
+  },
+  {
+   "date": "2026-10-18",
+   "dayOfWeek": 7,
+   "isPast": true,
+   "isToday": false,
+   "label": "SUN 18",
+   "kind": "planned",
+   "name": "Recovery",
+   "signature": "20 min",
+   "summary": "1 exercises · ~22 min"
+  }
+ ]
+}

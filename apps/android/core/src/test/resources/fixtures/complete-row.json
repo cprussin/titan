@@ -1,0 +1,77 @@
+{
+ "adaptations": [
+  {
+   "exerciseName": "Rower",
+   "explanation": "No automatic progression for this movement.",
+   "progressed": false,
+   "slotId": "ahf-reentry-steady-row-rower"
+  }
+ ],
+ "exerciseNames": {
+  "ab-wheel": "Ab Wheel Rollout",
+  "back-squat": "Back Squat",
+  "band-triceps-pushdown": "Band Triceps Pushdown",
+  "barbell-row": "Barbell Row",
+  "bench-press": "Bench Press",
+  "biceps-curl": "Biceps Curl",
+  "bike": "Bike",
+  "bulgarian-split-squat": "Bulgarian Split Squat",
+  "burpee": "Burpee",
+  "chest-supported-row": "Chest-Supported Row",
+  "deadlift": "Deadlift",
+  "dips": "Dips",
+  "dumbbell-fly": "Dumbbell Fly",
+  "dumbbell-swing": "Dumbbell Swing",
+  "farmer-carry": "Farmer Carry",
+  "goblet-squat": "Goblet Squat",
+  "hammer-curl": "Hammer Curl",
+  "hanging-knee-raise": "Hanging Knee Raise",
+  "hike": "Hike",
+  "hill-sprint": "Hill Sprint",
+  "incline-bench-press": "Incline Bench Press",
+  "inverted-row": "Inverted Row",
+  "lateral-raise": "Lateral Raise",
+  "overhead-press": "Standing Overhead Press",
+  "overhead-triceps-extension": "Overhead Triceps Extension",
+  "plank": "Plank",
+  "pullup": "Pull-Up",
+  "push-press": "Push Press",
+  "pushup": "Push-Up",
+  "rear-delt-fly": "Rear-Delt Fly",
+  "romanian-deadlift": "Romanian Deadlift",
+  "rower": "Rower",
+  "run": "Run",
+  "side-plank": "Side Plank",
+  "standing-calf-raise": "Standing Calf Raise",
+  "triceps-pushdown": "Triceps Pushdown",
+  "walking-lunge": "Walking Lunge",
+  "weighted-pullup": "Weighted Pull-Up"
+ },
+ "personalRecords": [],
+ "results": [
+  {
+   "cardio": {
+    "avgHr": 142,
+    "distanceMeters": 5000,
+    "durationSec": 1260,
+    "splitSecPer500": 126
+   },
+   "exerciseId": "rower",
+   "id": "7ae311bf-4515-43c3-a8e4-5c42b66320ff",
+   "prescription": {
+    "distanceMeters": 10000,
+    "type": "distance-cardio"
+   },
+   "recordedAt": "2026-10-20T13:05:00.000Z",
+   "sets": [],
+   "slotId": "ahf-reentry-steady-row-rower"
+  }
+ ],
+ "scheduledDate": "2026-10-20",
+ "sessionId": "86f4fd40-0ff1-40ff-a40f-d78a5b814508",
+ "stats": {
+  "durationMin": 21,
+  "prCount": 0,
+  "totalSets": 0
+ }
+}

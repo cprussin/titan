@@ -1,0 +1,112 @@
+{
+ "active": {
+  "blocks": [
+   {
+    "active": true,
+    "id": "athletic-health-foundation-reentry-block",
+    "meta": "4 weeks",
+    "name": "Strength Reentry",
+    "versionId": "athletic-health-foundation-v1"
+   },
+   {
+    "active": false,
+    "id": "athletic-health-foundation-block",
+    "meta": "8 weeks · deload every 4 weeks",
+    "name": "Foundation Block",
+    "versionId": "athletic-health-foundation-v1"
+   }
+  ],
+  "description": "A twelve-week block that opens with a four-week Strength Reentry on-ramp, then eight weeks of foundation training balancing heavy lifting, rowing intervals, Zone 2 aerobic work, and athletic variety for long-term health and body composition.",
+  "goals": [
+   "Long-term health",
+   "Weight loss",
+   "Preserve and build muscle",
+   "Maintain athleticism",
+   "Rebuild strength"
+  ],
+  "name": "Athletic Health Foundation",
+  "versionId": "athletic-health-foundation-v1"
+ },
+ "others": [
+  {
+   "blocks": [
+    {
+     "active": false,
+     "id": "athletic-hypertrophy-block",
+     "meta": "8 weeks · deload every 4 weeks",
+     "name": "Athletic Hypertrophy",
+     "versionId": "athletic-hypertrophy-v1"
+    }
+   ],
+   "description": "An eight-week evolution of the Foundation Block: the same heavy lifting, rowing intervals, and Zone 2 aerobic volume, redistributed across the week, with Friday's athletic day traded for upper-body hypertrophy.",
+   "goals": [
+    "Long-term health",
+    "Build muscle",
+    "Maintain athleticism"
+   ],
+   "name": "Athletic Hypertrophy",
+   "versionId": "athletic-hypertrophy-v1"
+  },
+  {
+   "blocks": [
+    {
+     "active": false,
+     "id": "fat-loss-maintenance-block",
+     "meta": "8 weeks · deload every 4 weeks",
+     "name": "Maintenance Block",
+     "versionId": "fat-loss-maintenance-v1"
+    }
+   ],
+   "description": "A sustainable, open-ended block balancing full-body strength, intervals, and aerobic work with moderate progression and readiness-based volume, built for consistency over peak performance.",
+   "goals": [
+    "Sustainable fat loss",
+    "Maintain strength and muscle",
+    "Balanced conditioning",
+    "Long-term consistency"
+   ],
+   "name": "Fat Loss Maintenance",
+   "versionId": "fat-loss-maintenance-v1"
+  },
+  {
+   "blocks": [
+    {
+     "active": false,
+     "id": "rowing-performance-block",
+     "meta": "8 weeks · deload every 4 weeks",
+     "name": "Rowing Block",
+     "versionId": "rowing-performance-v1"
+    }
+   ],
+   "description": "An eight-week rowing block targeting 2k, 5k, and 10k performance with VO₂, threshold, and long aerobic rows, while maintaining strength at a reduced volume.",
+   "goals": [
+    "Improve 2k",
+    "Improve 5k",
+    "Improve 10k",
+    "Improve rowing economy",
+    "Maintain strength"
+   ],
+   "name": "Rowing Performance",
+   "versionId": "rowing-performance-v1"
+  },
+  {
+   "blocks": [
+    {
+     "active": false,
+     "id": "strength-power-block",
+     "meta": "6 weeks · deload every 3 weeks",
+     "name": "Strength & Power Block",
+     "versionId": "strength-power-v1"
+    }
+   ],
+   "description": "A six-week strength and power block built on heavy compound lifts, low-rep primary prescriptions, hill sprints, and explosive work, with minimal rowing volume.",
+   "goals": [
+    "Build maximal strength",
+    "Develop power and explosiveness",
+    "Preserve athleticism",
+    "Maintain aerobic base"
+   ],
+   "name": "Strength & Power",
+   "versionId": "strength-power-v1"
+  }
+ ]
+}

@@ -76,6 +76,7 @@ bun run --filter @titan/web test:types
 ```
 apps/
   web/                  Next.js App Router PWA (the only I/O boundary)
+  android/              Native Android client (Kotlin + Compose) over web's /api/v1
 
 packages/
   domain/               Pure domain model: types + Zod schemas. The shared leaf.

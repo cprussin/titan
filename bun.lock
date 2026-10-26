@@ -9,6 +9,15 @@
         "turbo": "catalog:",
       },
     },
+    "apps/android": {
+      "name": "@titan/android",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@phosphor-icons/react": "catalog:",
+        "@titan/component-library": "workspace:*",
+        "@types/bun": "catalog:",
+      },
+    },
     "apps/web": {
       "name": "@titan/web",
       "version": "0.0.0",
@@ -617,6 +626,8 @@
     "@testing-library/user-event": ["@testing-library/user-event@14.6.7", "", { "peerDependencies": { "@testing-library/dom": ">=7.21.4" } }, "sha512-MPCpX8bxe8zS+JmmTwLp8jd0dy1rAm60Te/SL8JrQM3qvQJcBOs1d7IefJMyZzqM3EWBrDn/LWDt1BCGu4ASfg=="],
 
     "@titan/adaptation-engine": ["@titan/adaptation-engine@workspace:packages/adaptation-engine"],
+
+    "@titan/android": ["@titan/android@workspace:apps/android"],
 
     "@titan/component-library": ["@titan/component-library@workspace:packages/component-library"],
 

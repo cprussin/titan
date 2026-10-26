@@ -1,0 +1,688 @@
+{
+ "active": false,
+ "blockId": "athletic-health-foundation-block",
+ "layout": {
+  "days": [
+   {
+    "content": {
+     "kind": "slots",
+     "slots": [
+      {
+       "id": "ahf-back-squat",
+       "name": "Back Squat",
+       "position": 1,
+       "prescription": {
+        "reps": 5,
+        "rpeTarget": 8,
+        "sets": 5,
+        "type": "strength",
+        "unit": "kg",
+        "weight": 102
+       },
+       "role": "primary"
+      },
+      {
+       "id": "ahf-romanian-deadlift",
+       "name": "Romanian Deadlift",
+       "position": 2,
+       "prescription": {
+        "reps": 8,
+        "sets": 3,
+        "type": "strength",
+        "unit": "kg",
+        "weight": 70
+       },
+       "role": "secondary"
+      },
+      {
+       "id": "foundation-heavy-lower-bulgarian-split-squat",
+       "name": "Bulgarian Split Squat",
+       "position": 3,
+       "prescription": {
+        "reps": 10,
+        "sets": 3,
+        "type": "strength",
+        "unit": "lb",
+        "weight": 35
+       },
+       "role": "accessory"
+      },
+      {
+       "id": "foundation-heavy-lower-standing-calf-raise",
+       "name": "Standing Calf Raise",
+       "position": 4,
+       "prescription": {
+        "reps": 15,
+        "sets": 3,
+        "type": "strength",
+        "unit": "lb",
+        "weight": 90
+       },
+       "role": "accessory"
+      },
+      {
+       "id": "ahf-plank",
+       "name": "Plank",
+       "position": 5,
+       "prescription": {
+        "holdSec": 60,
+        "sets": 3,
+        "type": "timed-hold",
+        "unit": "kg"
+       },
+       "role": "accessory"
+      },
+      {
+       "id": "foundation-heavy-lower-zone2-finisher",
+       "name": "Rower",
+       "position": 6,
+       "prescription": {
+        "durationSec": 600,
+        "strokeRateMax": 22,
+        "strokeRateMin": 18,
+        "targetHrZone": 2,
+        "type": "timed-cardio"
+       },
+       "role": "accessory"
+      }
+     ]
+    },
+    "dayName": "Monday",
+    "durationMin": 60,
+    "key": "1-foundation-heavy-lower",
+    "name": "Heavy Lower"
+   },
+   {
+    "content": {
+     "hint": "Rotates by week — one option runs each week.",
+     "kind": "options",
+     "options": [
+      {
+       "label": "Week A — 6×500m",
+       "slots": [
+        {
+         "id": "foundation-row-intervals-week-a-rower",
+         "name": "Rower",
+         "prescription": {
+          "count": 6,
+          "recoverySec": 120,
+          "targetSplitSecPer500": 105,
+          "type": "intervals",
+          "workDistanceMeters": 500
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      {
+       "label": "Week B — 4×1000m",
+       "slots": [
+        {
+         "id": "foundation-row-intervals-week-b-rower",
+         "name": "Rower",
+         "prescription": {
+          "count": 4,
+          "recoverySec": 180,
+          "targetSplitSecPer500": 110,
+          "type": "intervals",
+          "workDistanceMeters": 1000
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      {
+       "label": "Week C — 8×250m",
+       "slots": [
+        {
+         "id": "foundation-row-intervals-week-c-rower",
+         "name": "Rower",
+         "prescription": {
+          "count": 8,
+          "recoverySec": 90,
+          "targetSplitSecPer500": 102,
+          "type": "intervals",
+          "workDistanceMeters": 250
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      {
+       "label": "Week D — 12×(30s hard / 90s easy)",
+       "slots": [
+        {
+         "id": "foundation-row-intervals-week-d-rower",
+         "name": "Rower",
+         "prescription": {
+          "count": 12,
+          "recoverySec": 90,
+          "targetSplitSecPer500": 100,
+          "type": "intervals",
+          "workSec": 30
+         },
+         "role": "primary"
+        }
+       ]
+      }
+     ]
+    },
+    "dayName": "Tuesday",
+    "durationMin": 60,
+    "key": "2-foundation-row-intervals",
+    "name": "Row Intervals"
+   },
+   {
+    "content": {
+     "kind": "slots",
+     "slots": [
+      {
+       "id": "ahf-bench-press",
+       "name": "Bench Press",
+       "position": 1,
+       "prescription": {
+        "reps": 5,
+        "rpeTarget": 8,
+        "sets": 5,
+        "type": "strength",
+        "unit": "kg",
+        "weight": 70
+       },
+       "role": "primary"
+      },
+      {
+       "id": "foundation-heavy-upper-weighted-pullup",
+       "name": "Weighted Pull-Up",
+       "position": 2,
+       "prescription": {
+        "addedWeight": 10,
+        "reps": 6,
+        "sets": 4,
+        "type": "bodyweight",
+        "unit": "kg"
+       },
+       "role": "secondary"
+      },
+      {
+       "id": "ahf-overhead-press",
+       "name": "Standing Overhead Press",
+       "position": 3,
+       "prescription": {
+        "reps": 8,
+        "sets": 3,
+        "type": "strength",
+        "unit": "kg",
+        "weight": 42
+       },
+       "role": "secondary"
+      },
+      {
+       "id": "ahf-barbell-row",
+       "name": "Barbell Row",
+       "position": 4,
+       "prescription": {
+        "reps": 8,
+        "sets": 3,
+        "type": "strength",
+        "unit": "kg",
+        "weight": 60
+       },
+       "role": "secondary"
+      },
+      {
+       "id": "foundation-heavy-upper-dips",
+       "name": "Dips",
+       "position": 5,
+       "prescription": {
+        "reps": 10,
+        "sets": 3,
+        "type": "bodyweight",
+        "unit": "kg"
+       },
+       "role": "accessory"
+      },
+      {
+       "id": "ahf-ab-wheel",
+       "name": "Ab Wheel Rollout",
+       "position": 6,
+       "prescription": {
+        "reps": 10,
+        "sets": 3,
+        "type": "bodyweight",
+        "unit": "lb"
+       },
+       "role": "accessory"
+      },
+      {
+       "id": "foundation-heavy-upper-lateral-raise",
+       "name": "Lateral Raise",
+       "position": 7,
+       "prescription": {
+        "reps": 15,
+        "rpeTarget": 8,
+        "sets": 3,
+        "type": "strength",
+        "unit": "lb",
+        "weight": 15
+       },
+       "role": "accessory"
+      },
+      {
+       "id": "foundation-heavy-upper-biceps-curl",
+       "name": "Biceps Curl",
+       "position": 8,
+       "prescription": {
+        "reps": 10,
+        "rpeTarget": 8,
+        "sets": 3,
+        "type": "strength",
+        "unit": "lb",
+        "weight": 25
+       },
+       "role": "accessory"
+      },
+      {
+       "id": "foundation-heavy-upper-band-triceps-pushdown",
+       "name": "Band Triceps Pushdown",
+       "position": 9,
+       "prescription": {
+        "reps": 10,
+        "sets": 3,
+        "type": "band"
+       },
+       "role": "accessory"
+      }
+     ]
+    },
+    "dayName": "Wednesday",
+    "durationMin": 75,
+    "key": "3-foundation-heavy-upper",
+    "name": "Heavy Upper"
+   },
+   {
+    "content": {
+     "kind": "slots",
+     "slots": [
+      {
+       "id": "foundation-zone2-row-rower",
+       "name": "Rower",
+       "prescription": {
+        "durationSec": 2700,
+        "strokeRateMax": 22,
+        "strokeRateMin": 18,
+        "targetHrZone": 2,
+        "type": "timed-cardio"
+       },
+       "role": "primary"
+      }
+     ]
+    },
+    "dayName": "Thursday",
+    "durationMin": 60,
+    "key": "4-foundation-zone2-row",
+    "name": "Zone 2 Row"
+   },
+   {
+    "content": {
+     "hint": "Rotates by week — one option runs each week.",
+     "kind": "options",
+     "options": [
+      {
+       "label": "Workout A — Power",
+       "slots": [
+        {
+         "id": "foundation-athletic-day-power-push-press",
+         "name": "Push Press",
+         "position": 1,
+         "prescription": {
+          "reps": 3,
+          "sets": 5,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 52
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-deadlift",
+         "name": "Deadlift",
+         "position": 2,
+         "prescription": {
+          "reps": 3,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 125
+         },
+         "role": "primary"
+        },
+        {
+         "id": "foundation-athletic-day-power-weighted-pullup",
+         "name": "Weighted Pull-Up",
+         "position": 3,
+         "prescription": {
+          "addedWeight": 10,
+          "reps": 6,
+          "sets": 3,
+          "type": "bodyweight",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "foundation-athletic-day-power-farmer-carry",
+         "name": "Farmer Carry",
+         "position": 4,
+         "prescription": {
+          "durationSec": 40,
+          "sets": 3,
+          "type": "timed-carry",
+          "unit": "lb",
+          "weight": 150
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "foundation-athletic-day-hammer-curl",
+         "name": "Hammer Curl",
+         "position": 5,
+         "prescription": {
+          "reps": 10,
+          "rpeTarget": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 25
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "foundation-athletic-day-lateral-raise",
+         "name": "Lateral Raise",
+         "position": 6,
+         "prescription": {
+          "reps": 12,
+          "rpeTarget": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 10
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      {
+       "label": "Workout B — Conditioning",
+       "slots": [
+        {
+         "id": "foundation-athletic-day-conditioning-burpee",
+         "name": "Burpee",
+         "position": 1,
+         "prescription": {
+          "restSec": 75,
+          "sets": 6,
+          "type": "timed-effort",
+          "workSec": 45
+         },
+         "role": "primary"
+        },
+        {
+         "id": "foundation-athletic-day-conditioning-goblet-squat",
+         "name": "Goblet Squat",
+         "position": 2,
+         "prescription": {
+          "reps": 15,
+          "sets": 3,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 50
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "foundation-athletic-day-conditioning-inverted-row",
+         "name": "Inverted Row",
+         "position": 3,
+         "prescription": {
+          "reps": 12,
+          "sets": 3,
+          "type": "bodyweight",
+          "unit": "lb"
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "foundation-athletic-day-conditioning-farmer-carry",
+         "name": "Farmer Carry",
+         "position": 4,
+         "prescription": {
+          "durationSec": 45,
+          "sets": 3,
+          "type": "timed-carry",
+          "unit": "lb",
+          "weight": 150
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "foundation-athletic-day-hammer-curl",
+         "name": "Hammer Curl",
+         "position": 5,
+         "prescription": {
+          "reps": 10,
+          "rpeTarget": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 25
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "foundation-athletic-day-lateral-raise",
+         "name": "Lateral Raise",
+         "position": 6,
+         "prescription": {
+          "reps": 12,
+          "rpeTarget": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 10
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      {
+       "label": "Workout C — Hill Sprint",
+       "slots": [
+        {
+         "id": "foundation-athletic-day-hill-sprint-hill-sprint",
+         "name": "Hill Sprint",
+         "position": 1,
+         "prescription": {
+          "restSec": 60,
+          "sets": 8,
+          "type": "timed-effort",
+          "workSec": 20
+         },
+         "role": "primary"
+        },
+        {
+         "id": "foundation-athletic-day-hill-sprint-pushup",
+         "name": "Push-Up",
+         "position": 2,
+         "prescription": {
+          "reps": 20,
+          "sets": 3,
+          "type": "bodyweight",
+          "unit": "lb"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "foundation-athletic-day-hill-sprint-walking-lunge",
+         "name": "Walking Lunge",
+         "position": 3,
+         "prescription": {
+          "reps": 20,
+          "sets": 3,
+          "type": "bodyweight",
+          "unit": "lb"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "foundation-athletic-day-hill-sprint-side-plank",
+         "name": "Side Plank",
+         "position": 4,
+         "prescription": {
+          "holdSec": 45,
+          "sets": 3,
+          "type": "timed-hold",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "foundation-athletic-day-hammer-curl",
+         "name": "Hammer Curl",
+         "position": 5,
+         "prescription": {
+          "reps": 10,
+          "rpeTarget": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 25
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "foundation-athletic-day-lateral-raise",
+         "name": "Lateral Raise",
+         "position": 6,
+         "prescription": {
+          "reps": 12,
+          "rpeTarget": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 10
+         },
+         "role": "accessory"
+        }
+       ]
+      }
+     ]
+    },
+    "dayName": "Friday",
+    "durationMin": 70,
+    "key": "5-foundation-athletic-day",
+    "name": "Athletic Day"
+   },
+   {
+    "content": {
+     "hint": "Choose one — equivalent options for the same session, picked when the workout starts.",
+     "kind": "options",
+     "options": [
+      {
+       "label": "Row — 75 min",
+       "slots": [
+        {
+         "id": "foundation-long-easy-cardio-row",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 4500,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      {
+       "label": "Trail Run — 60 min",
+       "slots": [
+        {
+         "id": "foundation-long-easy-cardio-trail-run",
+         "name": "Run",
+         "prescription": {
+          "durationSec": 3600,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      {
+       "label": "Mountain Hike — 90 min",
+       "slots": [
+        {
+         "id": "foundation-long-easy-cardio-hike",
+         "name": "Hike",
+         "prescription": {
+          "durationSec": 5400,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      {
+       "label": "Bike Ride — 75 min",
+       "slots": [
+        {
+         "id": "foundation-long-easy-cardio-bike",
+         "name": "Bike",
+         "prescription": {
+          "durationSec": 4500,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      }
+     ]
+    },
+    "dayName": "Saturday",
+    "durationMin": 75,
+    "key": "6-foundation-long-easy-cardio",
+    "name": "Long Easy Cardio"
+   },
+   {
+    "content": {
+     "kind": "slots",
+     "slots": [
+      {
+       "id": "foundation-recovery-easy-row",
+       "name": "Rower",
+       "prescription": {
+        "durationSec": 1200,
+        "targetHrZone": 1,
+        "type": "timed-cardio"
+       },
+       "role": "accessory"
+      }
+     ]
+    },
+    "dayName": "Sunday",
+    "durationMin": 30,
+    "key": "7-foundation-recovery",
+    "name": "Recovery"
+   }
+  ],
+  "kind": "fixed"
+ },
+ "name": "Foundation Block",
+ "outcome": {
+  "kind": "repeats"
+ },
+ "programName": "Athletic Health Foundation",
+ "versionId": "athletic-health-foundation-v1"
+}
