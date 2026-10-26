@@ -1,0 +1,258 @@
+{
+ "body": {
+  "exercises": [
+   {
+    "exerciseId": "rower",
+    "prescription": {
+     "durationSec": 1200,
+     "targetHrZone": 1,
+     "type": "timed-cardio"
+    },
+    "progression": {
+     "kind": "none"
+    },
+    "role": "accessory",
+    "slotId": "ahf-reentry-recovery-rower"
+   }
+  ],
+  "kind": "prescription",
+  "loadHeader": "Load"
+ },
+ "header": {
+  "eyebrow": {
+   "program": {
+    "blockId": "athletic-health-foundation-reentry-block",
+    "name": "Athletic Health Foundation",
+    "versionId": "athletic-health-foundation-v1"
+   },
+   "weekCount": "W1 / 4"
+  },
+  "primary": {
+   "action": {
+    "alternatives": [],
+    "kind": "start"
+   },
+   "kind": "start-workout"
+  },
+  "title": "Recovery"
+ },
+ "names": {
+  "ab-wheel": "Ab Wheel Rollout",
+  "back-squat": "Back Squat",
+  "band-triceps-pushdown": "Band Triceps Pushdown",
+  "barbell-row": "Barbell Row",
+  "bench-press": "Bench Press",
+  "biceps-curl": "Biceps Curl",
+  "bike": "Bike",
+  "bulgarian-split-squat": "Bulgarian Split Squat",
+  "burpee": "Burpee",
+  "chest-supported-row": "Chest-Supported Row",
+  "deadlift": "Deadlift",
+  "dips": "Dips",
+  "dumbbell-fly": "Dumbbell Fly",
+  "dumbbell-swing": "Dumbbell Swing",
+  "farmer-carry": "Farmer Carry",
+  "goblet-squat": "Goblet Squat",
+  "hammer-curl": "Hammer Curl",
+  "hanging-knee-raise": "Hanging Knee Raise",
+  "hike": "Hike",
+  "hill-sprint": "Hill Sprint",
+  "incline-bench-press": "Incline Bench Press",
+  "inverted-row": "Inverted Row",
+  "lateral-raise": "Lateral Raise",
+  "overhead-press": "Standing Overhead Press",
+  "overhead-triceps-extension": "Overhead Triceps Extension",
+  "plank": "Plank",
+  "pullup": "Pull-Up",
+  "push-press": "Push Press",
+  "pushup": "Push-Up",
+  "rear-delt-fly": "Rear-Delt Fly",
+  "romanian-deadlift": "Romanian Deadlift",
+  "rower": "Rower",
+  "run": "Run",
+  "side-plank": "Side Plank",
+  "standing-calf-raise": "Standing Calf Raise",
+  "triceps-pushdown": "Triceps Pushdown",
+  "walking-lunge": "Walking Lunge",
+  "weighted-pullup": "Weighted Pull-Up"
+ },
+ "session": {
+  "label": "Today's session",
+  "summary": "1 exercises · 0 sets · ~22 min"
+ },
+ "trends": {
+  "bodyWeight": {
+   "dates": [
+    "2026-10-12",
+    "2026-10-15",
+    "2026-10-19",
+    "2026-10-22",
+    "2026-10-25"
+   ],
+   "latestWeightLb": 210.2,
+   "series": [
+    212.4,
+    211.8,
+    211,
+    210.6,
+    210.2
+   ]
+  },
+  "names": {
+   "ab-wheel": "Ab Wheel Rollout",
+   "back-squat": "Back Squat",
+   "band-triceps-pushdown": "Band Triceps Pushdown",
+   "barbell-row": "Barbell Row",
+   "bench-press": "Bench Press",
+   "biceps-curl": "Biceps Curl",
+   "bike": "Bike",
+   "bulgarian-split-squat": "Bulgarian Split Squat",
+   "burpee": "Burpee",
+   "chest-supported-row": "Chest-Supported Row",
+   "deadlift": "Deadlift",
+   "dips": "Dips",
+   "dumbbell-fly": "Dumbbell Fly",
+   "dumbbell-swing": "Dumbbell Swing",
+   "farmer-carry": "Farmer Carry",
+   "goblet-squat": "Goblet Squat",
+   "hammer-curl": "Hammer Curl",
+   "hanging-knee-raise": "Hanging Knee Raise",
+   "hike": "Hike",
+   "hill-sprint": "Hill Sprint",
+   "incline-bench-press": "Incline Bench Press",
+   "inverted-row": "Inverted Row",
+   "lateral-raise": "Lateral Raise",
+   "overhead-press": "Standing Overhead Press",
+   "overhead-triceps-extension": "Overhead Triceps Extension",
+   "plank": "Plank",
+   "pullup": "Pull-Up",
+   "push-press": "Push Press",
+   "pushup": "Push-Up",
+   "rear-delt-fly": "Rear-Delt Fly",
+   "romanian-deadlift": "Romanian Deadlift",
+   "rower": "Rower",
+   "run": "Run",
+   "side-plank": "Side Plank",
+   "standing-calf-raise": "Standing Calf Raise",
+   "triceps-pushdown": "Triceps Pushdown",
+   "walking-lunge": "Walking Lunge",
+   "weighted-pullup": "Weighted Pull-Up"
+  },
+  "rowPace": {
+   "dates": [
+    "2026-10-19",
+    "2026-10-20",
+    "2026-10-21"
+   ],
+   "latestSplitSec": 126,
+   "values": [
+    126,
+    126,
+    126
+   ]
+  },
+  "strengthSeries": [
+   {
+    "dates": [
+     "2026-10-19"
+    ],
+    "exerciseId": "back-squat",
+    "unit": "kg",
+    "values": [
+     70
+    ]
+   },
+   {
+    "dates": [
+     "2026-10-19"
+    ],
+    "exerciseId": "bench-press",
+    "unit": "kg",
+    "values": [
+     61
+    ]
+   }
+  ]
+ },
+ "week": {
+  "days": [
+   {
+    "date": "2026-10-19",
+    "dayOfWeek": 1,
+    "isPast": true,
+    "isToday": false,
+    "label": "MON 19",
+    "kind": "logged",
+    "name": "Reentry Strength",
+    "summary": "13 sets · 54 min"
+   },
+   {
+    "date": "2026-10-20",
+    "dayOfWeek": 2,
+    "isPast": true,
+    "isToday": false,
+    "label": "TUE 20",
+    "kind": "logged",
+    "name": "Reentry Row",
+    "summary": "0 sets · 21 min"
+   },
+   {
+    "date": "2026-10-21",
+    "dayOfWeek": 3,
+    "isPast": true,
+    "isToday": false,
+    "label": "WED 21",
+    "kind": "logged",
+    "name": "Reentry Strength",
+    "summary": "12 sets · 54 min"
+   },
+   {
+    "date": "2026-10-22",
+    "dayOfWeek": 4,
+    "isPast": true,
+    "isToday": false,
+    "label": "THU 22",
+    "kind": "planned",
+    "name": "Zone 2 Row",
+    "signature": "45 min",
+    "summary": "1 exercises · ~47 min"
+   },
+   {
+    "date": "2026-10-23",
+    "dayOfWeek": 5,
+    "isPast": true,
+    "isToday": false,
+    "label": "FRI 23",
+    "kind": "planned",
+    "name": "Reentry Strength",
+    "signature": "Back Squat 3×5",
+    "summary": "6 exercises · ~45 min"
+   },
+   {
+    "date": "2026-10-24",
+    "dayOfWeek": 6,
+    "isPast": true,
+    "isToday": false,
+    "label": "SAT 24",
+    "kind": "planned",
+    "name": "Easy Aerobic",
+    "signature": "50 min",
+    "summary": "1 exercises · ~52 min"
+   },
+   {
+    "date": "2026-10-25",
+    "dayOfWeek": 7,
+    "isPast": false,
+    "isToday": true,
+    "label": "SUN 25",
+    "kind": "planned",
+    "name": "Recovery",
+    "signature": "20 min",
+    "summary": "1 exercises · ~22 min"
+   }
+  ],
+  "selectedDate": "2026-10-25",
+  "today": "2026-10-25",
+  "weekOffset": 0
+ }
+}

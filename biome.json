@@ -34,7 +34,10 @@
       "!**/node_modules/**/*",
       "!**/styled-system/**/*",
       "!**/public/**",
-      "!**/.tsbuildinfo"
+      "!**/.tsbuildinfo",
+      "!apps/android/**/build/**",
+      "!apps/android/.gradle/**",
+      "!apps/android/core/src/test/resources/**"
     ]
   },
   "formatter": {

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="titan_background">#FF0A0A0B</color>
+    <color name="titan_foreground">#FFF2F1EF</color>
+    <color name="titan_accent">#FF3D7BFF</color>
+</resources>

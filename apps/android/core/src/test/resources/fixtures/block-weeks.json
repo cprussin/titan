@@ -1,0 +1,1396 @@
+{
+ "active": true,
+ "blockId": "athletic-health-foundation-reentry-block",
+ "layout": {
+  "kind": "weeks",
+  "weeks": [
+   {
+    "days": [
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-back-squat",
+         "name": "Back Squat",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 6,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 60
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-bench-press",
+         "name": "Bench Press",
+         "position": 2,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 6,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 52
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-romanian-deadlift",
+         "name": "Romanian Deadlift",
+         "position": 3,
+         "prescription": {
+          "reps": 8,
+          "sets": 2,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 42
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-pullup",
+         "name": "Pull-Up",
+         "position": 4,
+         "prescription": {
+          "reps": 5,
+          "sets": 3,
+          "type": "bodyweight",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-ab-wheel",
+         "name": "Ab Wheel Rollout",
+         "position": 5,
+         "prescription": {
+          "reps": 6,
+          "sets": 2,
+          "type": "bodyweight",
+          "unit": "lb"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-reentry-full-body-a-finisher",
+         "name": "Rower",
+         "position": 6,
+         "prescription": {
+          "durationSec": 600,
+          "targetHrZone": 1,
+          "type": "timed-cardio"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Monday",
+      "durationMin": 60,
+      "key": "1-ahf-reentry-strength-mon",
+      "name": "Reentry Strength",
+      "variantTag": "Full Body A"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-steady-row-rower",
+         "name": "Rower",
+         "prescription": {
+          "distanceMeters": 10000,
+          "type": "distance-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Tuesday",
+      "durationMin": 50,
+      "key": "2-ahf-reentry-row-tue",
+      "name": "Reentry Row",
+      "variantTag": "Steady 10k"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-deadlift",
+         "name": "Deadlift",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 6,
+          "sets": 2,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 85
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-overhead-press",
+         "name": "Standing Overhead Press",
+         "position": 2,
+         "prescription": {
+          "reps": 5,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 35
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-barbell-row",
+         "name": "Barbell Row",
+         "position": 3,
+         "prescription": {
+          "reps": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 42
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-bulgarian-split-squat",
+         "name": "Bulgarian Split Squat",
+         "position": 4,
+         "prescription": {
+          "reps": 8,
+          "sets": 2,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 30
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-plank",
+         "name": "Plank",
+         "position": 5,
+         "prescription": {
+          "holdSec": 60,
+          "sets": 2,
+          "type": "timed-hold",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-reentry-full-body-b-finisher",
+         "name": "Rower",
+         "position": 6,
+         "prescription": {
+          "durationSec": 600,
+          "targetHrZone": 1,
+          "type": "timed-cardio"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Wednesday",
+      "durationMin": 60,
+      "key": "3-ahf-reentry-strength-wed",
+      "name": "Reentry Strength",
+      "variantTag": "Full Body B"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-zone2-row-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 2700,
+          "strokeRateMax": 22,
+          "strokeRateMin": 18,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Thursday",
+      "durationMin": 45,
+      "key": "4-ahf-reentry-zone2-row",
+      "name": "Zone 2 Row"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-back-squat",
+         "name": "Back Squat",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 6,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 60
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-bench-press",
+         "name": "Bench Press",
+         "position": 2,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 6,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 52
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-romanian-deadlift",
+         "name": "Romanian Deadlift",
+         "position": 3,
+         "prescription": {
+          "reps": 8,
+          "sets": 2,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 42
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-pullup",
+         "name": "Pull-Up",
+         "position": 4,
+         "prescription": {
+          "reps": 5,
+          "sets": 3,
+          "type": "bodyweight",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-ab-wheel",
+         "name": "Ab Wheel Rollout",
+         "position": 5,
+         "prescription": {
+          "reps": 6,
+          "sets": 2,
+          "type": "bodyweight",
+          "unit": "lb"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-reentry-full-body-a-finisher",
+         "name": "Rower",
+         "position": 6,
+         "prescription": {
+          "durationSec": 600,
+          "targetHrZone": 1,
+          "type": "timed-cardio"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Friday",
+      "durationMin": 60,
+      "key": "5-ahf-reentry-strength-fri",
+      "name": "Reentry Strength",
+      "variantTag": "Full Body A"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-easy-aerobic-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 3000,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Saturday",
+      "durationMin": 60,
+      "key": "6-ahf-reentry-easy-aerobic",
+      "name": "Easy Aerobic"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-recovery-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 1200,
+          "targetHrZone": 1,
+          "type": "timed-cardio"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Sunday",
+      "durationMin": 30,
+      "key": "7-ahf-reentry-recovery",
+      "name": "Recovery"
+     }
+    ],
+    "isDeload": false,
+    "summary": "Full Body A · Steady 10k · Full Body B",
+    "week": 1
+   },
+   {
+    "days": [
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-deadlift",
+         "name": "Deadlift",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 6,
+          "sets": 2,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 85
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-overhead-press",
+         "name": "Standing Overhead Press",
+         "position": 2,
+         "prescription": {
+          "reps": 5,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 35
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-barbell-row",
+         "name": "Barbell Row",
+         "position": 3,
+         "prescription": {
+          "reps": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 42
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-bulgarian-split-squat",
+         "name": "Bulgarian Split Squat",
+         "position": 4,
+         "prescription": {
+          "reps": 8,
+          "sets": 2,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 30
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-plank",
+         "name": "Plank",
+         "position": 5,
+         "prescription": {
+          "holdSec": 60,
+          "sets": 2,
+          "type": "timed-hold",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-reentry-full-body-b-finisher",
+         "name": "Rower",
+         "position": 6,
+         "prescription": {
+          "durationSec": 600,
+          "targetHrZone": 1,
+          "type": "timed-cardio"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Monday",
+      "durationMin": 60,
+      "key": "1-ahf-reentry-strength-mon",
+      "name": "Reentry Strength",
+      "variantTag": "Full Body B"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-steady-row-rower",
+         "name": "Rower",
+         "prescription": {
+          "distanceMeters": 10000,
+          "type": "distance-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Tuesday",
+      "durationMin": 50,
+      "key": "2-ahf-reentry-row-tue",
+      "name": "Reentry Row",
+      "variantTag": "Steady 10k"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-back-squat",
+         "name": "Back Squat",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 6,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 60
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-bench-press",
+         "name": "Bench Press",
+         "position": 2,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 6,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 52
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-romanian-deadlift",
+         "name": "Romanian Deadlift",
+         "position": 3,
+         "prescription": {
+          "reps": 8,
+          "sets": 2,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 42
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-pullup",
+         "name": "Pull-Up",
+         "position": 4,
+         "prescription": {
+          "reps": 5,
+          "sets": 3,
+          "type": "bodyweight",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-ab-wheel",
+         "name": "Ab Wheel Rollout",
+         "position": 5,
+         "prescription": {
+          "reps": 6,
+          "sets": 2,
+          "type": "bodyweight",
+          "unit": "lb"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-reentry-full-body-a-finisher",
+         "name": "Rower",
+         "position": 6,
+         "prescription": {
+          "durationSec": 600,
+          "targetHrZone": 1,
+          "type": "timed-cardio"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Wednesday",
+      "durationMin": 60,
+      "key": "3-ahf-reentry-strength-wed",
+      "name": "Reentry Strength",
+      "variantTag": "Full Body A"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-zone2-row-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 2700,
+          "strokeRateMax": 22,
+          "strokeRateMin": 18,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Thursday",
+      "durationMin": 45,
+      "key": "4-ahf-reentry-zone2-row",
+      "name": "Zone 2 Row"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-deadlift",
+         "name": "Deadlift",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 6,
+          "sets": 2,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 85
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-overhead-press",
+         "name": "Standing Overhead Press",
+         "position": 2,
+         "prescription": {
+          "reps": 5,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 35
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-barbell-row",
+         "name": "Barbell Row",
+         "position": 3,
+         "prescription": {
+          "reps": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 42
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-bulgarian-split-squat",
+         "name": "Bulgarian Split Squat",
+         "position": 4,
+         "prescription": {
+          "reps": 8,
+          "sets": 2,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 30
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-plank",
+         "name": "Plank",
+         "position": 5,
+         "prescription": {
+          "holdSec": 60,
+          "sets": 2,
+          "type": "timed-hold",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-reentry-full-body-b-finisher",
+         "name": "Rower",
+         "position": 6,
+         "prescription": {
+          "durationSec": 600,
+          "targetHrZone": 1,
+          "type": "timed-cardio"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Friday",
+      "durationMin": 60,
+      "key": "5-ahf-reentry-strength-fri",
+      "name": "Reentry Strength",
+      "variantTag": "Full Body B"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-easy-aerobic-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 3000,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Saturday",
+      "durationMin": 60,
+      "key": "6-ahf-reentry-easy-aerobic",
+      "name": "Easy Aerobic"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-recovery-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 1200,
+          "targetHrZone": 1,
+          "type": "timed-cardio"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Sunday",
+      "durationMin": 30,
+      "key": "7-ahf-reentry-recovery",
+      "name": "Recovery"
+     }
+    ],
+    "isDeload": false,
+    "summary": "Full Body B · Steady 10k · Full Body A",
+    "week": 2
+   },
+   {
+    "days": [
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-back-squat",
+         "name": "Back Squat",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 8,
+          "sets": 4,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 70
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-bench-press",
+         "name": "Bench Press",
+         "position": 2,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 8,
+          "sets": 4,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 57
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-romanian-deadlift",
+         "name": "Romanian Deadlift",
+         "position": 3,
+         "prescription": {
+          "reps": 8,
+          "rpeTarget": 7,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 47
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-pullup",
+         "name": "Pull-Up",
+         "position": 4,
+         "prescription": {
+          "reps": 6,
+          "sets": 3,
+          "type": "bodyweight",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-ab-wheel",
+         "name": "Ab Wheel Rollout",
+         "position": 5,
+         "prescription": {
+          "reps": 6,
+          "sets": 3,
+          "type": "bodyweight",
+          "unit": "lb"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Monday",
+      "durationMin": 60,
+      "key": "1-ahf-reentry-strength-mon",
+      "name": "Reentry Strength",
+      "variantTag": "Full Body A"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-row-intervals-4x1000-rower",
+         "name": "Rower",
+         "prescription": {
+          "count": 4,
+          "recoverySec": 180,
+          "type": "intervals",
+          "workDistanceMeters": 1000
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Tuesday",
+      "durationMin": 50,
+      "key": "2-ahf-reentry-row-tue",
+      "name": "Reentry Row",
+      "variantTag": "4×1000m"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-deadlift",
+         "name": "Deadlift",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 92
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-overhead-press",
+         "name": "Standing Overhead Press",
+         "position": 2,
+         "prescription": {
+          "reps": 5,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 37
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-barbell-row",
+         "name": "Barbell Row",
+         "position": 3,
+         "prescription": {
+          "reps": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 47
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-bulgarian-split-squat",
+         "name": "Bulgarian Split Squat",
+         "position": 4,
+         "prescription": {
+          "reps": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 35
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-plank",
+         "name": "Plank",
+         "position": 5,
+         "prescription": {
+          "holdSec": 60,
+          "sets": 3,
+          "type": "timed-hold",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Wednesday",
+      "durationMin": 60,
+      "key": "3-ahf-reentry-strength-wed",
+      "name": "Reentry Strength",
+      "variantTag": "Full Body B"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-zone2-row-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 2700,
+          "strokeRateMax": 22,
+          "strokeRateMin": 18,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Thursday",
+      "durationMin": 45,
+      "key": "4-ahf-reentry-zone2-row",
+      "name": "Zone 2 Row"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-back-squat",
+         "name": "Back Squat",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 8,
+          "sets": 4,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 70
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-bench-press",
+         "name": "Bench Press",
+         "position": 2,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 8,
+          "sets": 4,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 57
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-romanian-deadlift",
+         "name": "Romanian Deadlift",
+         "position": 3,
+         "prescription": {
+          "reps": 8,
+          "rpeTarget": 7,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 47
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-pullup",
+         "name": "Pull-Up",
+         "position": 4,
+         "prescription": {
+          "reps": 6,
+          "sets": 3,
+          "type": "bodyweight",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-ab-wheel",
+         "name": "Ab Wheel Rollout",
+         "position": 5,
+         "prescription": {
+          "reps": 6,
+          "sets": 3,
+          "type": "bodyweight",
+          "unit": "lb"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Friday",
+      "durationMin": 60,
+      "key": "5-ahf-reentry-strength-fri",
+      "name": "Reentry Strength",
+      "variantTag": "Full Body A"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-easy-aerobic-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 3000,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Saturday",
+      "durationMin": 60,
+      "key": "6-ahf-reentry-easy-aerobic",
+      "name": "Easy Aerobic"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-recovery-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 1200,
+          "targetHrZone": 1,
+          "type": "timed-cardio"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Sunday",
+      "durationMin": 30,
+      "key": "7-ahf-reentry-recovery",
+      "name": "Recovery"
+     }
+    ],
+    "isDeload": false,
+    "summary": "Full Body A · 4×1000m · Full Body B",
+    "week": 3
+   },
+   {
+    "days": [
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-back-squat",
+         "name": "Back Squat",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 8,
+          "sets": 5,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 75
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-romanian-deadlift",
+         "name": "Romanian Deadlift",
+         "position": 2,
+         "prescription": {
+          "reps": 8,
+          "rpeTarget": 7,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 52
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-bulgarian-split-squat",
+         "name": "Bulgarian Split Squat",
+         "position": 3,
+         "prescription": {
+          "reps": 10,
+          "sets": 2,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 35
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-reentry-standing-calf-raise",
+         "name": "Standing Calf Raise",
+         "position": 4,
+         "prescription": {
+          "reps": 15,
+          "sets": 2,
+          "type": "strength",
+          "unit": "lb",
+          "weight": 90
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-plank",
+         "name": "Plank",
+         "position": 5,
+         "prescription": {
+          "holdSec": 60,
+          "sets": 2,
+          "type": "timed-hold",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-reentry-week4-lower-finisher",
+         "name": "Rower",
+         "position": 6,
+         "prescription": {
+          "durationSec": 600,
+          "targetHrZone": 1,
+          "type": "timed-cardio"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Monday",
+      "durationMin": 60,
+      "key": "1-ahf-reentry-strength-mon",
+      "name": "Reentry Strength",
+      "variantTag": "Lower Strength"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-row-intervals-6x500-rower",
+         "name": "Rower",
+         "prescription": {
+          "count": 6,
+          "recoverySec": 120,
+          "type": "intervals",
+          "workDistanceMeters": 500
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Tuesday",
+      "durationMin": 50,
+      "key": "2-ahf-reentry-row-tue",
+      "name": "Reentry Row",
+      "variantTag": "6×500m"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-bench-press",
+         "name": "Bench Press",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 8,
+          "sets": 5,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 60
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-reentry-pullup",
+         "name": "Pull-Up",
+         "position": 2,
+         "prescription": {
+          "reps": 6,
+          "sets": 4,
+          "type": "bodyweight",
+          "unit": "kg"
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-overhead-press",
+         "name": "Standing Overhead Press",
+         "position": 3,
+         "prescription": {
+          "reps": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 37
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-barbell-row",
+         "name": "Barbell Row",
+         "position": 4,
+         "prescription": {
+          "reps": 8,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 47
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-dips",
+         "name": "Dips",
+         "position": 5,
+         "prescription": {
+          "reps": 10,
+          "sets": 2,
+          "type": "bodyweight",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-ab-wheel",
+         "name": "Ab Wheel Rollout",
+         "position": 6,
+         "prescription": {
+          "reps": 6,
+          "sets": 2,
+          "type": "bodyweight",
+          "unit": "lb"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Wednesday",
+      "durationMin": 60,
+      "key": "3-ahf-reentry-strength-wed",
+      "name": "Reentry Strength",
+      "variantTag": "Upper Strength"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-zone2-row-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 2700,
+          "strokeRateMax": 22,
+          "strokeRateMin": 18,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Thursday",
+      "durationMin": 45,
+      "key": "4-ahf-reentry-zone2-row",
+      "name": "Zone 2 Row"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-deadlift",
+         "name": "Deadlift",
+         "position": 1,
+         "prescription": {
+          "reps": 5,
+          "rpeTarget": 7,
+          "sets": 3,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 92
+         },
+         "role": "primary"
+        },
+        {
+         "id": "ahf-reentry-push-press",
+         "name": "Push Press",
+         "position": 2,
+         "prescription": {
+          "reps": 3,
+          "rpeTarget": 7,
+          "sets": 4,
+          "type": "strength",
+          "unit": "kg",
+          "weight": 42
+         },
+         "role": "secondary"
+        },
+        {
+         "id": "ahf-reentry-pullup",
+         "name": "Pull-Up",
+         "position": 3,
+         "prescription": {
+          "reps": 6,
+          "sets": 2,
+          "type": "bodyweight",
+          "unit": "kg"
+         },
+         "role": "accessory"
+        },
+        {
+         "id": "ahf-reentry-farmer-carry",
+         "name": "Farmer Carry",
+         "position": 4,
+         "prescription": {
+          "durationSec": 40,
+          "sets": 3,
+          "type": "timed-carry",
+          "unit": "lb",
+          "weight": 120
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Friday",
+      "durationMin": 60,
+      "key": "5-ahf-reentry-strength-fri",
+      "name": "Reentry Strength",
+      "variantTag": "Athletic / Power"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-easy-aerobic-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 3000,
+          "targetHrZone": 2,
+          "type": "timed-cardio"
+         },
+         "role": "primary"
+        }
+       ]
+      },
+      "dayName": "Saturday",
+      "durationMin": 60,
+      "key": "6-ahf-reentry-easy-aerobic",
+      "name": "Easy Aerobic"
+     },
+     {
+      "content": {
+       "kind": "slots",
+       "slots": [
+        {
+         "id": "ahf-reentry-recovery-rower",
+         "name": "Rower",
+         "prescription": {
+          "durationSec": 1200,
+          "targetHrZone": 1,
+          "type": "timed-cardio"
+         },
+         "role": "accessory"
+        }
+       ]
+      },
+      "dayName": "Sunday",
+      "durationMin": 30,
+      "key": "7-ahf-reentry-recovery",
+      "name": "Recovery"
+     }
+    ],
+    "isDeload": false,
+    "summary": "Lower Strength · 6×500m · Upper Strength · Athletic / Power",
+    "week": 4
+   }
+  ]
+ },
+ "name": "Strength Reentry",
+ "outcome": {
+  "blockId": "athletic-health-foundation-block",
+  "kind": "next",
+  "name": "Foundation Block"
+ },
+ "programName": "Athletic Health Foundation",
+ "versionId": "athletic-health-foundation-v1"
+}

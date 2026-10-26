@@ -1,0 +1,567 @@
+{
+ "concept2Connected": false,
+ "exerciseModalities": {
+  "ab-wheel": "bodyweight",
+  "back-squat": "barbell",
+  "band-triceps-pushdown": "band",
+  "barbell-row": "barbell",
+  "bench-press": "barbell",
+  "biceps-curl": "dumbbell",
+  "bike": "bike",
+  "bulgarian-split-squat": "dumbbell",
+  "burpee": "bodyweight",
+  "chest-supported-row": "dumbbell",
+  "deadlift": "barbell",
+  "dips": "bodyweight",
+  "dumbbell-fly": "dumbbell",
+  "dumbbell-swing": "dumbbell",
+  "farmer-carry": "dumbbell",
+  "goblet-squat": "dumbbell",
+  "hammer-curl": "dumbbell",
+  "hanging-knee-raise": "bodyweight",
+  "hike": "hike",
+  "hill-sprint": "run",
+  "incline-bench-press": "barbell",
+  "inverted-row": "bodyweight",
+  "lateral-raise": "dumbbell",
+  "overhead-press": "barbell",
+  "overhead-triceps-extension": "dumbbell",
+  "plank": "bodyweight",
+  "pullup": "bodyweight",
+  "push-press": "barbell",
+  "pushup": "bodyweight",
+  "rear-delt-fly": "dumbbell",
+  "romanian-deadlift": "barbell",
+  "rower": "rower",
+  "run": "run",
+  "side-plank": "bodyweight",
+  "standing-calf-raise": "machine",
+  "triceps-pushdown": "machine",
+  "walking-lunge": "bodyweight",
+  "weighted-pullup": "bodyweight"
+ },
+ "exerciseNames": {
+  "ab-wheel": "Ab Wheel Rollout",
+  "back-squat": "Back Squat",
+  "band-triceps-pushdown": "Band Triceps Pushdown",
+  "barbell-row": "Barbell Row",
+  "bench-press": "Bench Press",
+  "biceps-curl": "Biceps Curl",
+  "bike": "Bike",
+  "bulgarian-split-squat": "Bulgarian Split Squat",
+  "burpee": "Burpee",
+  "chest-supported-row": "Chest-Supported Row",
+  "deadlift": "Deadlift",
+  "dips": "Dips",
+  "dumbbell-fly": "Dumbbell Fly",
+  "dumbbell-swing": "Dumbbell Swing",
+  "farmer-carry": "Farmer Carry",
+  "goblet-squat": "Goblet Squat",
+  "hammer-curl": "Hammer Curl",
+  "hanging-knee-raise": "Hanging Knee Raise",
+  "hike": "Hike",
+  "hill-sprint": "Hill Sprint",
+  "incline-bench-press": "Incline Bench Press",
+  "inverted-row": "Inverted Row",
+  "lateral-raise": "Lateral Raise",
+  "overhead-press": "Standing Overhead Press",
+  "overhead-triceps-extension": "Overhead Triceps Extension",
+  "plank": "Plank",
+  "pullup": "Pull-Up",
+  "push-press": "Push Press",
+  "pushup": "Push-Up",
+  "rear-delt-fly": "Rear-Delt Fly",
+  "romanian-deadlift": "Romanian Deadlift",
+  "rower": "Rower",
+  "run": "Run",
+  "side-plank": "Side Plank",
+  "standing-calf-raise": "Standing Calf Raise",
+  "triceps-pushdown": "Triceps Pushdown",
+  "walking-lunge": "Walking Lunge",
+  "weighted-pullup": "Weighted Pull-Up"
+ },
+ "explanations": {
+  "romanian-deadlift": "Repeat 42 kg: final-set RPE 7.5 was above every progression band.",
+  "bench-press": "Increase from 52 kg to 54 kg: final-set RPE 7.5 was at or below 7.5.",
+  "rower": "No automatic progression for this movement.",
+  "pullup": "Increase to 3×6 (from 5); add weight once 8 reps are reached.",
+  "back-squat": "Increase from 60 kg to 62 kg: final-set RPE 7.5 was at or below 7.5.",
+  "ab-wheel": "Aim for at least 7 reps on each of 2 AMRAP sets, working toward 10."
+ },
+ "session": {
+  "adaptationDecisionIds": [
+   "723208a5-37cc-49d7-a28a-7b2f06569c17",
+   "567fa250-3dc0-4983-b91d-ee8661060604",
+   "3adb6188-61e6-4e5d-9f53-a5e858218da9",
+   "a367f085-3a1d-4962-ae8c-dca74b579a41",
+   "e8c91bfe-769b-430a-8164-8f129d77051e",
+   "218304e2-d633-4bb8-a8ab-4acb55360096"
+  ],
+  "blockId": "athletic-health-foundation-reentry-block",
+  "dayOfWeek": 5,
+  "estimatedDurationMin": 45,
+  "id": "821d6545-a84c-4944-8695-2ed7e34f85e7",
+  "inProgress": {
+   "sets": [
+    {
+     "completed": true,
+     "reps": 8,
+     "rpe": 7.5,
+     "setIndex": 0,
+     "weight": 42
+    }
+   ],
+   "slotId": "ahf-romanian-deadlift"
+  },
+  "prescribedExercises": [
+   {
+    "exerciseId": "back-squat",
+    "prescription": {
+     "reps": 5,
+     "sets": 3,
+     "type": "strength",
+     "unit": "kg",
+     "weight": 62
+    },
+    "previous": {
+     "exerciseId": "back-squat",
+     "id": "a1763a51-dfb8-4c1c-82d3-2d6cee6ad5b0",
+     "prescription": {
+      "reps": 5,
+      "rpeTarget": 6,
+      "sets": 3,
+      "type": "strength",
+      "unit": "kg",
+      "weight": 60
+     },
+     "recordedAt": "2026-10-19T13:05:00.000Z",
+     "sets": [
+      {
+       "completed": true,
+       "reps": 5,
+       "rpe": 7.5,
+       "setIndex": 0,
+       "weight": 60
+      },
+      {
+       "completed": true,
+       "reps": 5,
+       "rpe": 7.5,
+       "setIndex": 1,
+       "weight": 60
+      },
+      {
+       "completed": true,
+       "reps": 5,
+       "rpe": 7.5,
+       "setIndex": 2,
+       "weight": 60
+      }
+     ],
+     "slotId": "ahf-back-squat"
+    },
+    "progression": {
+     "bands": [
+      {
+       "increment": 5,
+       "maxRpe": 6
+      },
+      {
+       "increment": 2,
+       "maxRpe": 7.5
+      }
+     ],
+     "kind": "rpe-banded",
+     "reps": 5,
+     "sets": 3
+    },
+    "role": "primary",
+    "slotId": "ahf-back-squat",
+    "warmup": [
+     {
+      "reps": 5,
+      "weight": 20
+     },
+     {
+      "reps": 5,
+      "weight": 25
+     },
+     {
+      "reps": 5,
+      "weight": 35
+     },
+     {
+      "reps": 3,
+      "weight": 42.5
+     },
+     {
+      "reps": 2,
+      "weight": 52.5
+     }
+    ]
+   },
+   {
+    "exerciseId": "bench-press",
+    "prescription": {
+     "reps": 5,
+     "sets": 3,
+     "type": "strength",
+     "unit": "kg",
+     "weight": 54
+    },
+    "previous": {
+     "exerciseId": "bench-press",
+     "id": "ff831ed8-b475-454d-ac51-c5a6b4193433",
+     "prescription": {
+      "reps": 5,
+      "rpeTarget": 6,
+      "sets": 3,
+      "type": "strength",
+      "unit": "kg",
+      "weight": 52
+     },
+     "recordedAt": "2026-10-19T13:12:00.000Z",
+     "sets": [
+      {
+       "completed": true,
+       "reps": 5,
+       "rpe": 7.5,
+       "setIndex": 0,
+       "weight": 52
+      },
+      {
+       "completed": true,
+       "reps": 5,
+       "rpe": 7.5,
+       "setIndex": 1,
+       "weight": 52
+      },
+      {
+       "completed": true,
+       "reps": 5,
+       "rpe": 7.5,
+       "setIndex": 2,
+       "weight": 52
+      }
+     ],
+     "slotId": "ahf-bench-press"
+    },
+    "progression": {
+     "bands": [
+      {
+       "increment": 5,
+       "maxRpe": 6
+      },
+      {
+       "increment": 2,
+       "maxRpe": 7.5
+      }
+     ],
+     "kind": "rpe-banded",
+     "reps": 5,
+     "sets": 3
+    },
+    "role": "secondary",
+    "slotId": "ahf-bench-press",
+    "warmup": [
+     {
+      "reps": 5,
+      "weight": 20
+     },
+     {
+      "reps": 5,
+      "weight": 22.5
+     },
+     {
+      "reps": 5,
+      "weight": 30
+     },
+     {
+      "reps": 3,
+      "weight": 37.5
+     },
+     {
+      "reps": 2,
+      "weight": 45
+     }
+    ]
+   },
+   {
+    "exerciseId": "romanian-deadlift",
+    "prescription": {
+     "reps": 8,
+     "sets": 2,
+     "type": "strength",
+     "unit": "kg",
+     "weight": 42
+    },
+    "previous": {
+     "exerciseId": "romanian-deadlift",
+     "id": "33c7c207-58e4-475f-b61f-538d78381cde",
+     "prescription": {
+      "reps": 8,
+      "sets": 2,
+      "type": "strength",
+      "unit": "kg",
+      "weight": 42
+     },
+     "recordedAt": "2026-10-19T13:19:00.000Z",
+     "sets": [
+      {
+       "completed": true,
+       "reps": 8,
+       "rpe": 7.5,
+       "setIndex": 0,
+       "weight": 42
+      },
+      {
+       "completed": true,
+       "reps": 8,
+       "rpe": 7.5,
+       "setIndex": 1,
+       "weight": 42
+      }
+     ],
+     "slotId": "ahf-romanian-deadlift"
+    },
+    "progression": {
+     "bands": [
+      {
+       "increment": 2,
+       "maxRpe": 7
+      }
+     ],
+     "kind": "rpe-banded",
+     "reps": 8,
+     "sets": 2
+    },
+    "role": "secondary",
+    "slotId": "ahf-romanian-deadlift",
+    "warmup": [
+     {
+      "reps": 5,
+      "weight": 20
+     },
+     {
+      "reps": 5,
+      "weight": 22.5
+     },
+     {
+      "reps": 3,
+      "weight": 30
+     },
+     {
+      "reps": 2,
+      "weight": 35
+     }
+    ]
+   },
+   {
+    "exerciseId": "pullup",
+    "prescription": {
+     "reps": 6,
+     "sets": 3,
+     "type": "bodyweight",
+     "unit": "kg"
+    },
+    "previous": {
+     "exerciseId": "pullup",
+     "id": "d1ba2408-591b-4c86-bad0-c2cf6257811f",
+     "prescription": {
+      "reps": 5,
+      "sets": 3,
+      "type": "bodyweight",
+      "unit": "kg"
+     },
+     "recordedAt": "2026-10-19T13:26:00.000Z",
+     "sets": [
+      {
+       "completed": true,
+       "reps": 5,
+       "rpe": 8,
+       "setIndex": 0
+      },
+      {
+       "completed": true,
+       "reps": 5,
+       "rpe": 8,
+       "setIndex": 1
+      },
+      {
+       "completed": true,
+       "reps": 5,
+       "rpe": 8,
+       "setIndex": 2
+      }
+     ],
+     "slotId": "ahf-reentry-pullup"
+    },
+    "progression": {
+     "increment": 2,
+     "kind": "double",
+     "maxReps": 8,
+     "minReps": 5,
+     "rpeCap": 7,
+     "sets": 3
+    },
+    "role": "accessory",
+    "slotId": "ahf-reentry-pullup"
+   },
+   {
+    "exerciseId": "ab-wheel",
+    "prescription": {
+     "reps": 7,
+     "sets": 2,
+     "type": "bodyweight",
+     "unit": "lb"
+    },
+    "previous": {
+     "exerciseId": "ab-wheel",
+     "id": "abda1e01-8bfe-42b9-808f-7efef1b7b6f2",
+     "prescription": {
+      "reps": 6,
+      "sets": 2,
+      "type": "bodyweight",
+      "unit": "lb"
+     },
+     "recordedAt": "2026-10-19T13:33:00.000Z",
+     "sets": [
+      {
+       "completed": true,
+       "reps": 6,
+       "rpe": 8,
+       "setIndex": 0
+      },
+      {
+       "completed": true,
+       "reps": 6,
+       "rpe": 8,
+       "setIndex": 1
+      }
+     ],
+     "slotId": "ahf-ab-wheel"
+    },
+    "progression": {
+     "kind": "amrap",
+     "repCap": 10,
+     "sets": 2
+    },
+    "role": "accessory",
+    "slotId": "ahf-ab-wheel"
+   },
+   {
+    "exerciseId": "rower",
+    "prescription": {
+     "durationSec": 600,
+     "targetHrZone": 1,
+     "type": "timed-cardio"
+    },
+    "previous": {
+     "cardio": {
+      "avgHr": 142,
+      "distanceMeters": 5000,
+      "durationSec": 1260,
+      "splitSecPer500": 126
+     },
+     "exerciseId": "rower",
+     "id": "e232e241-7e2d-4462-ac30-29d6e9e6c33f",
+     "prescription": {
+      "durationSec": 600,
+      "targetHrZone": 1,
+      "type": "timed-cardio"
+     },
+     "recordedAt": "2026-10-19T13:40:00.000Z",
+     "sets": [],
+     "slotId": "ahf-reentry-full-body-a-finisher"
+    },
+    "progression": {
+     "kind": "none"
+    },
+    "role": "accessory",
+    "slotId": "ahf-reentry-full-body-a-finisher"
+   }
+  ],
+  "programVersionId": "athletic-health-foundation-v1",
+  "results": [
+   {
+    "exerciseId": "back-squat",
+    "id": "843861d1-4032-4b56-be85-8e9cb719f2b2",
+    "prescription": {
+     "reps": 5,
+     "sets": 3,
+     "type": "strength",
+     "unit": "kg",
+     "weight": 62
+    },
+    "recordedAt": "2026-10-23T13:05:00.000Z",
+    "sets": [
+     {
+      "completed": true,
+      "reps": 5,
+      "rpe": 7.5,
+      "setIndex": 0,
+      "weight": 62
+     },
+     {
+      "completed": true,
+      "reps": 5,
+      "rpe": 7.5,
+      "setIndex": 1,
+      "weight": 62
+     },
+     {
+      "completed": true,
+      "reps": 5,
+      "rpe": 7.5,
+      "setIndex": 2,
+      "weight": 62
+     }
+    ],
+    "slotId": "ahf-back-squat"
+   },
+   {
+    "exerciseId": "bench-press",
+    "id": "5de9c6ea-fda8-4795-8896-4373722024a2",
+    "prescription": {
+     "reps": 5,
+     "sets": 3,
+     "type": "strength",
+     "unit": "kg",
+     "weight": 54
+    },
+    "recordedAt": "2026-10-23T13:12:00.000Z",
+    "sets": [
+     {
+      "completed": true,
+      "reps": 5,
+      "rpe": 7.5,
+      "setIndex": 0,
+      "weight": 54
+     },
+     {
+      "completed": true,
+      "reps": 5,
+      "rpe": 7.5,
+      "setIndex": 1,
+      "weight": 54
+     },
+     {
+      "completed": true,
+      "reps": 5,
+      "rpe": 7.5,
+      "setIndex": 2,
+      "weight": 54
+     }
+    ],
+    "slotId": "ahf-bench-press"
+   }
+  ],
+  "scheduledDate": "2026-10-23",
+  "sessionTemplateId": "ahf-reentry-strength-fri",
+  "startedAt": "2026-10-23T13:00:00.000Z",
+  "status": "in-progress",
+  "userId": "default",
+  "variantLabel": "Week 1 · Full Body A",
+  "weekNumber": 1
+ }
+}

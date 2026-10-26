@@ -86,7 +86,6 @@ working in its area; it is context, not compliance.
 | Doc | Covers |
 |---|---|
 | [/docs/architecture/ENGINE_SEPARATION.md](/docs/architecture/ENGINE_SEPARATION.md) | The four-stage pipeline — Program Definition → Workout Prescription → Workout Result → Adaptation Decision — and the hard boundary that keeps `program-engine` and `adaptation-engine` pure, deterministic, and independent of React and the database. |
-| [/docs/architecture/ANDROID_APP.md](/docs/architecture/ANDROID_APP.md) | The native Android client: stack, `/api/v1` backend, offline cache + outbox, weigh-in reminder, workout notification, foldable layouts. |
 
 ## Per-package addenda
 

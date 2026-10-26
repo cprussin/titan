@@ -1,0 +1,34 @@
+{
+ "metrics": [
+  {
+   "date": "2026-10-25",
+   "id": "be9cd7f3-193a-4efe-a540-890e75fd216a",
+   "userId": "default",
+   "weightLb": 210.2
+  },
+  {
+   "date": "2026-10-22",
+   "id": "cbe47ae6-2a5c-4d67-912b-e333ab82b204",
+   "userId": "default",
+   "weightLb": 210.6
+  },
+  {
+   "date": "2026-10-19",
+   "id": "70aeeea5-968a-4826-9964-cf8b8e6babec",
+   "userId": "default",
+   "weightLb": 211
+  },
+  {
+   "date": "2026-10-15",
+   "id": "e1e78cb5-06de-4fb7-8fb7-738a26e05a2d",
+   "userId": "default",
+   "weightLb": 211.8
+  },
+  {
+   "date": "2026-10-12",
+   "id": "a16a3e48-5436-4367-a378-60565d657c2c",
+   "userId": "default",
+   "weightLb": 212.4
+  }
+ ]
+}

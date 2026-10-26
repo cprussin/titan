@@ -1,0 +1,44 @@
+{
+ "rows": [
+  {
+   "badge": {
+    "text": "In progress",
+    "tone": "warning"
+   },
+   "href": "/workout/821d6545-a84c-4944-8695-2ed7e34f85e7",
+   "id": "821d6545-a84c-4944-8695-2ed7e34f85e7",
+   "meta": "2026-10-23 · Week 1",
+   "name": "Reentry Strength"
+  },
+  {
+   "badge": {
+    "text": "12 sets",
+    "tone": "success"
+   },
+   "href": "/workout/f1bd3683-6b4d-413a-b24c-49a0804cfdfd/complete",
+   "id": "f1bd3683-6b4d-413a-b24c-49a0804cfdfd",
+   "meta": "2026-10-21 · Week 1",
+   "name": "Reentry Strength"
+  },
+  {
+   "badge": {
+    "text": "0 sets",
+    "tone": "success"
+   },
+   "href": "/workout/86f4fd40-0ff1-40ff-a40f-d78a5b814508/complete",
+   "id": "86f4fd40-0ff1-40ff-a40f-d78a5b814508",
+   "meta": "2026-10-20 · Week 1",
+   "name": "Reentry Row"
+  },
+  {
+   "badge": {
+    "text": "13 sets",
+    "tone": "success"
+   },
+   "href": "/workout/acb624df-c20c-4db4-804e-e3025c912b3e/complete",
+   "id": "acb624df-c20c-4db4-804e-e3025c912b3e",
+   "meta": "2026-10-19 · Week 1",
+   "name": "Reentry Strength"
+  }
+ ]
+}
