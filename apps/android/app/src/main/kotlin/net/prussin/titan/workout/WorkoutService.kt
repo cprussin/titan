@@ -9,6 +9,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.media.AudioManager
 import android.os.IBinder
 import android.os.PowerManager
 import kotlinx.coroutines.MainScope
@@ -44,7 +45,7 @@ class WorkoutService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        synth = ToneSynth(scope)
+        synth = ToneSynth(scope, getSystemService(AudioManager::class.java))
         wakeLock =
             getSystemService(PowerManager::class.java)
                 .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "titan:workout-timer")
