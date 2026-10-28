@@ -74,7 +74,8 @@ fun WeighInDialog(onDismiss: () -> Unit) {
                 "Log",
                 {
                     val day = today()
-                    scope.launch {
+                    // The app scope, not the dialog's: closing the dialog would cancel the save.
+                    graph.scope.launch {
                         graph.outbox.append(
                             listOf(OutboxOp.WeighIn(WeighInBody(UUID.randomUUID().toString(), day, weight!!))),
                         )
@@ -82,6 +83,7 @@ fun WeighInDialog(onDismiss: () -> Unit) {
                         Reminders.clear(graph.context)
                         Reminders.schedule(graph.context)
                         graph.sync.syncNow()
+                        graph.repository.invalidate()
                     }
                     onDismiss()
                 },
